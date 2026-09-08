@@ -2,7 +2,7 @@ import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { Idea } from "../../domain/entities/Idea";
 import { CreateIdeaInputDTO, IdeaOutputDTO } from "../dtos/IdeaDTO";
 
-export class CreateIdeaUseCase {
+export class CreateIdeaUserStorie {
   constructor(private readonly ideaRepository: IIdeaRepository) {}
 
   async execute(input: CreateIdeaInputDTO): Promise<IdeaOutputDTO> {
