@@ -19,7 +19,7 @@ export class IdeaController {
     } catch (error: any) {
       return res
         .status(400)
-        .json({ error: error.message || "Unexpected error" });
+        .json({ error: error.message || "Erro inesperado" });
     }
   }
 }
