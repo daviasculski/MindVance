@@ -7,4 +7,5 @@ export interface IIdeaRepository {
   findById(id: string): Promise<Idea | null>;
   findAll(): Promise<Idea[]>;
   update(id: string, data: UpdateIdeaData): Promise<Idea>;
+  delete(id: string): Promise<void>;
 }

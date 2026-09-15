@@ -3,10 +3,12 @@ import { IdeaController } from "../controllers/IdeaController";
 import { ListIdeasController } from "../controllers/ListIdeasController";
 import { GetIdeaByIdController } from "../controllers/GetIdeaByIdController";
 import { UpdateIdeaController } from "../controllers/UpdateIdeaController";
+import { DeleteIdeaController } from "../controllers/DeleteIdeaController";
 import { CreateIdeaUserStorie } from "../../application/userstories/CreateIdeaUserStorie";
 import { ListIdeasUserStory } from "../../application/userstories/ListIdeasUserStory";
 import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdUserStory";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
+import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUserStory";
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 
 const ideaRoutes = Router();
@@ -26,11 +28,15 @@ const getIdeaByIdController = new GetIdeaByIdController(getIdeaByIdUserStory);
 const updateIdeaUserStory = new UpdateIdeaUserStory(ideaRepository);
 const updateIdeaController = new UpdateIdeaController(updateIdeaUserStory);
 
+const deleteIdeaUserStory = new DeleteIdeaUserStory(ideaRepository);
+const deleteIdeaController = new DeleteIdeaController(deleteIdeaUserStory);
+
 //rotas do projeto
 //testadas no postman
 ideaRoutes.post("/", (req, res) => ideaController.create(req, res));
 ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
+ideaRoutes.delete("/:id", (req, res) => deleteIdeaController.handle(req, res));
 
 export { ideaRoutes };

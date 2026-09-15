@@ -90,4 +90,10 @@ export class PrismaIdeaRepository implements IIdeaRepository {
       updatedAt: raw.updated_at,
     });
   }
+
+  async delete(id: string): Promise<void> {
+    await prisma.idea.delete({
+      where: { id },
+    });
+  }
 }
