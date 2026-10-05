@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { ideaRoutes } from "./idea.routes";
+import { evaluationRoutes } from "./evaluation.routes";
 import prisma from "../../infrastructure/database/prisma/client";
 
 const routes = Router();
@@ -23,5 +24,6 @@ routes.get("/health/db", async (req, res) => {
 });
 
 routes.use("/ideas", ideaRoutes);
+routes.use("/evaluations", evaluationRoutes);
 
 export { routes };

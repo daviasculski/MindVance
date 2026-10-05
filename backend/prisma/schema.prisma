@@ -8,13 +8,28 @@ generator client {
 }
 
 model Idea {
-  id          String   @id @default(uuid())
-  title       String   @db.VarChar(255)
-  description String   @db.Text
-  author_id   String   @db.VarChar(255)
-  extra_fields Json?   @default("{}")
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           String       @id @default(uuid())
+  title        String       @db.VarChar(255)
+  description  String       @db.Text
+  author_id    String       @db.VarChar(255)
+  extra_fields Json?        @default("{}")
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  evaluations  Evaluation[]
 
   @@map("ideas")
+}
+
+model Evaluation {
+  id            String   @id @default(uuid())
+  ideaId        String
+  evaluatorId   String
+  score         Float
+  justification String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+
+  @@index([ideaId])
+  @@map("evaluations")
 }
