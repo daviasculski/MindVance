@@ -20,6 +20,17 @@ model Idea {
   @@map("ideas")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
 model Evaluation {
   id            String   @id @default(uuid())
   ideaId        String
