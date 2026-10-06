@@ -10,6 +10,9 @@ import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdU
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
 import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUserStory";
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
+import { AdvanceIdeaStageUserStory } from "../../application/userstories/AdvanceIdeaStageUserStory";
+import { AdvanceIdeaStageController } from "../controllers/AdvanceIdeaStageController";
+import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
 
 const ideaRoutes = Router();
 
@@ -31,6 +34,11 @@ const updateIdeaController = new UpdateIdeaController(updateIdeaUserStory);
 const deleteIdeaUserStory = new DeleteIdeaUserStory(ideaRepository);
 const deleteIdeaController = new DeleteIdeaController(deleteIdeaUserStory);
 
+const advanceIdeaStageUserStory = new AdvanceIdeaStageUserStory(ideaRepository);
+const advanceIdeaStageController = new AdvanceIdeaStageController(
+  advanceIdeaStageUserStory,
+);
+
 //rotas do projeto
 //testadas no postman
 ideaRoutes.post("/", (req, res) => ideaController.create(req, res));
@@ -38,5 +46,8 @@ ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
 ideaRoutes.delete("/:id", (req, res) => deleteIdeaController.handle(req, res));
+ideaRoutes.patch("/:id/stage", ensureAuthenticated, (req, res) =>
+  advanceIdeaStageController.handle(req, res),
+);
 
 export { ideaRoutes };

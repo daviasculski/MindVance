@@ -7,15 +7,25 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum IdeaStage {
+  IDEACAO
+  ESCOPO
+  PLANO_DE_NEGOCIOS
+  DESENVOLVIMENTO
+  TESTE_E_VALIDACAO
+  LANCAMENTO
+}
+
 model Idea {
-  id           String       @id @default(uuid())
-  title        String       @db.VarChar(255)
-  description  String       @db.Text
-  author_id    String       @db.VarChar(255)
-  extra_fields Json?        @default("{}")
-  created_at   DateTime     @default(now())
-  updated_at   DateTime     @updatedAt
-  evaluations  Evaluation[]
+  id            String       @id @default(uuid())
+  title         String       @db.VarChar(255)
+  description   String       @db.Text
+  author_id     String       @db.VarChar(255)
+  extra_fields  Json?        @default("{}")
+  current_stage IdeaStage    @default(IDEACAO)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  evaluations   Evaluation[]
 
   @@map("ideas")
 }

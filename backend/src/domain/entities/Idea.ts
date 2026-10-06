@@ -1,9 +1,12 @@
+import { IdeaStage } from "./IdeaStage";
+
 export interface IdeaProps {
   id?: string;
   title: string;
   description: string;
   authorId: string;
   extraFields?: Record<string, unknown> | null;
+  currentStage?: IdeaStage;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -15,6 +18,7 @@ export class Idea {
     this.props = {
       ...props,
       extraFields: props.extraFields ?? {},
+      currentStage: props.currentStage ?? "IDEATION",
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
     };
@@ -40,6 +44,10 @@ export class Idea {
     return this.props.extraFields;
   }
 
+  get currentStage(): IdeaStage {
+    return this.props.currentStage ?? "IDEATION";
+  }
+
   get createdAt(): Date | undefined {
     return this.props.createdAt;
   }
@@ -55,6 +63,7 @@ export class Idea {
       description: this.description,
       authorId: this.authorId,
       extraFields: this.extraFields,
+      currentStage: this.currentStage,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

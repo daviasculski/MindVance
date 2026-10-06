@@ -13,6 +13,7 @@ export class ListIdeasUserStory {
       description: idea.description,
       authorId: idea.authorId,
       extraFields: idea.extraFields ?? null,
+      currentStage: idea.currentStage,
       createdAt: idea.createdAt!,
       updatedAt: idea.updatedAt!,
     }));

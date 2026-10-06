@@ -29,6 +29,7 @@ export class CreateIdeaUserStorie {
       description: savedIdea.description,
       authorId: savedIdea.authorId,
       extraFields: savedIdea.extraFields ?? null,
+      currentStage: savedIdea.currentStage,
       createdAt: savedIdea.createdAt!,
       updatedAt: savedIdea.updatedAt!,
     };

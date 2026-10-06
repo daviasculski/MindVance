@@ -1,5 +1,6 @@
 import { IIdeaRepository, UpdateIdeaData } from "../../domain/repositories/IIdeaRepository";
 import { Idea } from "../../domain/entities/Idea";
+import { IdeaStage } from "../../domain/entities/IdeaStage";
 import prisma from "../database/prisma/client";
 import { Prisma } from "@prisma/client";
 
@@ -21,6 +22,7 @@ export class PrismaIdeaRepository implements IIdeaRepository {
       description: raw.description,
       authorId: raw.author_id,
       extraFields: raw.extra_fields as Record<string, unknown> | null,
+      currentStage: raw.current_stage,
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,
     });
@@ -41,6 +43,7 @@ export class PrismaIdeaRepository implements IIdeaRepository {
       description: raw.description,
       authorId: raw.author_id,
       extraFields: raw.extra_fields as Record<string, unknown> | null,
+      currentStage: raw.current_stage,
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,
     });
@@ -59,6 +62,7 @@ export class PrismaIdeaRepository implements IIdeaRepository {
           description: raw.description,
           authorId: raw.author_id,
           extraFields: raw.extra_fields as Record<string, unknown> | null,
+          currentStage: raw.current_stage,
           createdAt: raw.created_at,
           updatedAt: raw.updated_at,
         }),
@@ -86,6 +90,25 @@ export class PrismaIdeaRepository implements IIdeaRepository {
       description: raw.description,
       authorId: raw.author_id,
       extraFields: raw.extra_fields as Record<string, unknown> | null,
+      currentStage: raw.current_stage,
+      createdAt: raw.created_at,
+      updatedAt: raw.updated_at,
+    });
+  }
+
+  async updateStage(id: string, stage: IdeaStage): Promise<Idea> {
+    const raw = await prisma.idea.update({
+      where: { id },
+      data: { current_stage: stage },
+    });
+
+    return new Idea({
+      id: raw.id,
+      title: raw.title,
+      description: raw.description,
+      authorId: raw.author_id,
+      extraFields: raw.extra_fields as Record<string, unknown> | null,
+      currentStage: raw.current_stage,
       createdAt: raw.created_at,
       updatedAt: raw.updated_at,
     });

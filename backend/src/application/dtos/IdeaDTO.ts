@@ -1,3 +1,5 @@
+import { IdeaStage } from "../../domain/entities/IdeaStage";
+
 export interface CreateIdeaInputDTO {
   title: string;
   description: string;
@@ -18,6 +20,7 @@ export interface IdeaOutputDTO {
   description: string;
   authorId: string;
   extraFields: Record<string, unknown> | null;
+  currentStage: IdeaStage;
   createdAt: Date;
   updatedAt: Date;
 }
