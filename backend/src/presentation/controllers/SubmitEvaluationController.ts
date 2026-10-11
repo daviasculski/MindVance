@@ -7,12 +7,17 @@ export class SubmitEvaluationController {
   ) {}
 
   async handle(req: Request, res: Response): Promise<Response> {
+    if (!req.user) {
+      return res.status(401).json({ error: "Authentication is required" });
+    }
+
     try {
-      const { ideaId, evaluatorId, score, justification } = req.body;
+      const { ideaId, score, justification } = req.body;
 
       const evaluation = await this.submitEvaluationUserStory.execute({
         ideaId,
-        evaluatorId,
+        evaluatorId: req.user.id,
+        evaluatorRole: req.user.role,
         score,
         justification,
       });
@@ -21,6 +26,18 @@ export class SubmitEvaluationController {
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Unexpected error";
+
+      if (
+        message ===
+          "Only users with the Evaluator role can submit evaluations" ||
+        message === "Authors cannot evaluate their own ideas"
+      ) {
+        return res.status(403).json({ error: message });
+      }
+
+      if (message === "Idea not found") {
+        return res.status(404).json({ error: message });
+      }
 
       return res.status(400).json({ error: message });
     }

@@ -22,18 +22,21 @@ export class CreateUserUserStory {
 
     const name = input.name.trim();
     const email = input.email.trim().toLowerCase();
+    const role = input.role; // <-- Captura o role enviado
 
     if (await this.userRepository.findByEmail(email)) {
       throw new Error("Email is already registered");
     }
 
     const password = await bcrypt.hash(input.password, 8);
-    const user = await this.userRepository.create({ name, email, password });
+    // Passa o role para o repositório criar a entidade com o perfil correto
+    const user = await this.userRepository.create({ name, email, password, role });
 
     return {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role, // <-- Opcional, mas útil para retornar no output DTO
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

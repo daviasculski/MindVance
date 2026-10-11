@@ -6,11 +6,12 @@ export class CreateUserController {
 
   async handle(req: Request, res: Response): Promise<Response> {
     try {
-      const { name, email, password } = req.body;
+      const { name, email, password, role } = req.body; // <-- Incluído o role aqui
       const user = await this.createUserUserStory.execute({
         name,
         email,
         password,
+        role, // Passando o role corretamente
       });
 
       return res.status(201).json(user);

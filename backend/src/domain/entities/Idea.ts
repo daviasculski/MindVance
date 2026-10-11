@@ -18,7 +18,7 @@ export class Idea {
     this.props = {
       ...props,
       extraFields: props.extraFields ?? {},
-      currentStage: props.currentStage ?? "IDEATION",
+      currentStage: props.currentStage ?? "IDEACAO",
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
     };
@@ -45,7 +45,7 @@ export class Idea {
   }
 
   get currentStage(): IdeaStage {
-    return this.props.currentStage ?? "IDEATION";
+    return this.props.currentStage ?? "IDEACAO";
   }
 
   get createdAt(): Date | undefined {

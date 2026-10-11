@@ -1,4 +1,5 @@
 import { Evaluation } from "../../domain/entities/Evaluation";
+import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IEvaluationRepository } from "../../domain/repositories/IEvaluationRepository";
 import {
   EvaluationOutputDTO,
@@ -8,11 +9,28 @@ import {
 export class SubmitEvaluationUserStory {
   constructor(
     private readonly evaluationRepository: IEvaluationRepository,
+    private readonly ideaRepository: IIdeaRepository,
   ) {}
 
   async execute(
     input: SubmitEvaluationInputDTO,
   ): Promise<EvaluationOutputDTO> {
+    if (input.evaluatorRole !== "EVALUATOR") {
+      throw new Error(
+        "Only users with the Evaluator role can submit evaluations",
+      );
+    }
+
+    const idea = await this.ideaRepository.findById(input.ideaId);
+
+    if (!idea) {
+      throw new Error("Idea not found");
+    }
+
+    if (input.evaluatorId === idea.authorId) {
+      throw new Error("Authors cannot evaluate their own ideas");
+    }
+
     if (!input.justification || input.justification.trim().length === 0) {
       throw new Error("Evaluation justification is required");
     }

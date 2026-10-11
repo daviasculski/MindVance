@@ -1,4 +1,5 @@
 import { User } from "../../domain/entities/User";
+import { UserRole } from "../../domain/entities/UserRole";
 import {
   CreateUserData,
   IUserRepository,
@@ -14,6 +15,7 @@ export class PrismaUserRepository implements IUserRepository {
           name: data.name,
           email: data.email,
           password: data.password,
+          role: data.role, // <-- Adicionado aqui para salvar no banco!
         },
       });
 
@@ -22,6 +24,7 @@ export class PrismaUserRepository implements IUserRepository {
         name: raw.name,
         email: raw.email,
         password: raw.password,
+        role: raw.role as UserRole,
         createdAt: raw.createdAt,
         updatedAt: raw.updatedAt,
       });
@@ -51,6 +54,7 @@ export class PrismaUserRepository implements IUserRepository {
       name: raw.name,
       email: raw.email,
       password: raw.password,
+      role: raw.role as UserRole,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
     });

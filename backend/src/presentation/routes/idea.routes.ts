@@ -13,6 +13,9 @@ import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaId
 import { AdvanceIdeaStageUserStory } from "../../application/userstories/AdvanceIdeaStageUserStory";
 import { AdvanceIdeaStageController } from "../controllers/AdvanceIdeaStageController";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
+import { ensureManagementRole } from "../middlewares/ensureManagementRole";
+import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
+import { GetInnovationMetricsController } from "../controllers/GetInnovationMetricsController";
 
 const ideaRoutes = Router();
 
@@ -39,10 +42,23 @@ const advanceIdeaStageController = new AdvanceIdeaStageController(
   advanceIdeaStageUserStory,
 );
 
+const getInnovationMetricsUserStory = new GetInnovationMetricsUserStory(
+  ideaRepository,
+);
+const getInnovationMetricsController = new GetInnovationMetricsController(
+  getInnovationMetricsUserStory,
+);
+
 //rotas do projeto
 //testadas no postman
 ideaRoutes.post("/", (req, res) => ideaController.create(req, res));
 ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
+ideaRoutes.get(
+  "/metrics",
+  ensureAuthenticated,
+  ensureManagementRole,
+  (req, res) => getInnovationMetricsController.handle(req, res),
+);
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
 ideaRoutes.delete("/:id", (req, res) => deleteIdeaController.handle(req, res));

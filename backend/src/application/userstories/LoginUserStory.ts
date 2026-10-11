@@ -34,7 +34,7 @@ export class LoginUserStory {
       throw new Error("JWT_SECRET is not configured");
     }
 
-    const token = jwt.sign({}, secret, {
+    const token = jwt.sign({ role: user.role }, secret, {
       subject: user.id,
       expiresIn: "1d",
     });
@@ -45,6 +45,7 @@ export class LoginUserStory {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

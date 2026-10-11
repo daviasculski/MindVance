@@ -16,6 +16,12 @@ enum IdeaStage {
   LANCAMENTO
 }
 
+enum UserRole {
+  COLLABORATOR
+  EVALUATOR
+  ADMIN
+}
+
 model Idea {
   id            String       @id @default(uuid())
   title         String       @db.VarChar(255)
@@ -35,6 +41,7 @@ model User {
   name      String   @db.VarChar(255)
   email     String   @unique @db.VarChar(255)
   password  String   @db.Text
+  role      UserRole @default(COLLABORATOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -1,8 +1,11 @@
+import { UserRole } from "./UserRole";
+
 export interface UserProps {
   id: string;
   name: string;
   email: string;
   password: string;
+  role?: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -11,7 +14,10 @@ export class User {
   private readonly props: UserProps;
 
   constructor(props: UserProps) {
-    this.props = props;
+    this.props = {
+      ...props,
+      role: props.role ?? "COLLABORATOR",
+    };
   }
 
   get id(): string {
@@ -28,6 +34,10 @@ export class User {
 
   get password(): string {
     return this.props.password;
+  }
+
+  get role(): UserRole {
+    return this.props.role ?? "COLLABORATOR";
   }
 
   get createdAt(): Date {

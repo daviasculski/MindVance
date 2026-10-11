@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { isUserRole } from "../../domain/entities/UserRole";
 
 export function ensureAuthenticated(
   req: Request,
@@ -39,7 +40,15 @@ export function ensureAuthenticated(
       return;
     }
 
-    req.user = { id: payload.sub };
+    if (payload.role !== undefined && !isUserRole(payload.role)) {
+      res.status(401).json({ error: "Invalid or expired token" });
+      return;
+    }
+
+    req.user = {
+      id: payload.sub,
+      ...(isUserRole(payload.role) ? { role: payload.role } : {}),
+    };
     next();
   } catch (error: unknown) {
     if (error instanceof jwt.JsonWebTokenError) {
