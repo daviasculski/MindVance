@@ -1,0 +1,123 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --color-bg-page: #f5f5f7;
+  --color-bg-surface: #ffffff;
+  --color-bg-subtle: #f0f0f2;
+
+  --color-border: #e5e5ea;
+  --color-border-strong: #d2d2d7;
+
+  --color-text-primary: #1d1d1f;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #aeaeb2;
+
+  --color-amber: #f59e0b;
+  --color-amber-surface: rgba(245, 158, 11, 0.1);
+  --color-amber-border: rgba(245, 158, 11, 0.35);
+
+  --color-green: #34c759;
+  --color-green-surface: rgba(52, 199, 89, 0.1);
+  --color-green-border: rgba(52, 199, 89, 0.35);
+
+  --color-red: #ff3b30;
+  --color-red-surface: rgba(255, 59, 48, 0.08);
+  --color-red-border: rgba(255, 59, 48, 0.25);
+
+  --color-blue: #3b82f6;
+  --color-blue-surface: rgba(59, 130, 246, 0.1);
+  --color-blue-border: rgba(59, 130, 246, 0.3);
+
+  --font-display: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 20px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #f5f5f7;
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
+
+/* Elevation */
+.card-elevated {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.card-soft {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Subtle backdrop grid for the login canvas */
+.blueprint-grid {
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* iOS-style range slider */
+.ios-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #e5e5ea;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+}
+.ios-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.ios-slider::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+.ios-slider::-moz-range-track {
+  background: #e5e5ea;
+  height: 6px;
+  border-radius: 999px;
+}

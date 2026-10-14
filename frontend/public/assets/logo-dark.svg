@@ -1,0 +1,6 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="IMS">
+  <rect x="8" y="20" width="6" height="20" fill="#1D1D1F"/>
+  <rect x="34" y="20" width="6" height="20" fill="#1D1D1F"/>
+  <line x1="11" y1="21" x2="39" y2="10" stroke="#1D1D1F" stroke-width="6" stroke-linecap="square"/>
+  <rect x="35.5" y="6.5" width="5" height="5" fill="#F59E0B"/>
+</svg>
