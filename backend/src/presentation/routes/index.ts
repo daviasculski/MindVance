@@ -4,6 +4,7 @@ import { ideaRoutes } from "./idea.routes";
 import { evaluationRoutes } from "./evaluation.routes";
 import { userRoutes } from "./user.routes";
 import prisma from "../../infrastructure/database/prisma/client";
+import { ensureAuthenticated } from "../middlewares/ensureAuthenticated"; // Importa o middleware
 
 const routes = Router();
 
@@ -25,9 +26,14 @@ routes.get("/health/db", async (req, res) => {
   }
 });
 
-routes.use("/ideas", ideaRoutes);
-routes.use("/evaluations", evaluationRoutes);
+// Rotas públicas (não exigem token)
 routes.use("/auth", authRoutes);
 routes.use("/users", userRoutes);
+
+// A partir daqui, QUALQUER rota registada abaixo exigirá obrigatoriamente o Token JWT
+routes.use(ensureAuthenticated);
+
+routes.use("/ideas", ideaRoutes);
+routes.use("/evaluations", evaluationRoutes);
 
 export { routes };
