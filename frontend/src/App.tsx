@@ -63,7 +63,9 @@ export default function App() {
       />
 
       <main className="flex-1 flex overflow-hidden">
-        {screen === "new-idea" && <NewIdea />}
+        {screen === "new-idea" && (
+          <NewIdea token={session.token} onSessionExpired={handleLogout} />
+        )}
         {screen === "funnel" && <KanbanFunnel onOpenIdea={handleOpenIdea} />}
         {screen === "idea-detail" && (
           <IdeaDetail

@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Upload, X, AlertCircle, CheckCircle2, FileText, Image, Layers } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2 } from "lucide-react";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
 import GateRail from "../components/GateRail";
+import { ApiError } from "../lib/api";
+import { createIdea, stageFromApi, type ApiIdea } from "../lib/ideas";
 
-export default function NewIdea() {
+interface NewIdeaProps {
+  token: string;
+  onSessionExpired: () => void;
+}
+
+export default function NewIdea({ token, onSessionExpired }: NewIdeaProps) {
   const [step, setStep] = useState(1);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState<ApiIdea | null>(null);
   const [loading, setLoading] = useState(false);
-  const [files, setFiles] = useState<{ name: string; type: string; size: string }[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
@@ -28,6 +34,7 @@ export default function NewIdea() {
   function validateStep1() {
     const e: Record<string, string> = {};
     if (!form.title.trim()) e.title = "Título obrigatório";
+    else if (form.title.trim().length > 255) e.title = "Título deve ter no máximo 255 caracteres";
     if (!form.problem.trim()) e.problem = "Descreva o problema identificado";
     if (!form.solution.trim()) e.solution = "Descreva a solução proposta";
     if (!form.department) e.department = "Selecione um departamento";
@@ -43,20 +50,28 @@ export default function NewIdea() {
     setErrors({});
   }
 
-  function handleSubmit() {
-    setLoading(true);
-    setTimeout(() => { setLoading(false); setSubmitted(true); }, 1100);
-  }
+  async function handleSubmit() {
+    // Garante a validação mesmo se o usuário voltou ao passo 1 e apagou algo
+    const e = validateStep1();
+    if (Object.keys(e).length > 0) { setErrors(e); setStep(1); return; }
 
-  function addFile() {
-    const names = ["Protótipo v1.fig", "Pesquisa de Mercado.pdf", "Benchmark Competitivo.xlsx", "Diagrama de Fluxo.png"];
-    const types = ["prototype", "document", "document", "image"];
-    const sizes = ["4.2 MB", "2.8 MB", "1.1 MB", "0.9 MB"];
-    const i = files.length % 4;
-    setFiles((f) => [...f, { name: names[i], type: types[i], size: sizes[i] }]);
+    setLoading(true);
+    setErrors({});
+    try {
+      setSubmitted(await createIdea(form, token));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        onSessionExpired();
+        return;
+      }
+      setErrors({ form: err instanceof Error ? err.message : "Erro inesperado" });
+    } finally {
+      setLoading(false);
+    }
   }
 
   if (submitted) {
+    const stage = stageFromApi[submitted.currentStage] ?? "Ideação";
     return (
       <div className="flex-1 flex items-center justify-center p-8" style={{ background: "#F5F5F7" }}>
         <div className="text-center max-w-md">
@@ -70,7 +85,7 @@ export default function NewIdea() {
             Ideia submetida!
           </h2>
           <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
-            Sua ideia entrou no estágio <span style={{ color: "#B6790A", fontWeight: 600 }}>Ideação</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
+            Sua ideia entrou no estágio <span style={{ color: "#B6790A", fontWeight: 600 }}>{stage}</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
           </p>
           <div
             className="mt-6 p-4 text-left rounded-2xl card-soft"
@@ -78,16 +93,16 @@ export default function NewIdea() {
           >
             <div style={{ color: "#AEAEB2", fontSize: 11, marginBottom: 8, fontWeight: 600 }}>IDEIA SUBMETIDA</div>
             <div style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
-              {form.title || "Nova ideia"}
+              {submitted.title}
             </div>
-            <GateRail stage="Ideação" size="sm" />
+            <GateRail stage={stage} size="sm" />
             <div className="mt-3 flex items-center gap-2">
-              <GateBadge label="Gate 1 — Ideação" size="sm" />
+              <GateBadge label={`Gate 1 — ${stage}`} size="sm" />
               <span style={{ color: "#AEAEB2", fontSize: 11 }}>Pendente de avaliação</span>
             </div>
           </div>
           <button
-            onClick={() => { setSubmitted(false); setStep(1); setForm({ title: "", problem: "", solution: "", department: "", impact: "", resources: "" }); setFiles([]); }}
+            onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: "", impact: "", resources: "" }); }}
             className="mt-6 px-6 py-2.5 rounded-xl font-medium"
             style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
           >
@@ -258,55 +273,24 @@ export default function NewIdea() {
                 <label style={{ color: "#6E6E73", fontSize: 12.5, fontWeight: 500, marginBottom: 8, display: "block" }}>
                   Anexos (opcional)
                 </label>
-                <button
-                  type="button"
-                  onClick={addFile}
-                  className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 py-8 transition-all"
+                {/* O backend ainda não recebe arquivos: área desabilitada até existir upload */}
+                <div
+                  className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 py-8"
                   style={{
                     background: "#F5F5F7",
                     border: "1.5px dashed #D2D2D7",
-                    cursor: "pointer",
                     color: "#AEAEB2",
+                    opacity: 0.7,
                   }}
                 >
-                  <Upload size={22} style={{ color: "#F59E0B" }} />
+                  <Upload size={22} style={{ color: "#D2D2D7" }} />
                   <span style={{ fontSize: 13, color: "#6E6E73" }}>
-                    Clique para simular upload
+                    Envio de anexos em breve
                   </span>
                   <span style={{ fontSize: 11, color: "#AEAEB2" }}>
                     Imagens, PDFs, Figma, protótipos
                   </span>
-                </button>
-
-                {files.length > 0 && (
-                  <div className="mt-3 flex flex-col gap-2">
-                    {files.map((f, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between rounded-xl px-3 py-2"
-                        style={{ background: "#F5F5F7" }}
-                      >
-                        <div className="flex items-center gap-2">
-                          {f.type === "image" ? (
-                            <Image size={14} style={{ color: "#3B82F6" }} />
-                          ) : f.type === "prototype" ? (
-                            <Layers size={14} style={{ color: "#8B7CF6" }} />
-                          ) : (
-                            <FileText size={14} style={{ color: "#2DD4BF" }} />
-                          )}
-                          <span style={{ color: "#1D1D1F", fontSize: 13 }}>{f.name}</span>
-                          <span style={{ color: "#AEAEB2", fontSize: 11 }}>{f.size}</span>
-                        </div>
-                        <button
-                          onClick={() => setFiles((fs) => fs.filter((_, j) => j !== i))}
-                          style={{ color: "#AEAEB2", background: "none", border: "none", cursor: "pointer" }}
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                </div>
               </div>
 
               {/* Summary */}
@@ -328,6 +312,16 @@ export default function NewIdea() {
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {errors.form && (
+            <div
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mt-5"
+              style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+            >
+              <AlertCircle size={13} />
+              {errors.form}
             </div>
           )}
         </div>
