@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { Role, Screen } from "./types";
+import type { AuthSession, Role, Screen } from "./types";
+import { clearSession, loadSession } from "./lib/auth";
 import Login from "./screens/Login";
 import NewIdea from "./screens/NewIdea";
 import KanbanFunnel from "./screens/KanbanFunnel";
@@ -17,20 +18,20 @@ const defaultScreenByRole: Record<Role, Screen> = {
 };
 
 export default function App() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [role, setRole] = useState<Role>("colaborador");
-  const [screen, setScreen] = useState<Screen>("new-idea");
+  const [session, setSession] = useState<AuthSession | null>(loadSession);
+  const [screen, setScreen] = useState<Screen>(() =>
+    session ? defaultScreenByRole[session.user.role] : "new-idea",
+  );
   const [openIdeaId, setOpenIdeaId] = useState<string>("i1");
 
-  function handleLogin(r: Role) {
-    setRole(r);
-    setScreen(defaultScreenByRole[r]);
-    setAuthenticated(true);
+  function handleLogin(s: AuthSession) {
+    setSession(s);
+    setScreen(defaultScreenByRole[s.user.role]);
   }
 
-  function handleRoleChange(r: Role) {
-    setRole(r);
-    setScreen(defaultScreenByRole[r]);
+  function handleLogout() {
+    clearSession();
+    setSession(null);
   }
 
   function handleOpenIdea(id: string) {
@@ -46,18 +47,19 @@ export default function App() {
     }
   }
 
-  if (!authenticated) {
+  if (!session) {
     return <Login onLogin={handleLogin} />;
   }
+
+  const role: Role = session.user.role;
 
   return (
     <div className="flex h-full" style={{ background: "#F5F5F7" }}>
       <Sidebar
-        role={role}
+        user={session.user}
         screen={screen}
         onNavigate={handleNavigate}
-        onRoleChange={handleRoleChange}
-        onLogout={() => setAuthenticated(false)}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1 flex overflow-hidden">

@@ -6,17 +6,19 @@ import {
   BarChart3,
   Trophy,
   LogOut,
-  ChevronDown,
 } from "lucide-react";
-import type { Role, Screen } from "../types";
-import { useState } from "react";
+import type { AuthUser, Role, Screen } from "../types";
 
 interface SidebarProps {
-  role: Role;
+  user: AuthUser;
   screen: Screen;
   onNavigate: (s: Screen) => void;
-  onRoleChange: (r: Role) => void;
   onLogout: () => void;
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
 }
 
 const roleLabels: Record<Role, string> = {
@@ -42,8 +44,8 @@ const navByRole: Record<Role, { screen: Screen; label: string; icon: React.React
   ],
 };
 
-export default function Sidebar({ role, screen, onNavigate, onRoleChange, onLogout }: SidebarProps) {
-  const [roleOpen, setRoleOpen] = useState(false);
+export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarProps) {
+  const role = user.role;
   const nav = navByRole[role];
 
   return (
@@ -72,46 +74,15 @@ export default function Sidebar({ role, screen, onNavigate, onRoleChange, onLogo
         <span style={{ fontSize: 11, color: "#AEAEB2", marginLeft: 2 }}>Stage-Gate</span>
       </div>
 
-      {/* Role switcher */}
+      {/* Perfil do usuário (vem do backend) */}
       <div className="px-3 py-2">
-        <button
-          onClick={() => setRoleOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors"
-          style={{
-            background: "#F5F5F7",
-            color: "#1D1D1F",
-            fontSize: 13,
-            cursor: "pointer",
-          }}
+        <div
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl"
+          style={{ background: "#F5F5F7", color: "#1D1D1F", fontSize: 13 }}
         >
-          <div className="flex items-center gap-2.5">
-            <div className="rounded-full" style={{ width: 6, height: 6, background: "#F59E0B" }} />
-            {roleLabels[role]}
-          </div>
-          <ChevronDown size={14} style={{ color: "#AEAEB2" }} />
-        </button>
-        {roleOpen && (
-          <div
-            className="mt-1 rounded-xl overflow-hidden card-elevated"
-            style={{ background: "#FFFFFF" }}
-          >
-            {(["colaborador", "avaliador", "administrador"] as Role[]).map((r) => (
-              <button
-                key={r}
-                onClick={() => { onRoleChange(r); setRoleOpen(false); }}
-                className="w-full text-left px-3 py-2.5 transition-colors"
-                style={{
-                  background: r === role ? "rgba(245,158,11,0.08)" : "transparent",
-                  color: r === role ? "#B6790A" : "#1D1D1F",
-                  fontSize: 13,
-                  cursor: "pointer",
-                }}
-              >
-                {roleLabels[r]}
-              </button>
-            ))}
-          </div>
-        )}
+          <div className="rounded-full" style={{ width: 6, height: 6, background: "#F59E0B" }} />
+          {roleLabels[role]}
+        </div>
       </div>
 
       {/* Nav */}
@@ -145,14 +116,14 @@ export default function Sidebar({ role, screen, onNavigate, onRoleChange, onLogo
             className="flex items-center justify-center flex-shrink-0 rounded-full"
             style={{ width: 30, height: 30, background: "#F5F5F7" }}
           >
-            <span style={{ color: "#B6790A", fontSize: 12, fontWeight: 600 }}>AL</span>
+            <span style={{ color: "#B6790A", fontSize: 12, fontWeight: 600 }}>{initials(user.name)}</span>
           </div>
-          <div>
-            <div style={{ color: "#1D1D1F", fontSize: 12.5, fontWeight: 600 }}>
-              Ana Lira
+          <div className="min-w-0">
+            <div className="truncate" style={{ color: "#1D1D1F", fontSize: 12.5, fontWeight: 600 }}>
+              {user.name}
             </div>
-            <div style={{ color: "#AEAEB2", fontSize: 11 }}>
-              ana.lira@empresa.com
+            <div className="truncate" style={{ color: "#AEAEB2", fontSize: 11 }}>
+              {user.email}
             </div>
           </div>
         </div>

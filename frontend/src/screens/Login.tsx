@@ -1,16 +1,17 @@
 import { useState } from "react";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import type { Role } from "../types";
+import type { AuthSession, Role } from "../types";
 import { departments } from "../data";
+import { login, register } from "../lib/auth";
 
 interface LoginProps {
-  onLogin: (role: Role) => void;
+  onLogin: (session: AuthSession) => void;
 }
 
 export default function Login({ onLogin }: LoginProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [email, setEmail] = useState("ana.lira@empresa.com");
-  const [password, setPassword] = useState("senha123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [dept, setDept] = useState("");
   const [role, setRole] = useState<Role>("colaborador");
@@ -31,13 +32,21 @@ export default function Login({ onLogin }: LoginProps) {
     return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     setErrors({});
-    setTimeout(() => { setLoading(false); onLogin(role); }, 900);
+    try {
+      if (mode === "register") {
+        await register({ name: name.trim(), email: email.trim(), password, role });
+      }
+      onLogin(await login(email.trim(), password));
+    } catch (err) {
+      setErrors({ form: err instanceof Error ? err.message : "Erro inesperado" });
+      setLoading(false);
+    }
   }
 
   return (
@@ -155,18 +164,30 @@ export default function Login({ onLogin }: LoginProps) {
               </Field>
             )}
 
-            {/* Role selector for demo */}
-            <Field label="Perfil de acesso (demo)">
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as Role)}
-                style={{ ...inputStyle(false), appearance: "none" }}
+            {/* No login o perfil vem do backend; no cadastro ainda é escolhido aqui */}
+            {mode === "register" && (
+              <Field label="Perfil de acesso">
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as Role)}
+                  style={{ ...inputStyle(false), appearance: "none" }}
+                >
+                  <option value="colaborador">Colaborador</option>
+                  <option value="avaliador">Avaliador</option>
+                  <option value="administrador">Administrador</option>
+                </select>
+              </Field>
+            )}
+
+            {errors.form && (
+              <div
+                className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
+                style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
               >
-                <option value="colaborador">Colaborador</option>
-                <option value="avaliador">Avaliador</option>
-                <option value="administrador">Administrador</option>
-              </select>
-            </Field>
+                <AlertCircle size={13} />
+                {errors.form}
+              </div>
+            )}
 
             <button
               type="submit"
