@@ -1,6 +1,10 @@
-import { IIdeaRepository, UpdateIdeaData } from "../../domain/repositories/IIdeaRepository";
+import {
+  IIdeaRepository,
+  IdeaFilters,
+  UpdateIdeaData,
+} from "../../domain/repositories/IIdeaRepository";
 import { Idea } from "../../domain/entities/Idea";
-import { IdeaStage } from "../../domain/entities/IdeaStage";
+import { IdeaStage, isIdeaStage } from "../../domain/entities/IdeaStage";
 import prisma from "../database/prisma/client";
 import { Prisma } from "@prisma/client";
 
@@ -49,8 +53,25 @@ export class PrismaIdeaRepository implements IIdeaRepository {
     });
   }
 
-  async findAll(): Promise<Idea[]> {
+  async findAll(filters?: IdeaFilters): Promise<Idea[]> {
+    const where: Prisma.IdeaWhereInput = {};
+
+    if (filters?.stage) {
+      if (!isIdeaStage(filters.stage)) {
+        throw new Error(`Invalid idea stage filter: ${filters.stage}`);
+      }
+      where.current_stage = filters.stage;
+    }
+
+    if (filters?.startDate || filters?.endDate) {
+      where.created_at = {
+        ...(filters.startDate ? { gte: new Date(filters.startDate) } : {}),
+        ...(filters.endDate ? { lte: new Date(filters.endDate) } : {}),
+      };
+    }
+
     const list = await prisma.idea.findMany({
+      where,
       orderBy: { created_at: "desc" },
     });
 
