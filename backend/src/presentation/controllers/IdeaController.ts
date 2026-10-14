@@ -6,7 +6,13 @@ export class IdeaController {
 
   async create(req: Request, res: Response): Promise<Response> {
     try {
-      const { title, description, authorId, extraFields } = req.body;
+      const { title, description, extraFields } = req.body;
+
+      // O autor é sempre o usuário autenticado, nunca um id vindo do corpo
+      const authorId = req.user?.id;
+      if (!authorId) {
+        return res.status(401).json({ error: "Bearer token is required" });
+      }
 
       const output = await this.createIdeaUserStorie.execute({
         title,
