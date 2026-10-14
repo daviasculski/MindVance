@@ -23,4 +23,24 @@ export class PrismaEvaluationRepository implements IEvaluationRepository {
       updatedAt: raw.updatedAt,
     });
   }
+
+  async findByIdeaId(ideaId: string): Promise<Evaluation[]> {
+    const evaluations = await prisma.evaluation.findMany({
+      where: { ideaId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return evaluations.map(
+      (raw) =>
+        new Evaluation({
+          id: raw.id,
+          ideaId: raw.ideaId,
+          evaluatorId: raw.evaluatorId,
+          score: raw.score,
+          justification: raw.justification,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+        }),
+    );
+  }
 }

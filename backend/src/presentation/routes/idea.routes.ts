@@ -10,6 +10,7 @@ import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdU
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
 import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUserStory";
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
+import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
 import { AdvanceIdeaStageUserStory } from "../../application/userstories/AdvanceIdeaStageUserStory";
 import { AdvanceIdeaStageController } from "../controllers/AdvanceIdeaStageController";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
@@ -21,6 +22,7 @@ const ideaRoutes = Router();
 
 // Injeção de dependências
 const ideaRepository = new PrismaIdeaRepository();
+const evaluationRepository = new PrismaEvaluationRepository();
 
 const createIdeaUserStory = new CreateIdeaUserStorie(ideaRepository);
 const ideaController = new IdeaController(createIdeaUserStory);
@@ -37,7 +39,10 @@ const updateIdeaController = new UpdateIdeaController(updateIdeaUserStory);
 const deleteIdeaUserStory = new DeleteIdeaUserStory(ideaRepository);
 const deleteIdeaController = new DeleteIdeaController(deleteIdeaUserStory);
 
-const advanceIdeaStageUserStory = new AdvanceIdeaStageUserStory(ideaRepository);
+const advanceIdeaStageUserStory = new AdvanceIdeaStageUserStory(
+  ideaRepository,
+  evaluationRepository,
+);
 const advanceIdeaStageController = new AdvanceIdeaStageController(
   advanceIdeaStageUserStory,
 );

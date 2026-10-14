@@ -1,4 +1,5 @@
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
+import { IEvaluationRepository } from "../../domain/repositories/IEvaluationRepository";
 import {
   IdeaStage,
   isIdeaStage,
@@ -6,7 +7,10 @@ import {
 import { AdvanceIdeaStageOutputDTO } from "../dtos/AdvanceIdeaStageDTO";
 
 export class AdvanceIdeaStageUserStory {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly evaluationRepository: IEvaluationRepository,
+  ) {}
 
   async execute(
     ideaId: string,
@@ -22,10 +26,8 @@ export class AdvanceIdeaStageUserStory {
       throw new Error("Invalid idea stage");
     }
 
-    // Gate approval is not modeled yet, so stage advancement fails closed.
-    const isGateApproved = false;
-
-    if (!isGateApproved) {
+    const evaluations = await this.evaluationRepository.findByIdeaId(ideaId);
+    if (evaluations.length === 0) {
       throw new Error("Cannot advance idea with pending evaluations");
     }
 
