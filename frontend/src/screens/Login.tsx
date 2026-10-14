@@ -27,7 +27,7 @@ export default function Login({ onLogin }: LoginProps) {
     else if (password.length < 6) e.password = "Senha deve ter ao menos 6 caracteres";
     if (mode === "register") {
       if (!name.trim()) e.name = "Nome obrigatório";
-      if (!dept) e.dept = "Selecione um departamento";
+      if (role === "colaborador" && !dept) e.dept = "Selecione um departamento";
     }
     return e;
   }
@@ -149,7 +149,26 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
             </Field>
 
+            {/* No login o perfil vem do backend; no cadastro ainda é escolhido aqui */}
             {mode === "register" && (
+              <Field label="Perfil de acesso">
+                <select
+                  value={role}
+                  onChange={(e) => {
+                    setRole(e.target.value as Role);
+                    setErrors(({ dept: _, ...rest }) => rest);
+                  }}
+                  style={{ ...inputStyle(false), appearance: "none" }}
+                >
+                  <option value="colaborador">Colaborador</option>
+                  <option value="avaliador">Avaliador</option>
+                  <option value="administrador">Administrador</option>
+                </select>
+              </Field>
+            )}
+
+            {/* Só colaboradores pertencem a um departamento */}
+            {mode === "register" && role === "colaborador" && (
               <Field label="Departamento" error={errors.dept}>
                 <select
                   value={dept}
@@ -160,21 +179,6 @@ export default function Login({ onLogin }: LoginProps) {
                   {departments.map((d) => (
                     <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
-                </select>
-              </Field>
-            )}
-
-            {/* No login o perfil vem do backend; no cadastro ainda é escolhido aqui */}
-            {mode === "register" && (
-              <Field label="Perfil de acesso">
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as Role)}
-                  style={{ ...inputStyle(false), appearance: "none" }}
-                >
-                  <option value="colaborador">Colaborador</option>
-                  <option value="avaliador">Avaliador</option>
-                  <option value="administrador">Administrador</option>
                 </select>
               </Field>
             )}
