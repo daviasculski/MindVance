@@ -20,6 +20,10 @@ export class ListIdeasController {
             : undefined,
         endDate:
           typeof req.query.endDate === "string" ? req.query.endDate : undefined,
+        authorId:
+          typeof req.query.authorId === "string"
+            ? req.query.authorId
+            : undefined,
       };
 
       const ideas = await this.listIdeasUserStory.execute(filters);

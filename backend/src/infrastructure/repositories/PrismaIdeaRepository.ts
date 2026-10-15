@@ -63,6 +63,10 @@ export class PrismaIdeaRepository implements IIdeaRepository {
       where.current_stage = filters.stage;
     }
 
+    if (filters?.authorId) {
+      where.author_id = filters.authorId;
+    }
+
     if (filters?.startDate || filters?.endDate) {
       where.created_at = {
         ...(filters.startDate ? { gte: new Date(filters.startDate) } : {}),

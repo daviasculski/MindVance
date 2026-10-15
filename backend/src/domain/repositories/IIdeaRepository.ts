@@ -9,6 +9,7 @@ export interface IdeaFilters {
   stage?: string;
   startDate?: string;
   endDate?: string;
+  authorId?: string;
 }
 
 export interface IIdeaRepository {
