@@ -1,54 +1,122 @@
-import { ideas } from "../data";
-import { Trophy, Calendar, Rocket } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Trophy, Calendar, Rocket, AlertCircle, RotateCw } from "lucide-react";
 import type { Idea } from "../types";
 import DeptTag from "../components/DeptTag";
 import GateRail from "../components/GateRail";
 import { presenceForIdea } from "../lib/ideaVisuals";
+import { ApiError } from "../lib/api";
+import { listLaunchIdeas, toIdea } from "../lib/ideas";
 
 interface ApprovedBoardProps {
-  onOpenIdea: (id: string) => void;
+  token: string;
+  onOpenIdea: (idea: Idea) => void;
+  onSessionExpired: () => void;
 }
 
-export default function ApprovedBoard({ onOpenIdea }: ApprovedBoardProps) {
-  const approvedIdeas = ideas.filter((i) => i.status === "Aprovada");
-  const launchedOthers = ideas.filter((i) => i.stage === "Lançamento" && i.status !== "Aprovada");
+export default function ApprovedBoard({ token, onOpenIdea, onSessionExpired }: ApprovedBoardProps) {
+  const [ideas, setIdeas] = useState<Idea[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const sessionExpiredRef = useRef(onSessionExpired);
+  sessionExpiredRef.current = onSessionExpired;
+
+  const load = useCallback(async () => {
+    setError(null);
+    setIdeas(null);
+    try {
+      const data = await listLaunchIdeas(token);
+      setIdeas(data.map((i) => toIdea(i)));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        sessionExpiredRef.current();
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Erro inesperado");
+    }
+  }, [token]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Aprovadas no último gate (verde) e as que chegaram ao Lançamento e aguardam a decisão final (azul)
+  const approvedIdeas = (ideas ?? []).filter((i) => i.status === "Aprovada");
+  const launchedOthers = (ideas ?? []).filter((i) => i.status === "Em andamento");
+
+  if (error || !ideas) {
+    return (
+      <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
+        <div className="max-w-5xl mx-auto">
+          <BoardHeader count={null} />
+          {error ? (
+            <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
+              <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+                <AlertCircle size={15} />
+                {error}
+              </div>
+              <button
+                onClick={load}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
+                style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+              >
+                <RotateCw size={13} />
+                Tentar novamente
+              </button>
+            </div>
+          ) : (
+            <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rounded-2xl animate-pulse" style={{ background: "#FFFFFF", height: 240 }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <Trophy size={22} style={{ color: "#F59E0B" }} />
-            <h1
-              style={{
-                fontWeight: 700,
-                fontSize: 24,
-                color: "#1D1D1F",
-                letterSpacing: "-0.02em",
-              }}
-            >
-              Mural de Ideias Aprovadas
-            </h1>
-          </div>
-          <p style={{ color: "#6E6E73", fontSize: 13 }}>
-            Iniciativas aprovadas no funil de inovação — {approvedIdeas.length} ideia{approvedIdeas.length !== 1 ? "s" : ""}
-          </p>
-        </div>
+        <BoardHeader count={approvedIdeas.length} />
 
-        {approvedIdeas.length === 0 ? (
+        {approvedIdeas.length === 0 && launchedOthers.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
             {approvedIdeas.map((idea) => (
-              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#34C759" onClick={() => onOpenIdea(idea.id)} />
+              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#34C759" onClick={() => onOpenIdea(idea)} />
             ))}
             {launchedOthers.map((idea) => (
-              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#3B82F6" onClick={() => onOpenIdea(idea.id)} />
+              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#3B82F6" onClick={() => onOpenIdea(idea)} />
             ))}
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function BoardHeader({ count }: { count: number | null }) {
+  return (
+    <div className="mb-8">
+      <div className="flex items-center gap-3 mb-3">
+        <Trophy size={22} style={{ color: "#F59E0B" }} />
+        <h1
+          style={{
+            fontWeight: 700,
+            fontSize: 24,
+            color: "#1D1D1F",
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Mural de Ideias Aprovadas
+        </h1>
+      </div>
+      <p style={{ color: "#6E6E73", fontSize: 13 }}>
+        {count === null
+          ? "Iniciativas aprovadas no funil de inovação"
+          : `Iniciativas aprovadas no funil de inovação — ${count} ideia${count !== 1 ? "s" : ""}`}
+      </p>
     </div>
   );
 }

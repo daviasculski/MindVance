@@ -59,6 +59,8 @@ export interface Idea {
   description: string;
   problem: string;
   solution: string;
+  /** Presente nas ideias vindas do backend */
+  authorId?: string;
   author: string;
   department: string;
   stage: Stage;

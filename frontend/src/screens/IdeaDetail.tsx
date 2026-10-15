@@ -9,18 +9,20 @@ import GateAgingBadge from "../components/GateAgingBadge";
 import { rejectionFeedback } from "../lib/ideaVisuals";
 import { gateForStage } from "../lib/gates";
 import { ApiError } from "../lib/api";
-import { listIdeaEvaluations } from "../lib/ideas";
+import { listGateDecisions, listIdeaEvaluations } from "../lib/ideas";
 
 interface IdeaDetailProps {
   idea: Idea;
   role: Role;
+  /** Id do usuário logado: só o autor pode solicitar revisão do gate */
+  viewerId: string;
   onBack: () => void;
-  /** Presente quando a ideia vem do backend: busca as avaliações para o histórico. */
+  /** Presente quando a ideia vem do backend: busca avaliações e decisões para o histórico. */
   live?: { token: string; onSessionExpired: () => void };
 }
 
-export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaDetailProps) {
-  const [evaluations, setEvaluations] = useState<TimelineEntry[]>([]);
+export default function IdeaDetail({ idea: baseIdea, role, viewerId, onBack, live }: IdeaDetailProps) {
+  const [history, setHistory] = useState<TimelineEntry[]>([]);
   const [evalState, setEvalState] = useState<"idle" | "loading" | "error">(live ? "loading" : "idle");
   const sessionExpiredRef = useRef(live?.onSessionExpired);
   sessionExpiredRef.current = live?.onSessionExpired;
@@ -30,10 +32,10 @@ export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaD
     if (!token) return;
     let cancelled = false;
     setEvalState("loading");
-    listIdeaEvaluations(baseIdea.id, token)
-      .then((entries) => {
+    Promise.all([listIdeaEvaluations(baseIdea.id, token), listGateDecisions(baseIdea.id, token)])
+      .then(([evaluations, decisions]) => {
         if (cancelled) return;
-        setEvaluations(entries);
+        setHistory([...evaluations, ...decisions]);
         setEvalState("idle");
       })
       .catch((err) => {
@@ -42,20 +44,27 @@ export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaD
           sessionExpiredRef.current?.();
           return;
         }
-        setEvalState("error");
+        // 403: ideia de outra pessoa (ex.: aberta pelo Mural). O histórico
+        // detalhado é privado do autor, então mostra só a submissão.
+        setEvalState(err instanceof ApiError && err.status === 403 ? "idle" : "error");
       });
     return () => { cancelled = true; };
   }, [baseIdea.id, token]);
 
-  // Histórico = movimentações da ideia + avaliações, em ordem cronológica
+  // Histórico = submissão + avaliações + decisões de gate, em ordem cronológica
   const idea: Idea = {
     ...baseIdea,
-    timeline: [...baseIdea.timeline, ...evaluations].sort(
+    timeline: [...baseIdea.timeline, ...history].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     ),
   };
   const gate = gateForStage(idea.stage);
   const feedback = rejectionFeedback(idea);
+  const revisionRequest =
+    idea.status === "Em revisão"
+      ? [...idea.timeline].reverse().find((t) => t.decision === "revisão")
+      : undefined;
+  const isAuthor = idea.authorId !== undefined && idea.authorId === viewerId;
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
@@ -83,7 +92,7 @@ export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaD
         <StatusBadge status={idea.status} />
         <GateAgingBadge idea={idea} />
         {/* Futuramente enviará um aviso ao avaliador responsável pelo próximo gate */}
-        {role === "colaborador" && idea.status === "Em andamento" && (
+        {role === "colaborador" && isAuthor && idea.status === "Em andamento" && (
           <button
             className="ml-auto px-4 py-2 rounded-xl font-medium text-sm transition-all"
             style={{
@@ -141,6 +150,32 @@ export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaD
                 <p style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>
                   {feedback}
                 </p>
+              </div>
+            )}
+
+            {revisionRequest && (
+              <div
+                className="p-5 mb-8 rounded-2xl"
+                style={{ background: "rgba(245,158,11,0.07)" }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <RotateCcw size={14} style={{ color: "#B6790A" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#B6790A" }}>
+                    DEVOLVIDA PARA REVISÃO — AJUSTES SOLICITADOS
+                  </span>
+                </div>
+                <p style={{ color: "#1D1D1F", fontSize: 13.5, lineHeight: 1.65 }}>
+                  {revisionRequest.feedback}
+                </p>
+                {revisionRequest.reviewPoints && revisionRequest.reviewPoints.length > 0 && (
+                  <ul className="mt-3 flex flex-col gap-1">
+                    {revisionRequest.reviewPoints.map((p, j) => (
+                      <li key={j} style={{ color: "#1D1D1F", fontSize: 13, lineHeight: 1.5 }}>
+                        · {p}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             )}
 

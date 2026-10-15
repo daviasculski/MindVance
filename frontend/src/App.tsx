@@ -88,6 +88,7 @@ export default function App() {
           <IdeaDetail
             idea={openIdea}
             role={session.user.role}
+            viewerId={session.user.id}
             onBack={() => setScreen(detailBackTo)}
             live={openIdeaFromApi ? { token: session.token, onSessionExpired: handleLogout } : undefined}
           />
@@ -98,7 +99,11 @@ export default function App() {
         {screen === "gate-decision" && <GateDecision />}
         {screen === "dashboard" && <KPIDashboard />}
         {screen === "approved" && (
-          <ApprovedBoard onOpenIdea={handleOpenMockIdea} />
+          <ApprovedBoard
+            token={session.token}
+            onOpenIdea={(idea) => openDetail(idea, "approved", true)}
+            onSessionExpired={handleLogout}
+          />
         )}
       </main>
     </div>

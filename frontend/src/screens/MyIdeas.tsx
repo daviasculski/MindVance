@@ -4,6 +4,7 @@ import type { AuthUser, Idea } from "../types";
 import DeptTag from "../components/DeptTag";
 import GateBadge from "../components/GateBadge";
 import GateRail from "../components/GateRail";
+import StatusBadge from "../components/StatusBadge";
 import { ApiError } from "../lib/api";
 import { listIdeasByAuthor, toIdea } from "../lib/ideas";
 import { gateForStage } from "../lib/gates";
@@ -140,7 +141,10 @@ function IdeaRow({ idea, onClick }: { idea: Idea; onClick: () => void }) {
         <h3 style={{ fontWeight: 700, fontSize: 15, color: "#1D1D1F", lineHeight: 1.3 }}>
           {idea.title}
         </h3>
-        <GateBadge label={gate ? `Gate ${gate.n} — ${idea.stage}` : idea.stage} size="sm" />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {idea.status !== "Em andamento" && <StatusBadge status={idea.status} />}
+          <GateBadge label={gate ? `Gate ${gate.n} — ${idea.stage}` : idea.stage} size="sm" />
+        </div>
       </div>
 
       <p

@@ -1,4 +1,4 @@
-import type { Idea, Stage, TimelineEntry } from "../types";
+import type { GateDecisionType, Idea, IdeaStatus, Stage, TimelineEntry } from "../types";
 import { apiRequest } from "./api";
 
 /** Estágios como o backend os representa (enum IdeaStage do Prisma). */
@@ -19,6 +19,23 @@ export const stageFromApi: Record<ApiStage, Stage> = {
   LANCAMENTO: "Lançamento",
 };
 
+export type ApiStatus = "EM_ANDAMENTO" | "EM_REVISAO" | "APROVADA" | "REJEITADA";
+
+export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
+  EM_ANDAMENTO: "Em andamento",
+  EM_REVISAO: "Em revisão",
+  APROVADA: "Aprovada",
+  REJEITADA: "Rejeitada",
+};
+
+type ApiGateDecisionType = "APROVADA" | "REJEITADA" | "REVISAO";
+
+const decisionFromApi: Record<ApiGateDecisionType, GateDecisionType> = {
+  APROVADA: "aprovada",
+  REJEITADA: "rejeitada",
+  REVISAO: "revisão",
+};
+
 /** Campos do formulário que o modelo Idea não tem coluna própria: vão em extraFields. */
 export interface IdeaExtraFields {
   problem: string;
@@ -32,8 +49,10 @@ export interface ApiIdea {
   title: string;
   description: string;
   authorId: string;
+  authorName?: string;
   extraFields: Partial<IdeaExtraFields> | null;
   currentStage: ApiStage;
+  status: ApiStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -61,6 +80,38 @@ interface ApiIdeaEvaluation {
   createdAt: string;
 }
 
+/** Ideias que chegaram ao Lançamento: aprovadas no último gate ou ainda aguardando-o. */
+export function listLaunchIdeas(token: string): Promise<ApiIdea[]> {
+  return apiRequest<ApiIdea[]>("/ideas?stage=LANCAMENTO", { token });
+}
+
+interface ApiGateDecision {
+  id: string;
+  stage: ApiStage;
+  decision: ApiGateDecisionType;
+  feedback: string;
+  reviewPoints: string[] | null;
+  deciderName?: string;
+  createdAt: string;
+}
+
+/** Decisões de gate da ideia, já no formato de entradas do histórico. */
+export async function listGateDecisions(ideaId: string, token: string): Promise<TimelineEntry[]> {
+  const decisions = await apiRequest<ApiGateDecision[]>(
+    `/ideas/${encodeURIComponent(ideaId)}/gate-decisions`,
+    { token },
+  );
+  return decisions.map((d) => ({
+    id: d.id,
+    date: d.createdAt,
+    stage: stageFromApi[d.stage],
+    decision: decisionFromApi[d.decision],
+    responsible: d.deciderName ?? "Administrador",
+    feedback: d.feedback,
+    ...(d.reviewPoints ? { reviewPoints: d.reviewPoints } : {}),
+  }));
+}
+
 /** Avaliações da ideia, já no formato de entradas do histórico (ordem cronológica). */
 export async function listIdeaEvaluations(ideaId: string, token: string): Promise<TimelineEntry[]> {
   const evaluations = await apiRequest<ApiIdeaEvaluation[]>(
@@ -80,23 +131,25 @@ export async function listIdeaEvaluations(ideaId: string, token: string): Promis
 
 /**
  * Converte a ideia do backend para o formato usado pelas telas.
- * O backend ainda não tem status, anexos nem decisões de gate: a ideia aparece
- * "Em andamento" e o histórico começa só com a submissão (as avaliações são
- * buscadas à parte, com listIdeaEvaluations).
+ * O histórico começa só com a submissão: avaliações e decisões de gate são
+ * buscadas à parte (listIdeaEvaluations e listGateDecisions). O backend ainda
+ * não tem anexos.
  */
-export function toIdea(api: ApiIdea, authorName: string): Idea {
+export function toIdea(api: ApiIdea, fallbackAuthorName = "Colaborador"): Idea {
   const extra = api.extraFields ?? {};
   const stage = stageFromApi[api.currentStage] ?? "Ideação";
+  const authorName = api.authorName ?? fallbackAuthorName;
   return {
     id: api.id,
     title: api.title,
     description: api.description,
     problem: extra.problem ?? "",
     solution: api.description,
+    authorId: api.authorId,
     author: authorName,
     department: extra.department ?? "",
     stage,
-    status: "Em andamento",
+    status: statusFromApi[api.status] ?? "Em andamento",
     impact: extra.impact ?? "",
     resources: extra.resources ?? "",
     submittedAt: api.createdAt,
