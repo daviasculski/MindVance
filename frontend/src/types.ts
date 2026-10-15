@@ -44,7 +44,6 @@ export interface Attachment {
 export interface TimelineEntry {
   id: string;
   date: string;
-  /** Ausente nas avaliações: o backend não registra em que estágio a nota foi dada. */
   stage?: Stage;
   decision: GateDecisionType | "submetida" | "avaliada";
   responsible: string;

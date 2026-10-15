@@ -1,65 +1,115 @@
-import { useState } from "react";
-import { Clock, CheckCircle2, ChevronRight, AlertCircle } from "lucide-react";
-import { evaluations, ideas } from "../data";
-import type { Evaluation, EvaluationCriteria } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Clock, CheckCircle2, ChevronRight, AlertCircle, RotateCw, Calendar } from "lucide-react";
 import GateBadge from "../components/GateBadge";
 import GateRail from "../components/GateRail";
-import GateAgingBadge from "../components/GateAgingBadge";
+import DeptTag from "../components/DeptTag";
 import VerdictRing from "../components/VerdictRing";
 import WeightedSlider from "../components/WeightedSlider";
+import { ApiError } from "../lib/api";
+import { gateForStage } from "../lib/gates";
+import { agingTone } from "../lib/ideaVisuals";
+import {
+  DEFAULT_CRITERIA,
+  MAX_SCORE,
+  PASS_THRESHOLD,
+  getEvaluationQueue,
+  submitEvaluation,
+  weightedScore,
+  type CompletedEvaluation,
+  type CriterionInput,
+  type PendingEvaluation,
+} from "../lib/evaluations";
+import type { Stage } from "../types";
 
-const PASS_THRESHOLD = 7;
+interface GateEvaluationProps {
+  token: string;
+  onSessionExpired: () => void;
+}
 
-export default function GateEvaluation() {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [evals, setEvals] = useState<Evaluation[]>(evaluations);
-  const [submitted, setSubmitted] = useState<string | null>(null);
+function newCriteria(): CriterionInput[] {
+  return DEFAULT_CRITERIA.map((c) => ({ ...c, score: 0, comment: "" }));
+}
+
+function gateLabel(stage: Stage) {
+  return gateForStage(stage)?.label ?? stage;
+}
+
+function daysSince(date: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+export default function GateEvaluation({ token, onSessionExpired }: GateEvaluationProps) {
+  const [queue, setQueue] = useState<{ pending: PendingEvaluation[]; completed: CompletedEvaluation[] } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [active, setActive] = useState<PendingEvaluation | null>(null);
+  const [criteria, setCriteria] = useState<CriterionInput[]>(newCriteria);
+  const [justification, setJustification] = useState("");
   const [justError, setJustError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submittedTitle, setSubmittedTitle] = useState<string | null>(null);
+  const sessionExpiredRef = useRef(onSessionExpired);
+  sessionExpiredRef.current = onSessionExpired;
 
-  const active = evals.find((e) => e.id === selected);
-  const activeIdea = active ? ideas.find((i) => i.id === active.ideaId) : undefined;
+  const load = useCallback(async () => {
+    setLoadError(null);
+    try {
+      setQueue(await getEvaluationQueue(token));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        sessionExpiredRef.current();
+        return;
+      }
+      setLoadError(err instanceof Error ? err.message : "Erro inesperado");
+    }
+  }, [token]);
 
-  function updateScore(evalId: string, critId: string, score: number) {
-    setEvals((prev) =>
-      prev.map((e) => {
-        if (e.id !== evalId) return e;
-        const criteria = e.criteria.map((c) =>
-          c.id === critId ? { ...c, score } : c
-        );
-        const total = criteria.reduce((acc, c) => acc + (c.score * c.weight) / 100, 0);
-        return { ...e, criteria, totalScore: Math.round(total * 10) / 10 };
-      })
-    );
-  }
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  function updateComment(evalId: string, critId: string, comment: string) {
-    setEvals((prev) =>
-      prev.map((e) => {
-        if (e.id !== evalId) return e;
-        return { ...e, criteria: e.criteria.map((c) => c.id === critId ? { ...c, comment } : c) };
-      })
-    );
-  }
-
-  function updateJustification(evalId: string, justification: string) {
-    setEvals((prev) => prev.map((e) => e.id === evalId ? { ...e, justification } : e));
+  function openEvaluation(item: PendingEvaluation) {
+    setActive(item);
+    setCriteria(newCriteria());
+    setJustification("");
     setJustError(false);
+    setSubmitError(null);
+    setSubmittedTitle(null);
   }
 
-  function handleSubmit() {
+  function updateCriterion(index: number, patch: Partial<CriterionInput>) {
+    setCriteria((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+  }
+
+  async function handleSubmit() {
     if (!active) return;
-    if (!active.justification.trim()) { setJustError(true); return; }
-    setEvals((prev) =>
-      prev.map((e) => e.id === active.id ? { ...e, completed: true } : e)
-    );
-    setSubmitted(active.id);
-    setSelected(null);
+    if (!justification.trim()) { setJustError(true); return; }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await submitEvaluation({ ideaId: active.ideaId, justification, criteria }, token);
+      setSubmittedTitle(active.title);
+      setActive(null);
+      await load();
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        sessionExpiredRef.current();
+        return;
+      }
+      if (err instanceof ApiError && err.status === 409) {
+        setSubmitError("Você já avaliou esta ideia neste estágio.");
+        load();
+      } else {
+        setSubmitError(err instanceof Error ? err.message : "Erro inesperado");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  const pending = evals.filter((e) => !e.completed);
-  const done = evals.filter((e) => e.completed);
-
-  if (selected && active) {
+  if (active) {
+    const total = weightedScore(criteria);
+    const waiting = daysSince(active.createdAt);
     return (
       <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
         <div
@@ -67,7 +117,7 @@ export default function GateEvaluation() {
           style={{ borderBottom: "1px solid #E5E5EA", background: "rgba(245,245,247,0.9)", backdropFilter: "blur(8px)" }}
         >
           <button
-            onClick={() => setSelected(null)}
+            onClick={() => setActive(null)}
             style={{
               color: "#6E6E73",
               background: "none",
@@ -82,35 +132,54 @@ export default function GateEvaluation() {
             ← Voltar à fila
           </button>
           <div style={{ width: 1, height: 20, background: "#E5E5EA" }} />
-          <GateBadge label={active.gate} size="sm" />
+          <GateBadge label={gateLabel(active.stage)} size="sm" />
           <div style={{ color: "#8E8E93", fontSize: 12, marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <Clock size={12} />
-            Prazo: {new Date(active.deadline).toLocaleDateString("pt-BR")}
+            Aguardando há {waiting} dia{waiting === 1 ? "" : "s"}
           </div>
         </div>
 
         <div className="px-8 py-6 max-w-4xl mx-auto">
-          <h2 style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F", letterSpacing: "-0.02em", marginBottom: 4 }}>
-            {active.ideaTitle}
+          <h2 style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F", letterSpacing: "-0.02em", marginBottom: 6 }}>
+            {active.title}
           </h2>
-          <p style={{ color: "#6E6E73", fontSize: 13, marginBottom: 8 }}>
+          <div className="flex items-center gap-3 mb-4">
+            <span style={{ color: "#AEAEB2", fontSize: 13 }}>por {active.authorName}</span>
+            {active.extra.department && <DeptTag name={active.extra.department} />}
+            <span style={{ color: "#AEAEB2", fontSize: 13 }}>
+              {new Date(active.createdAt).toLocaleDateString("pt-BR")}
+            </span>
+          </div>
+          <div className="mb-6">
+            <GateRail stage={active.stage} size="sm" showLabels />
+          </div>
+
+          {/* Resumo da ideia: o avaliador precisa ler o que está avaliando */}
+          <div className="rounded-2xl p-5 mb-8 card-soft" style={{ background: "#FFFFFF" }}>
+            <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 14 }}>
+              RESUMO DA IDEIA
+            </div>
+            <div className="grid gap-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+              <SummaryField title="Problema identificado" text={active.extra.problem} />
+              <SummaryField title="Solução proposta" text={active.solution} />
+              <SummaryField title="Impacto estimado" text={active.extra.impact} />
+              <SummaryField title="Recursos necessários" text={active.extra.resources} />
+            </div>
+          </div>
+
+          <p style={{ color: "#6E6E73", fontSize: 13, marginBottom: 16 }}>
             Ajuste cada critério com o peso correspondente. O anel de veredito reage em tempo real.
           </p>
-          {activeIdea && (
-            <div className="mb-8">
-              <GateRail stage={activeIdea.stage} status={activeIdea.status} size="sm" showLabels />
-            </div>
-          )}
 
           <div className="grid gap-8 mb-8" style={{ gridTemplateColumns: "1fr 220px" }}>
             {/* Criteria */}
             <div className="flex flex-col gap-5">
-              {active.criteria.map((c) => (
+              {criteria.map((c, i) => (
                 <CriteriaRow
-                  key={c.id}
+                  key={c.name}
                   criteria={c}
-                  onScoreChange={(score) => updateScore(active.id, c.id, score)}
-                  onCommentChange={(comment) => updateComment(active.id, c.id, comment)}
+                  onScoreChange={(score) => updateCriterion(i, { score })}
+                  onCommentChange={(comment) => updateCriterion(i, { comment })}
                 />
               ))}
             </div>
@@ -124,18 +193,18 @@ export default function GateEvaluation() {
                 <div style={{ color: "#AEAEB2", fontSize: 10.5, fontWeight: 600, marginBottom: 12 }}>
                   VEREDITO PONDERADO
                 </div>
-                <VerdictRing score={active.totalScore} threshold={PASS_THRESHOLD} size={148} strokeWidth={14} />
+                <VerdictRing score={total} threshold={PASS_THRESHOLD} size={148} strokeWidth={14} />
                 <div
                   className="mt-3 rounded-full"
                   style={{
                     fontSize: 11.5,
                     fontWeight: 600,
                     padding: "4px 12px",
-                    background: active.totalScore >= PASS_THRESHOLD ? "rgba(52,199,89,0.12)" : "rgba(245,158,11,0.12)",
-                    color: active.totalScore >= PASS_THRESHOLD ? "#1F8A3B" : "#B6790A",
+                    background: total >= PASS_THRESHOLD ? "rgba(52,199,89,0.12)" : "rgba(245,158,11,0.12)",
+                    color: total >= PASS_THRESHOLD ? "#1F8A3B" : "#B6790A",
                   }}
                 >
-                  {active.totalScore >= PASS_THRESHOLD ? "Acima da meta" : "Abaixo da meta"}
+                  {total >= PASS_THRESHOLD ? "Acima da meta" : "Abaixo da meta"}
                 </div>
               </div>
             </div>
@@ -147,8 +216,8 @@ export default function GateEvaluation() {
               Justificativa geral <span style={{ color: "#FF3B30" }}>*</span>
             </label>
             <textarea
-              value={active.justification}
-              onChange={(e) => updateJustification(active.id, e.target.value)}
+              value={justification}
+              onChange={(e) => { setJustification(e.target.value); setJustError(false); }}
               placeholder="Justifique sua avaliação geral desta ideia para este gate..."
               rows={4}
               style={{
@@ -172,24 +241,38 @@ export default function GateEvaluation() {
             )}
           </div>
 
+          {submitError && (
+            <div
+              className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mb-4"
+              style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+            >
+              <AlertCircle size={13} />
+              {submitError}
+            </div>
+          )}
+
           <button
             onClick={handleSubmit}
+            disabled={submitting}
             className="w-full py-3.5 rounded-xl font-semibold"
             style={{
-              background: "#F59E0B",
+              background: submitting ? "#FBD9AE" : "#F59E0B",
               color: "#FFFFFF",
               border: "none",
-              cursor: "pointer",
+              cursor: submitting ? "not-allowed" : "pointer",
               fontWeight: 600,
               fontSize: 15,
             }}
           >
-            Confirmar Avaliação
+            {submitting ? "Enviando..." : `Confirmar Avaliação · nota ${total.toLocaleString("pt-BR")}/${MAX_SCORE}`}
           </button>
         </div>
       </div>
     );
   }
+
+  const pending = queue?.pending ?? [];
+  const done = queue?.completed ?? [];
 
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
@@ -199,54 +282,92 @@ export default function GateEvaluation() {
             Fila de Avaliações
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 4 }}>
-            {pending.length} avaliação{pending.length !== 1 ? "ões" : ""} pendente{pending.length !== 1 ? "s" : ""}
+            {queue
+              ? `${pending.length} avaliaç${pending.length !== 1 ? "ões" : "ão"} pendente${pending.length !== 1 ? "s" : ""}`
+              : "Ideias aguardando a sua avaliação"}
           </p>
         </div>
 
-        {submitted && (
+        {submittedTitle && (
           <div
             className="rounded-2xl p-4 mb-6 flex items-center gap-3"
             style={{ background: "rgba(52,199,89,0.1)" }}
           >
             <CheckCircle2 size={18} style={{ color: "#34C759" }} />
             <span style={{ color: "#1F8A3B", fontSize: 13 }}>
-              Avaliação enviada com sucesso.
+              Avaliação de “{submittedTitle}” enviada com sucesso.
             </span>
           </div>
         )}
 
-        {/* Pending */}
-        {pending.length > 0 && (
-          <div className="mb-8">
-            <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
-              PENDENTES
+        {loadError ? (
+          <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
+            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+              <AlertCircle size={15} />
+              {loadError}
             </div>
-            <div className="flex flex-col gap-3">
-              {pending.map((e) => (
-                <EvalCard key={e.id} ev={e} onClick={() => setSelected(e.id)} />
-              ))}
-            </div>
+            <button
+              onClick={load}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+            >
+              <RotateCw size={13} />
+              Tentar novamente
+            </button>
           </div>
-        )}
-
-        {pending.length === 0 && done.length === 0 && (
-          <EmptyState />
-        )}
-
-        {/* Done */}
-        {done.length > 0 && (
-          <div>
-            <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
-              CONCLUÍDAS
-            </div>
-            <div className="flex flex-col gap-3">
-              {done.map((e) => (
-                <EvalCard key={e.id} ev={e} onClick={() => {}} done />
-              ))}
-            </div>
+        ) : !queue ? (
+          <div className="flex flex-col gap-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="rounded-2xl animate-pulse" style={{ background: "#FFFFFF", height: 116 }} />
+            ))}
           </div>
+        ) : (
+          <>
+            {/* Pending */}
+            {pending.length > 0 && (
+              <div className="mb-8">
+                <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                  PENDENTES
+                </div>
+                <div className="flex flex-col gap-3">
+                  {pending.map((p) => (
+                    <PendingCard key={p.ideaId} item={p} onClick={() => openEvaluation(p)} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {pending.length === 0 && <EmptyState />}
+
+            {/* Done */}
+            {done.length > 0 && (
+              <div className={pending.length === 0 ? "mt-8" : ""}>
+                <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                  CONCLUÍDAS
+                </div>
+                <div className="flex flex-col gap-3">
+                  {done.map((d) => (
+                    <DoneCard key={d.id} item={d} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
+    </div>
+  );
+}
+
+function SummaryField({ title, text }: { title: string; text?: string }) {
+  return (
+    <div>
+      <div style={{ color: "#6E6E73", fontSize: 11.5, fontWeight: 600, marginBottom: 6 }}>{title}</div>
+      {text ? (
+        <p style={{ color: "#1D1D1F", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</p>
+      ) : (
+        <p style={{ color: "#AEAEB2", fontSize: 13, fontStyle: "italic" }}>Não informado</p>
+      )}
     </div>
   );
 }
@@ -256,7 +377,7 @@ function CriteriaRow({
   onScoreChange,
   onCommentChange,
 }: {
-  criteria: EvaluationCriteria;
+  criteria: CriterionInput;
   onScoreChange: (s: number) => void;
   onCommentChange: (c: string) => void;
 }) {
@@ -269,6 +390,7 @@ function CriteriaRow({
         label={criteria.name}
         weight={criteria.weight}
         value={criteria.score}
+        max={MAX_SCORE}
         onChange={onScoreChange}
       />
       <textarea
@@ -293,63 +415,69 @@ function CriteriaRow({
   );
 }
 
-function EvalCard({ ev, onClick, done }: { ev: Evaluation; onClick: () => void; done?: boolean }) {
-  const daysLeft = Math.ceil(
-    (new Date(ev.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
-  const idea = ideas.find((i) => i.id === ev.ideaId);
+function PendingCard({ item, onClick }: { item: PendingEvaluation; onClick: () => void }) {
+  const tone = agingTone(daysSince(item.createdAt));
   return (
     <button
       onClick={onClick}
-      disabled={done}
       className="w-full text-left rounded-2xl p-5 transition-all card-soft"
-      style={{
-        background: "#FFFFFF",
-        cursor: done ? "default" : "pointer",
-        opacity: done ? 0.75 : 1,
-      }}
+      style={{ background: "#FFFFFF", cursor: "pointer", border: "none" }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1.5">
-            <GateBadge label={ev.gate} size="sm" />
-            {idea && !done && <GateAgingBadge idea={idea} />}
-            {done && (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#1F8A3B", fontSize: 11 }}>
-                <CheckCircle2 size={12} />
-                Concluída
-              </span>
-            )}
-          </div>
-          <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 6 }}>
-            {ev.ideaTitle}
-          </div>
-          {idea && (
-            <div className="mb-2.5" style={{ maxWidth: 320 }}>
-              <GateRail stage={idea.stage} status={idea.status} size="xs" />
-            </div>
-          )}
-          {done && (
-            <div style={{ color: "#AEAEB2", fontSize: 12 }}>
-              Nota enviada: <span style={{ color: "#B6790A", fontWeight: 600 }}>{ev.totalScore.toFixed(1)}/10</span>
-            </div>
-          )}
-          {!done && (
-            <div
-              className="flex items-center gap-1"
-              style={{
-                color: daysLeft < 3 ? "#FF3B30" : "#6E6E73",
-                fontSize: 12,
-              }}
+            <GateBadge label={gateLabel(item.stage)} size="sm" />
+            <span
+              className="inline-flex items-center gap-1 rounded-full"
+              style={{ background: tone.bg, color: tone.color, fontSize: 10.5, fontWeight: 600, padding: "2px 8px" }}
+              title="Dias desde a submissão"
             >
-              <Clock size={12} />
-              {daysLeft > 0 ? `${daysLeft} dias restantes` : "Prazo vencido"} · {new Date(ev.deadline).toLocaleDateString("pt-BR")}
-            </div>
-          )}
+              <Clock size={10} />
+              {tone.label}
+            </span>
+          </div>
+          <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>
+            {item.title}
+          </div>
+          <div style={{ color: "#AEAEB2", fontSize: 12, marginBottom: 10 }}>
+            por {item.authorName}{item.extra.department ? ` · ${item.extra.department}` : ""}
+          </div>
+          <div style={{ maxWidth: 320 }}>
+            <GateRail stage={item.stage} size="xs" />
+          </div>
         </div>
-        {!done && <ChevronRight size={18} style={{ color: "#D2D2D7", flexShrink: 0, marginTop: 4 }} />}
+        <ChevronRight size={18} style={{ color: "#D2D2D7", flexShrink: 0, marginTop: 4 }} />
       </div>
     </button>
+  );
+}
+
+function DoneCard({ item }: { item: CompletedEvaluation }) {
+  return (
+    <div className="w-full rounded-2xl p-5 card-soft" style={{ background: "#FFFFFF", opacity: 0.8 }}>
+      <div className="flex items-center gap-2 mb-1.5">
+        <GateBadge label={gateLabel(item.stage)} size="sm" tone="neutral" />
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#1F8A3B", fontSize: 11 }}>
+          <CheckCircle2 size={12} />
+          Concluída
+        </span>
+      </div>
+      <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 6 }}>
+        {item.ideaTitle}
+      </div>
+      <div className="flex items-center gap-3" style={{ color: "#AEAEB2", fontSize: 12 }}>
+        <span>
+          Nota enviada:{" "}
+          <span style={{ color: "#B6790A", fontWeight: 600 }}>
+            {item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/{MAX_SCORE}
+          </span>
+        </span>
+        <span className="flex items-center gap-1">
+          <Calendar size={11} />
+          {new Date(item.createdAt).toLocaleDateString("pt-BR")}
+        </span>
+      </div>
+    </div>
   );
 }
 

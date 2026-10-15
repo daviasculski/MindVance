@@ -57,6 +57,7 @@ interface ApiIdeaEvaluation {
   evaluatorName: string;
   score: number;
   justification: string;
+  stage: ApiStage;
   createdAt: string;
 }
 
@@ -69,6 +70,7 @@ export async function listIdeaEvaluations(ideaId: string, token: string): Promis
   return evaluations.map((e) => ({
     id: e.id,
     date: e.createdAt,
+    stage: stageFromApi[e.stage],
     decision: "avaliada",
     responsible: e.evaluatorName,
     feedback: e.justification,

@@ -92,7 +92,9 @@ export default function App() {
             live={openIdeaFromApi ? { token: session.token, onSessionExpired: handleLogout } : undefined}
           />
         )}
-        {screen === "evaluate" && <GateEvaluation />}
+        {screen === "evaluate" && (
+          <GateEvaluation token={session.token} onSessionExpired={handleLogout} />
+        )}
         {screen === "gate-decision" && <GateDecision />}
         {screen === "dashboard" && <KPIDashboard />}
         {screen === "approved" && (
