@@ -30,7 +30,7 @@ const roleLabels: Record<Role, string> = {
 const navByRole: Record<Role, { screen: Screen; label: string; icon: React.ReactNode }[]> = {
   colaborador: [
     { screen: "new-idea", label: "Nova Ideia", icon: <PlusCircle size={16} /> },
-    { screen: "idea-detail", label: "Minhas Ideias", icon: <Lightbulb size={16} /> },
+    { screen: "my-ideas", label: "Minhas Ideias", icon: <Lightbulb size={16} /> },
     { screen: "approved", label: "Mural de Aprovadas", icon: <Trophy size={16} /> },
   ],
   avaliador: [

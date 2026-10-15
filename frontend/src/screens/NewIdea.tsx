@@ -9,9 +9,10 @@ import { createIdea, stageFromApi, type ApiIdea } from "../lib/ideas";
 interface NewIdeaProps {
   token: string;
   onSessionExpired: () => void;
+  onViewMyIdeas: () => void;
 }
 
-export default function NewIdea({ token, onSessionExpired }: NewIdeaProps) {
+export default function NewIdea({ token, onSessionExpired, onViewMyIdeas }: NewIdeaProps) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState<ApiIdea | null>(null);
   const [loading, setLoading] = useState(false);
@@ -101,13 +102,22 @@ export default function NewIdea({ token, onSessionExpired }: NewIdeaProps) {
               <span style={{ color: "#AEAEB2", fontSize: 11 }}>Pendente de avaliação</span>
             </div>
           </div>
-          <button
-            onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: "", impact: "", resources: "" }); }}
-            className="mt-6 px-6 py-2.5 rounded-xl font-medium"
-            style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
-          >
-            Submeter outra ideia
-          </button>
+          <div className="mt-6 flex items-center justify-center gap-3">
+            <button
+              onClick={onViewMyIdeas}
+              className="px-6 py-2.5 rounded-xl font-medium"
+              style={{ background: "#FFFFFF", color: "#1D1D1F", border: "1px solid #E5E5EA", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+            >
+              Ver minhas ideias
+            </button>
+            <button
+              onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: "", impact: "", resources: "" }); }}
+              className="px-6 py-2.5 rounded-xl font-medium"
+              style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+            >
+              Submeter outra ideia
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -1,8 +1,10 @@
 import { useState } from "react";
-import type { AuthSession, Role, Screen } from "./types";
+import type { AuthSession, Idea, Role, Screen } from "./types";
 import { clearSession, loadSession } from "./lib/auth";
+import { ideas as mockIdeas } from "./data";
 import Login from "./screens/Login";
 import NewIdea from "./screens/NewIdea";
+import MyIdeas from "./screens/MyIdeas";
 import KanbanFunnel from "./screens/KanbanFunnel";
 import IdeaDetail from "./screens/IdeaDetail";
 import GateEvaluation from "./screens/GateEvaluation";
@@ -22,7 +24,9 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(() =>
     session ? defaultScreenByRole[session.user.role] : "new-idea",
   );
-  const [openIdeaId, setOpenIdeaId] = useState<string>("i1");
+  const [openIdea, setOpenIdea] = useState<Idea | null>(null);
+  // Tela para onde o "Voltar" do detalhe retorna
+  const [detailBackTo, setDetailBackTo] = useState<Screen>("funnel");
 
   function handleLogin(s: AuthSession) {
     setSession(s);
@@ -34,51 +38,57 @@ export default function App() {
     setSession(null);
   }
 
-  function handleOpenIdea(id: string) {
-    setOpenIdeaId(id);
+  function openDetail(idea: Idea, from: Screen) {
+    setOpenIdea(idea);
+    setDetailBackTo(from);
     setScreen("idea-detail");
   }
 
-  function handleNavigate(s: Screen) {
-    if (s === "idea-detail") {
-      setScreen("idea-detail");
-    } else {
-      setScreen(s);
-    }
+  // Funil e Mural ainda usam dados de exemplo, identificados por id
+  function handleOpenMockIdea(id: string) {
+    const idea = mockIdeas.find((i) => i.id === id);
+    if (idea) openDetail(idea, screen);
   }
 
   if (!session) {
     return <Login onLogin={handleLogin} />;
   }
 
-  const role: Role = session.user.role;
-
   return (
     <div className="flex h-full" style={{ background: "#F5F5F7" }}>
       <Sidebar
         user={session.user}
         screen={screen}
-        onNavigate={handleNavigate}
+        onNavigate={setScreen}
         onLogout={handleLogout}
       />
 
       <main className="flex-1 flex overflow-hidden">
         {screen === "new-idea" && (
-          <NewIdea token={session.token} onSessionExpired={handleLogout} />
-        )}
-        {screen === "funnel" && <KanbanFunnel onOpenIdea={handleOpenIdea} />}
-        {screen === "idea-detail" && (
-          <IdeaDetail
-            ideaId={openIdeaId}
-            role={role}
-            onBack={() => setScreen(role === "colaborador" ? "new-idea" : "funnel")}
+          <NewIdea
+            token={session.token}
+            onSessionExpired={handleLogout}
+            onViewMyIdeas={() => setScreen("my-ideas")}
           />
+        )}
+        {screen === "my-ideas" && (
+          <MyIdeas
+            user={session.user}
+            token={session.token}
+            onOpenIdea={(idea) => openDetail(idea, "my-ideas")}
+            onNewIdea={() => setScreen("new-idea")}
+            onSessionExpired={handleLogout}
+          />
+        )}
+        {screen === "funnel" && <KanbanFunnel onOpenIdea={handleOpenMockIdea} />}
+        {screen === "idea-detail" && openIdea && (
+          <IdeaDetail idea={openIdea} onBack={() => setScreen(detailBackTo)} />
         )}
         {screen === "evaluate" && <GateEvaluation />}
         {screen === "gate-decision" && <GateDecision />}
         {screen === "dashboard" && <KPIDashboard />}
         {screen === "approved" && (
-          <ApprovedBoard onOpenIdea={handleOpenIdea} />
+          <ApprovedBoard onOpenIdea={handleOpenMockIdea} />
         )}
       </main>
     </div>

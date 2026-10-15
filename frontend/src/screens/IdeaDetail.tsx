@@ -1,6 +1,5 @@
 import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote } from "lucide-react";
-import { ideas } from "../data";
-import type { Role } from "../types";
+import type { Idea } from "../types";
 import GateBadge from "../components/GateBadge";
 import StatusBadge from "../components/StatusBadge";
 import DeptTag from "../components/DeptTag";
@@ -10,13 +9,11 @@ import { rejectionFeedback } from "../lib/ideaVisuals";
 import { gateForStage } from "../lib/gates";
 
 interface IdeaDetailProps {
-  ideaId: string;
-  role: Role;
+  idea: Idea;
   onBack: () => void;
 }
 
-export default function IdeaDetail({ ideaId, role, onBack }: IdeaDetailProps) {
-  const idea = ideas.find((i) => i.id === ideaId) ?? ideas[0];
+export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
   const gate = gateForStage(idea.stage);
   const feedback = rejectionFeedback(idea);
 
@@ -45,21 +42,6 @@ export default function IdeaDetail({ ideaId, role, onBack }: IdeaDetailProps) {
         <GateBadge label={gate ? `Gate ${gate.n} — ${idea.stage}` : idea.stage} size="sm" />
         <StatusBadge status={idea.status} />
         <GateAgingBadge idea={idea} />
-        {role === "colaborador" && idea.status === "Em andamento" && (
-          <button
-            className="ml-auto px-4 py-2 rounded-xl font-medium text-sm transition-all"
-            style={{
-              background: "#F59E0B",
-              color: "#FFFFFF",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: 600,
-              fontSize: 13,
-            }}
-          >
-            Solicitar revisão do próximo gate
-          </button>
-        )}
       </div>
 
       <div className="px-8 py-6 max-w-5xl mx-auto">
@@ -83,7 +65,7 @@ export default function IdeaDetail({ ideaId, role, onBack }: IdeaDetailProps) {
               <span style={{ color: "#AEAEB2", fontSize: 13 }}>
                 por {idea.author}
               </span>
-              <DeptTag name={idea.department} />
+              {idea.department && <DeptTag name={idea.department} />}
               <span style={{ color: "#AEAEB2", fontSize: 13 }}>
                 {new Date(idea.submittedAt).toLocaleDateString("pt-BR")}
               </span>
@@ -283,9 +265,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       >
         {title}
       </div>
-      <p style={{ color: "#1D1D1F", fontSize: 14, lineHeight: 1.7 }}>
-        {children}
-      </p>
+      {children ? (
+        <p style={{ color: "#1D1D1F", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+          {children}
+        </p>
+      ) : (
+        <p style={{ color: "#AEAEB2", fontSize: 13.5, fontStyle: "italic" }}>Não informado</p>
+      )}
     </div>
   );
 }

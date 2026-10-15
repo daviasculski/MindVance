@@ -92,6 +92,7 @@ export interface Evaluation {
 export type Screen =
   | "login"
   | "new-idea"
+  | "my-ideas"
   | "funnel"
   | "idea-detail"
   | "evaluate"
