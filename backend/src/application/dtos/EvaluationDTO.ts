@@ -8,6 +8,21 @@ export interface SubmitEvaluationInputDTO {
   justification: string;
 }
 
+export interface ListIdeaEvaluationsInputDTO {
+  ideaId: string;
+  requesterId: string;
+  requesterRole: UserRole | undefined;
+}
+
+export interface IdeaEvaluationOutputDTO {
+  id: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  score: number;
+  justification: string;
+  createdAt: Date;
+}
+
 export interface EvaluationOutputDTO
   extends Omit<SubmitEvaluationInputDTO, "evaluatorRole"> {
   id: string;

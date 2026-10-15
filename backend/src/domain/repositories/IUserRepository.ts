@@ -11,4 +11,5 @@ export interface CreateUserData {
 export interface IUserRepository {
   create(data: CreateUserData): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
+  findByIds(ids: string[]): Promise<User[]>;
 }
