@@ -46,6 +46,8 @@ export class ListIdeaEvaluationsUserStory {
         evaluatorName: nameById.get(evaluation.evaluatorId) ?? "Avaliador",
         score: evaluation.score,
         justification: evaluation.justification,
+        stage: evaluation.stage,
+        criteria: evaluation.criteria,
         createdAt: evaluation.createdAt!,
       }))
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());

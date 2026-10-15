@@ -54,6 +54,8 @@ model Evaluation {
   evaluatorId   String
   score         Float
   justification String   @db.Text
+  stage         IdeaStage
+  criteria      Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Restrict)
