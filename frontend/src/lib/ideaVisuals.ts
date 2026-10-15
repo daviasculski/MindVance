@@ -19,10 +19,14 @@ export function presenceForIdea(idea: Idea): CSSProperties {
   };
 }
 
-/** Most recent movement date for an idea — the clock gate aging counts from. */
+/**
+ * Most recent movement date for an idea — the clock gate aging counts from.
+ * Evaluations don't move the idea between gates, so they don't reset the clock.
+ */
 export function lastMovementDate(idea: Idea): Date {
-  if (idea.timeline.length === 0) return new Date(idea.submittedAt);
-  return new Date(idea.timeline[idea.timeline.length - 1].date);
+  const moves = idea.timeline.filter((t) => t.decision !== "avaliada");
+  if (moves.length === 0) return new Date(idea.submittedAt);
+  return new Date(moves[moves.length - 1].date);
 }
 
 /** Days an idea has been sitting at its current stage awaiting a gate decision. */

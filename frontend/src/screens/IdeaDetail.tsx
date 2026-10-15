@@ -1,5 +1,6 @@
-import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote } from "lucide-react";
-import type { Idea } from "../types";
+import { useEffect, useRef, useState } from "react";
+import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star } from "lucide-react";
+import type { Idea, Role, TimelineEntry } from "../types";
 import GateBadge from "../components/GateBadge";
 import StatusBadge from "../components/StatusBadge";
 import DeptTag from "../components/DeptTag";
@@ -7,13 +8,52 @@ import GateRail from "../components/GateRail";
 import GateAgingBadge from "../components/GateAgingBadge";
 import { rejectionFeedback } from "../lib/ideaVisuals";
 import { gateForStage } from "../lib/gates";
+import { ApiError } from "../lib/api";
+import { listIdeaEvaluations } from "../lib/ideas";
 
 interface IdeaDetailProps {
   idea: Idea;
+  role: Role;
   onBack: () => void;
+  /** Presente quando a ideia vem do backend: busca as avaliações para o histórico. */
+  live?: { token: string; onSessionExpired: () => void };
 }
 
-export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
+export default function IdeaDetail({ idea: baseIdea, role, onBack, live }: IdeaDetailProps) {
+  const [evaluations, setEvaluations] = useState<TimelineEntry[]>([]);
+  const [evalState, setEvalState] = useState<"idle" | "loading" | "error">(live ? "loading" : "idle");
+  const sessionExpiredRef = useRef(live?.onSessionExpired);
+  sessionExpiredRef.current = live?.onSessionExpired;
+  const token = live?.token;
+
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    setEvalState("loading");
+    listIdeaEvaluations(baseIdea.id, token)
+      .then((entries) => {
+        if (cancelled) return;
+        setEvaluations(entries);
+        setEvalState("idle");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 401) {
+          sessionExpiredRef.current?.();
+          return;
+        }
+        setEvalState("error");
+      });
+    return () => { cancelled = true; };
+  }, [baseIdea.id, token]);
+
+  // Histórico = movimentações da ideia + avaliações, em ordem cronológica
+  const idea: Idea = {
+    ...baseIdea,
+    timeline: [...baseIdea.timeline, ...evaluations].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    ),
+  };
   const gate = gateForStage(idea.stage);
   const feedback = rejectionFeedback(idea);
 
@@ -42,6 +82,22 @@ export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
         <GateBadge label={gate ? `Gate ${gate.n} — ${idea.stage}` : idea.stage} size="sm" />
         <StatusBadge status={idea.status} />
         <GateAgingBadge idea={idea} />
+        {/* Futuramente enviará um aviso ao avaliador responsável pelo próximo gate */}
+        {role === "colaborador" && idea.status === "Em andamento" && (
+          <button
+            className="ml-auto px-4 py-2 rounded-xl font-medium text-sm transition-all"
+            style={{
+              background: "#F59E0B",
+              color: "#FFFFFF",
+              border: "none",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: 13,
+            }}
+          >
+            Solicitar revisão do próximo gate
+          </button>
+        )}
       </div>
 
       <div className="px-8 py-6 max-w-5xl mx-auto">
@@ -184,10 +240,14 @@ export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
                                   ? "#F0F0F2"
                                   : entry.decision === "revisão"
                                   ? "rgba(245,158,11,0.12)"
+                                  : entry.decision === "avaliada"
+                                  ? "rgba(139,124,246,0.12)"
                                   : "rgba(59,130,246,0.12)",
                             }}
                           >
-                            {entry.decision === "aprovada" ? (
+                            {entry.decision === "avaliada" ? (
+                              <Star size={13} style={{ color: "#8B7CF6" }} />
+                            ) : entry.decision === "aprovada" ? (
                               <CheckCircle2 size={13} style={{ color: "#34C759" }} />
                             ) : entry.decision === "rejeitada" ? (
                               <XCircle size={13} style={{ color: "#8E8E93" }} />
@@ -202,11 +262,20 @@ export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
                           )}
                         </div>
                         <div className="pb-4">
-                          <div style={{ color: "#B6790A", fontSize: 10, fontWeight: 600, letterSpacing: "0.03em" }}>
-                            {entry.stage.toUpperCase()}
-                          </div>
+                          {entry.stage && (
+                            <div style={{ color: "#B6790A", fontSize: 10, fontWeight: 600, letterSpacing: "0.03em" }}>
+                              {entry.stage.toUpperCase()}
+                            </div>
+                          )}
                           <div style={{ color: "#1D1D1F", fontSize: 12.5, fontWeight: 600, marginTop: 2 }}>
-                            {entry.decision === "submetida"
+                            {entry.decision === "avaliada" ? (
+                              <>
+                                Avaliada ·{" "}
+                                <span style={{ color: "#6D5CD6" }}>
+                                  nota {(entry.score ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/10
+                                </span>
+                              </>
+                            ) : entry.decision === "submetida"
                               ? "Submetida"
                               : entry.decision === "aprovada"
                               ? "Aprovada"
@@ -242,6 +311,17 @@ export default function IdeaDetail({ idea, onBack }: IdeaDetailProps) {
                       </div>
                     );
                   })
+                )}
+                {evalState === "loading" && (
+                  <div style={{ color: "#AEAEB2", fontSize: 12, marginTop: 4 }}>
+                    Carregando avaliações...
+                  </div>
+                )}
+                {evalState === "error" && (
+                  <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12, marginTop: 4 }}>
+                    <AlertTriangle size={12} />
+                    Não foi possível carregar as avaliações.
+                  </div>
                 )}
               </div>
             </div>

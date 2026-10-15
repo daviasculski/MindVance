@@ -1,4 +1,4 @@
-import type { Idea, Stage } from "../types";
+import type { Idea, Stage, TimelineEntry } from "../types";
 import { apiRequest } from "./api";
 
 /** Estágios como o backend os representa (enum IdeaStage do Prisma). */
@@ -51,10 +51,36 @@ export function listIdeasByAuthor(authorId: string, token: string): Promise<ApiI
   return apiRequest<ApiIdea[]>(`/ideas?authorId=${encodeURIComponent(authorId)}`, { token });
 }
 
+interface ApiIdeaEvaluation {
+  id: string;
+  evaluatorId: string;
+  evaluatorName: string;
+  score: number;
+  justification: string;
+  createdAt: string;
+}
+
+/** Avaliações da ideia, já no formato de entradas do histórico (ordem cronológica). */
+export async function listIdeaEvaluations(ideaId: string, token: string): Promise<TimelineEntry[]> {
+  const evaluations = await apiRequest<ApiIdeaEvaluation[]>(
+    `/ideas/${encodeURIComponent(ideaId)}/evaluations`,
+    { token },
+  );
+  return evaluations.map((e) => ({
+    id: e.id,
+    date: e.createdAt,
+    decision: "avaliada",
+    responsible: e.evaluatorName,
+    feedback: e.justification,
+    score: e.score,
+  }));
+}
+
 /**
  * Converte a ideia do backend para o formato usado pelas telas.
- * O backend ainda não tem status, anexos nem histórico de decisões: a ideia
- * aparece "Em andamento" e o histórico mostra só a submissão.
+ * O backend ainda não tem status, anexos nem decisões de gate: a ideia aparece
+ * "Em andamento" e o histórico começa só com a submissão (as avaliações são
+ * buscadas à parte, com listIdeaEvaluations).
  */
 export function toIdea(api: ApiIdea, authorName: string): Idea {
   const extra = api.extraFields ?? {};

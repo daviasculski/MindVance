@@ -27,6 +27,8 @@ export default function App() {
   const [openIdea, setOpenIdea] = useState<Idea | null>(null);
   // Tela para onde o "Voltar" do detalhe retorna
   const [detailBackTo, setDetailBackTo] = useState<Screen>("funnel");
+  // true quando a ideia aberta veio do backend (e não dos dados de exemplo)
+  const [openIdeaFromApi, setOpenIdeaFromApi] = useState(false);
 
   function handleLogin(s: AuthSession) {
     setSession(s);
@@ -38,16 +40,17 @@ export default function App() {
     setSession(null);
   }
 
-  function openDetail(idea: Idea, from: Screen) {
+  function openDetail(idea: Idea, from: Screen, fromApi: boolean) {
     setOpenIdea(idea);
     setDetailBackTo(from);
+    setOpenIdeaFromApi(fromApi);
     setScreen("idea-detail");
   }
 
   // Funil e Mural ainda usam dados de exemplo, identificados por id
   function handleOpenMockIdea(id: string) {
     const idea = mockIdeas.find((i) => i.id === id);
-    if (idea) openDetail(idea, screen);
+    if (idea) openDetail(idea, screen, false);
   }
 
   if (!session) {
@@ -75,14 +78,19 @@ export default function App() {
           <MyIdeas
             user={session.user}
             token={session.token}
-            onOpenIdea={(idea) => openDetail(idea, "my-ideas")}
+            onOpenIdea={(idea) => openDetail(idea, "my-ideas", true)}
             onNewIdea={() => setScreen("new-idea")}
             onSessionExpired={handleLogout}
           />
         )}
         {screen === "funnel" && <KanbanFunnel onOpenIdea={handleOpenMockIdea} />}
         {screen === "idea-detail" && openIdea && (
-          <IdeaDetail idea={openIdea} onBack={() => setScreen(detailBackTo)} />
+          <IdeaDetail
+            idea={openIdea}
+            role={session.user.role}
+            onBack={() => setScreen(detailBackTo)}
+            live={openIdeaFromApi ? { token: session.token, onSessionExpired: handleLogout } : undefined}
+          />
         )}
         {screen === "evaluate" && <GateEvaluation />}
         {screen === "gate-decision" && <GateDecision />}
