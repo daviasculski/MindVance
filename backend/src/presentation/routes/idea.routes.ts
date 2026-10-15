@@ -15,6 +15,7 @@ import { AdvanceIdeaStageUserStory } from "../../application/userstories/Advance
 import { AdvanceIdeaStageController } from "../controllers/AdvanceIdeaStageController";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
 import { ensureManagementRole } from "../middlewares/ensureManagementRole";
+import { ensureAdminRole } from "../middlewares/ensureAdminRole";
 import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
 import { GetInnovationMetricsController } from "../controllers/GetInnovationMetricsController";
 import { ListIdeaEvaluationsUserStory } from "../../application/userstories/ListIdeaEvaluationsUserStory";
@@ -83,7 +84,8 @@ ideaRoutes.get("/:id/evaluations", (req, res) =>
 );
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
 ideaRoutes.delete("/:id", (req, res) => deleteIdeaController.handle(req, res));
-ideaRoutes.patch("/:id/stage", ensureAuthenticated, (req, res) =>
+// Decisão de gate: só o administrador avança uma ideia de estágio
+ideaRoutes.patch("/:id/stage", ensureAuthenticated, ensureAdminRole, (req, res) =>
   advanceIdeaStageController.handle(req, res),
 );
 
