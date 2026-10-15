@@ -1,8 +1,12 @@
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
-import { IdeaOutputDTO } from "../dtos/IdeaDTO";
+import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { IdeaOutputDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
 
 export class GetIdeaByIdUserStory {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly userRepository: IUserRepository,
+  ) {}
 
   async execute(id: string): Promise<IdeaOutputDTO> {
     const idea = await this.ideaRepository.findById(id);
@@ -11,15 +15,8 @@ export class GetIdeaByIdUserStory {
       throw new Error("Ideia não encontrada");
     }
 
-    return {
-      id: idea.id!,
-      title: idea.title,
-      description: idea.description,
-      authorId: idea.authorId,
-      extraFields: idea.extraFields ?? null,
-      currentStage: idea.currentStage,
-      createdAt: idea.createdAt!,
-      updatedAt: idea.updatedAt!,
-    };
+    const [author] = await this.userRepository.findByIds([idea.authorId]);
+
+    return toIdeaOutputDTO(idea, author?.name ?? "Colaborador");
   }
 }

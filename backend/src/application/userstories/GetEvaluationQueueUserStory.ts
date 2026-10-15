@@ -25,13 +25,13 @@ export class GetEvaluationQueueUserStory {
       this.evaluationRepository.findByEvaluatorId(input.requesterId),
     ]);
 
-    // Pendente: ideia de outra pessoa, ainda não lançada e sem avaliação
-    // deste avaliador no estágio em que ela está agora
+    // Pendente: ideia de outra pessoa, aguardando gate (não encerrada, aprovada
+    // nem em revisão) e sem avaliação deste avaliador no estágio atual
     const pendingIdeas = ideas
       .filter(
         (idea) =>
           idea.authorId !== input.requesterId &&
-          idea.currentStage !== "LANCAMENTO" &&
+          idea.status === "EM_ANDAMENTO" &&
           !myEvaluations.some(
             (e) => e.ideaId === idea.id && e.stage === idea.currentStage,
           ),

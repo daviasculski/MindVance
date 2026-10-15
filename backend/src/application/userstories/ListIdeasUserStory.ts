@@ -1,22 +1,23 @@
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
-import { IdeaOutputDTO } from "../dtos/IdeaDTO";
+import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { IdeaOutputDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
 import { ListIdeasFiltersDTO } from "../dtos/ListIdeasFiltersDTO";
 
 export class ListIdeasUserStory {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly userRepository: IUserRepository,
+  ) {}
 
   async execute(filters?: ListIdeasFiltersDTO): Promise<IdeaOutputDTO[]> {
     const ideas = await this.ideaRepository.findAll(filters);
 
-    return ideas.map((idea) => ({
-      id: idea.id!,
-      title: idea.title,
-      description: idea.description,
-      authorId: idea.authorId,
-      extraFields: idea.extraFields ?? null,
-      currentStage: idea.currentStage,
-      createdAt: idea.createdAt!,
-      updatedAt: idea.updatedAt!,
-    }));
+    const authorIds = [...new Set(ideas.map((idea) => idea.authorId))];
+    const authors = await this.userRepository.findByIds(authorIds);
+    const nameById = new Map(authors.map((u) => [u.id, u.name]));
+
+    return ideas.map((idea) =>
+      toIdeaOutputDTO(idea, nameById.get(idea.authorId) ?? "Colaborador"),
+    );
   }
 }

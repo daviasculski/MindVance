@@ -1,4 +1,5 @@
 import { IdeaStage } from "./IdeaStage";
+import { IdeaStatus } from "./IdeaStatus";
 
 export interface IdeaProps {
   id?: string;
@@ -7,6 +8,7 @@ export interface IdeaProps {
   authorId: string;
   extraFields?: Record<string, unknown> | null;
   currentStage?: IdeaStage;
+  status?: IdeaStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -19,6 +21,7 @@ export class Idea {
       ...props,
       extraFields: props.extraFields ?? {},
       currentStage: props.currentStage ?? "IDEACAO",
+      status: props.status ?? "EM_ANDAMENTO",
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
     };
@@ -48,6 +51,10 @@ export class Idea {
     return this.props.currentStage ?? "IDEACAO";
   }
 
+  get status(): IdeaStatus {
+    return this.props.status ?? "EM_ANDAMENTO";
+  }
+
   get createdAt(): Date | undefined {
     return this.props.createdAt;
   }
@@ -64,6 +71,7 @@ export class Idea {
       authorId: this.authorId,
       extraFields: this.extraFields,
       currentStage: this.currentStage,
+      status: this.status,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

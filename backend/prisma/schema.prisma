@@ -16,6 +16,19 @@ enum IdeaStage {
   LANCAMENTO
 }
 
+enum IdeaStatus {
+  EM_ANDAMENTO
+  EM_REVISAO
+  APROVADA
+  REJEITADA
+}
+
+enum GateDecisionType {
+  APROVADA
+  REJEITADA
+  REVISAO
+}
+
 enum UserRole {
   COLLABORATOR
   EVALUATOR
@@ -29,11 +42,28 @@ model Idea {
   author_id     String       @db.VarChar(255)
   extra_fields  Json?        @default("{}")
   current_stage IdeaStage    @default(IDEACAO)
+  status        IdeaStatus   @default(EM_ANDAMENTO)
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
   evaluations   Evaluation[]
+  gateDecisions GateDecision[]
 
   @@map("ideas")
+}
+
+model GateDecision {
+  id           String           @id @default(uuid())
+  ideaId       String
+  stage        IdeaStage
+  decision     GateDecisionType
+  feedback     String           @db.Text
+  reviewPoints Json?
+  deciderId    String
+  createdAt    DateTime         @default(now())
+  idea         Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+  @@map("gate_decisions")
 }
 
 model User {

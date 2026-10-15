@@ -14,6 +14,8 @@ export class ListIdeasController {
             : typeof req.query.currentStage === "string"
               ? req.query.currentStage
               : undefined,
+        status:
+          typeof req.query.status === "string" ? req.query.status : undefined,
         startDate:
           typeof req.query.startDate === "string"
             ? req.query.startDate
