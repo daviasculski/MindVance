@@ -1,0 +1,63 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum IdeaStage {
+  IDEACAO
+  ESCOPO
+  PLANO_DE_NEGOCIOS
+  DESENVOLVIMENTO
+  TESTE_E_VALIDACAO
+  LANCAMENTO
+}
+
+enum UserRole {
+  COLLABORATOR
+  EVALUATOR
+  ADMIN
+}
+
+model Idea {
+  id            String       @id @default(uuid())
+  title         String       @db.VarChar(255)
+  description   String       @db.Text
+  author_id     String       @db.VarChar(255)
+  extra_fields  Json?        @default("{}")
+  current_stage IdeaStage    @default(IDEACAO)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  evaluations   Evaluation[]
+
+  @@map("ideas")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.Text
+  role      UserRole @default(COLLABORATOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Evaluation {
+  id            String   @id @default(uuid())
+  ideaId        String
+  evaluatorId   String
+  score         Float
+  justification String   @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+
+  @@index([ideaId])
+  @@map("evaluations")
+}
