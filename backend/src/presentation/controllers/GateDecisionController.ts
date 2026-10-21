@@ -3,13 +3,13 @@ import { DecideGateUserStory } from "../../application/userstories/DecideGateUse
 import { ListGateDecisionsUserStory } from "../../application/userstories/ListGateDecisionsUserStory";
 
 const statusByMessage: Record<string, number> = {
-  "Only admins can decide gates": 403,
+  "Only innovation managers can decide gates": 403,
   "Only the idea author can view its gate decisions": 403,
   "Idea not found": 404,
   "Idea is not awaiting a gate decision": 409,
   "Cannot approve an idea without evaluations in the current stage": 409,
   "Decision must be APROVADA, REJEITADA or REVISAO": 400,
-  "Feedback is required to reject or request revision": 400,
+  "Feedback is required to decide a gate": 400,
   "Review points must be a list of texts": 400,
 };
 

@@ -20,8 +20,8 @@ export class DecideGateUserStory {
   ) {}
 
   async execute(input: DecideGateInputDTO): Promise<DecideGateOutputDTO> {
-    if (input.deciderRole !== "ADMIN") {
-      throw new Error("Only admins can decide gates");
+    if (input.deciderRole !== "GESTOR_INOVACAO") {
+      throw new Error("Only innovation managers can decide gates");
     }
 
     if (!isGateDecisionType(input.decision)) {
@@ -31,9 +31,8 @@ export class DecideGateUserStory {
     const feedback =
       typeof input.feedback === "string" ? input.feedback.trim() : "";
 
-    // Encerrar ou devolver uma ideia exige explicar o motivo ao autor
-    if (input.decision !== "APROVADA" && feedback.length === 0) {
-      throw new Error("Feedback is required to reject or request revision");
+    if (feedback.length === 0) {
+      throw new Error("Feedback is required to decide a gate");
     }
 
     let reviewPoints: string[] | null = null;
@@ -76,7 +75,7 @@ export class DecideGateUserStory {
         ideaId: idea.id!,
         stage: idea.currentStage,
         decision: input.decision,
-        feedback: feedback || "Aprovada no gate.",
+        feedback,
         reviewPoints,
         deciderId: input.deciderId,
       }),

@@ -28,7 +28,6 @@ export interface IIdeaRepository {
   findById(id: string): Promise<Idea | null>;
   findAll(filters?: IdeaFilters): Promise<Idea[]>;
   update(id: string, data: UpdateIdeaData): Promise<Idea>;
-  updateStage(id: string, stage: IdeaStage): Promise<Idea>;
   updateProgress(id: string, data: IdeaProgressData): Promise<Idea>;
   /** Remove a ideia junto com suas avaliações e decisões de gate */
   delete(id: string): Promise<void>;

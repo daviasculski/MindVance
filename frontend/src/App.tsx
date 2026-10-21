@@ -16,6 +16,7 @@ import Sidebar from "./components/Sidebar";
 const defaultScreenByRole: Record<Role, Screen> = {
   colaborador: "new-idea",
   avaliador: "evaluate",
+  "gestor-inovacao": "gate-decision",
   administrador: "funnel",
 };
 

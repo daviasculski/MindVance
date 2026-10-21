@@ -24,7 +24,9 @@ export class ListGateDecisionsUserStory {
 
     // Mesma regra das avaliações: autor, avaliadores e administradores
     const isManagement =
-      input.requesterRole === "EVALUATOR" || input.requesterRole === "ADMIN";
+      input.requesterRole === "EVALUATOR" ||
+      input.requesterRole === "GESTOR_INOVACAO" ||
+      input.requesterRole === "ADMIN";
 
     if (!isManagement && idea.authorId !== input.requesterId) {
       throw new Error("Only the idea author can view its gate decisions");
@@ -46,7 +48,7 @@ export class ListGateDecisionsUserStory {
       feedback: d.feedback,
       reviewPoints: d.reviewPoints,
       deciderId: d.deciderId,
-      deciderName: nameById.get(d.deciderId) ?? "Administrador",
+      deciderName: nameById.get(d.deciderId) ?? "Gestor de Inovação",
       createdAt: d.createdAt!,
     }));
   }

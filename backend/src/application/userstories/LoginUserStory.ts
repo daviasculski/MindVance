@@ -28,6 +28,10 @@ export class LoginUserStory {
       throw new Error("Invalid credentials");
     }
 
+    if (user.approvalStatus !== "APPROVED") {
+      throw new Error("Account is not approved");
+    }
+
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
@@ -46,6 +50,7 @@ export class LoginUserStory {
         name: user.name,
         email: user.email,
         role: user.role,
+        approvalStatus: user.approvalStatus,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

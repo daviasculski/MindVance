@@ -11,11 +11,9 @@ import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUse
 import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUserStory";
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
-import { AdvanceIdeaStageUserStory } from "../../application/userstories/AdvanceIdeaStageUserStory";
-import { AdvanceIdeaStageController } from "../controllers/AdvanceIdeaStageController";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
 import { ensureManagementRole } from "../middlewares/ensureManagementRole";
-import { ensureAdminRole } from "../middlewares/ensureAdminRole";
+import { ensureInnovationManagerRole } from "../middlewares/ensureInnovationManagerRole";
 import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
 import { GetInnovationMetricsController } from "../controllers/GetInnovationMetricsController";
 import { ListIdeaEvaluationsUserStory } from "../../application/userstories/ListIdeaEvaluationsUserStory";
@@ -48,14 +46,6 @@ const updateIdeaController = new UpdateIdeaController(updateIdeaUserStory);
 
 const deleteIdeaUserStory = new DeleteIdeaUserStory(ideaRepository);
 const deleteIdeaController = new DeleteIdeaController(deleteIdeaUserStory);
-
-const advanceIdeaStageUserStory = new AdvanceIdeaStageUserStory(
-  ideaRepository,
-  evaluationRepository,
-);
-const advanceIdeaStageController = new AdvanceIdeaStageController(
-  advanceIdeaStageUserStory,
-);
 
 const getInnovationMetricsUserStory = new GetInnovationMetricsUserStory(
   ideaRepository,
@@ -95,14 +85,13 @@ ideaRoutes.get("/:id/evaluations", (req, res) =>
 ideaRoutes.get("/:id/gate-decisions", (req, res) =>
   gateDecisionController.list(req, res),
 );
-ideaRoutes.post("/:id/gate-decisions", ensureAuthenticated, ensureAdminRole, (req, res) =>
-  gateDecisionController.decide(req, res),
+ideaRoutes.post(
+  "/:id/gate-decisions",
+  ensureAuthenticated,
+  ensureInnovationManagerRole,
+  (req, res) => gateDecisionController.decide(req, res),
 );
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
 ideaRoutes.delete("/:id", (req, res) => deleteIdeaController.handle(req, res));
-// Decisão de gate: só o administrador avança uma ideia de estágio
-ideaRoutes.patch("/:id/stage", ensureAuthenticated, ensureAdminRole, (req, res) =>
-  advanceIdeaStageController.handle(req, res),
-);
 
 export { ideaRoutes };

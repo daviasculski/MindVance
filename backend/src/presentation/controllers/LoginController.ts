@@ -15,6 +15,10 @@ export class LoginController {
         return res.status(401).json({ error: error.message });
       }
 
+      if (error instanceof Error && error.message === "Account is not approved") {
+        return res.status(403).json({ error: error.message });
+      }
+
       if (
         error instanceof Error &&
         error.message === "JWT_SECRET is not configured"

@@ -32,7 +32,14 @@ enum GateDecisionType {
 enum UserRole {
   COLLABORATOR
   EVALUATOR
+  GESTOR_INOVACAO
   ADMIN
+}
+
+enum UserApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Idea {
@@ -67,13 +74,14 @@ model GateDecision {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(255)
-  email     String   @unique @db.VarChar(255)
-  password  String   @db.Text
-  role      UserRole @default(COLLABORATOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String             @id @default(uuid())
+  name           String             @db.VarChar(255)
+  email          String             @unique @db.VarChar(255)
+  password       String             @db.Text
+  role           UserRole           @default(COLLABORATOR)
+  approvalStatus UserApprovalStatus @default(PENDING)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@map("users")
 }

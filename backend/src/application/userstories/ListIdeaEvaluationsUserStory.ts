@@ -22,9 +22,11 @@ export class ListIdeaEvaluationsUserStory {
       throw new Error("Idea not found");
     }
 
-    // Avaliadores e administradores veem todas; colaboradores, só as das próprias ideias
+    // Evaluators, managers, and admins see all; collaborators only see their own.
     const isManagement =
-      input.requesterRole === "EVALUATOR" || input.requesterRole === "ADMIN";
+      input.requesterRole === "EVALUATOR" ||
+      input.requesterRole === "GESTOR_INOVACAO" ||
+      input.requesterRole === "ADMIN";
 
     if (!isManagement && idea.authorId !== input.requesterId) {
       throw new Error("Only the idea author can view its evaluations");

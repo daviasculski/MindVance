@@ -6,12 +6,14 @@ const STORAGE_KEY = "ims.session";
 const roleFromApi: Record<ApiRole, Role> = {
   COLLABORATOR: "colaborador",
   EVALUATOR: "avaliador",
+  GESTOR_INOVACAO: "gestor-inovacao",
   ADMIN: "administrador",
 };
 
 const roleToApi: Record<Role, ApiRole> = {
   colaborador: "COLLABORATOR",
   avaliador: "EVALUATOR",
+  "gestor-inovacao": "GESTOR_INOVACAO",
   administrador: "ADMIN",
 };
 
@@ -44,6 +46,12 @@ export async function login(email: string, password: string): Promise<AuthSessio
     if (error instanceof ApiError && error.status === 401) {
       throw new ApiError(401, "E-mail ou senha incorretos");
     }
+    if (error instanceof ApiError && error.status === 403) {
+      throw new ApiError(
+        403,
+        "Sua conta aguarda aprovação ou teve o acesso negado.",
+      );
+    }
     throw error;
   }
 }
@@ -53,9 +61,9 @@ export async function register(input: {
   email: string;
   password: string;
   role: Role;
-}): Promise<void> {
+}): Promise<{ approvalStatus: "PENDING" | "APPROVED" | "REJECTED" }> {
   try {
-    await apiRequest("/users", {
+    return await apiRequest<{ approvalStatus: "PENDING" | "APPROVED" | "REJECTED" }>("/users", {
       method: "POST",
       body: { ...input, role: roleToApi[input.role] },
     });

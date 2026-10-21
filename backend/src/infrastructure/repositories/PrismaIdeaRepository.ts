@@ -100,15 +100,6 @@ export class PrismaIdeaRepository implements IIdeaRepository {
     return toEntity(raw);
   }
 
-  async updateStage(id: string, stage: IdeaStage): Promise<Idea> {
-    const raw = await prisma.idea.update({
-      where: { id },
-      data: { current_stage: stage },
-    });
-
-    return toEntity(raw);
-  }
-
   async updateProgress(id: string, data: IdeaProgressData): Promise<Idea> {
     const raw = await prisma.idea.update({
       where: { id },

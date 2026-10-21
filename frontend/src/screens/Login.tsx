@@ -18,6 +18,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [notice, setNotice] = useState("");
 
   function validate() {
     const e: Record<string, string> = {};
@@ -38,9 +39,20 @@ export default function Login({ onLogin }: LoginProps) {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     setErrors({});
+    setNotice("");
     try {
       if (mode === "register") {
-        await register({ name: name.trim(), email: email.trim(), password, role });
+        const registration = await register({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          role,
+        });
+        if (registration.approvalStatus === "PENDING") {
+          setNotice("Solicitação enviada. Aguarde a aprovação de um administrador para acessar o sistema.");
+          setLoading(false);
+          return;
+        }
       }
       onLogin(await login(email.trim(), password));
     } catch (err) {
@@ -89,7 +101,7 @@ export default function Login({ onLogin }: LoginProps) {
             {(["login", "register"] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setErrors({}); }}
+                onClick={() => { setMode(m); setErrors({}); setNotice(""); }}
                 className="flex-1 py-2 text-sm font-medium transition-all rounded-lg"
                 style={{
                   fontWeight: 500,
@@ -149,7 +161,7 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
             </Field>
 
-            {/* No login o perfil vem do backend; no cadastro ainda é escolhido aqui */}
+            {/* O perfil público permite solicitar apenas papéis não administrativos. */}
             {mode === "register" && (
               <Field label="Perfil de acesso">
                 <select
@@ -162,7 +174,7 @@ export default function Login({ onLogin }: LoginProps) {
                 >
                   <option value="colaborador">Colaborador</option>
                   <option value="avaliador">Avaliador</option>
-                  <option value="administrador">Administrador</option>
+                  <option value="gestor-inovacao">Gestor de Inovação</option>
                 </select>
               </Field>
             )}
@@ -190,6 +202,16 @@ export default function Login({ onLogin }: LoginProps) {
               >
                 <AlertCircle size={13} />
                 {errors.form}
+              </div>
+            )}
+
+            {notice && (
+              <div
+                className="rounded-xl px-3 py-2.5"
+                style={{ color: "#8A5A00", fontSize: 12.5, background: "rgba(245,158,11,0.12)" }}
+                role="status"
+              >
+                {notice}
               </div>
             )}
 
