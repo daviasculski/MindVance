@@ -3,7 +3,7 @@ import { DecideGateUserStory } from "../../application/userstories/DecideGateUse
 import { ListGateDecisionsUserStory } from "../../application/userstories/ListGateDecisionsUserStory";
 
 const statusByMessage: Record<string, number> = {
-  "Only innovation managers can decide gates": 403,
+  "Only gatekeepers can decide gates": 403,
   "Only the idea author can view its gate decisions": 403,
   "Idea not found": 404,
   "Idea is not awaiting a gate decision": 409,

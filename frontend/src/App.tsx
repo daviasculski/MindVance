@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AuthSession, Idea, Role, Screen } from "./types";
 import { clearSession, loadSession } from "./lib/auth";
 import { ideas as mockIdeas } from "./data";
@@ -11,12 +11,13 @@ import GateEvaluation from "./screens/GateEvaluation";
 import GateDecision from "./screens/GateDecision";
 import KPIDashboard from "./screens/KPIDashboard";
 import ApprovedBoard from "./screens/ApprovedBoard";
+import ApprovalRequests from "./screens/ApprovalRequests";
 import Sidebar from "./components/Sidebar";
 
 const defaultScreenByRole: Record<Role, Screen> = {
   colaborador: "new-idea",
   avaliador: "evaluate",
-  "gestor-inovacao": "gate-decision",
+  gatekeeper: "gate-decision",
   administrador: "funnel",
 };
 
@@ -30,6 +31,16 @@ export default function App() {
   const [detailBackTo, setDetailBackTo] = useState<Screen>("funnel");
   // true quando a ideia aberta veio do backend (e não dos dados de exemplo)
   const [openIdeaFromApi, setOpenIdeaFromApi] = useState(false);
+
+  useEffect(() => {
+    if (
+      session &&
+      (screen === "dashboard" || screen === "approvals") &&
+      session.user.role !== "administrador"
+    ) {
+      setScreen(defaultScreenByRole[session.user.role]);
+    }
+  }, [screen, session]);
 
   function handleLogin(s: AuthSession) {
     setSession(s);
@@ -48,6 +59,17 @@ export default function App() {
     setScreen("idea-detail");
   }
 
+  function handleNavigate(target: Screen) {
+    if (
+      (target === "dashboard" || target === "approvals") &&
+      session?.user.role !== "administrador"
+    ) {
+      setScreen(session ? defaultScreenByRole[session.user.role] : "login");
+      return;
+    }
+    setScreen(target);
+  }
+
   // Funil e Mural ainda usam dados de exemplo, identificados por id
   function handleOpenMockIdea(id: string) {
     const idea = mockIdeas.find((i) => i.id === id);
@@ -63,7 +85,7 @@ export default function App() {
       <Sidebar
         user={session.user}
         screen={screen}
-        onNavigate={setScreen}
+        onNavigate={handleNavigate}
         onLogout={handleLogout}
       />
 
@@ -97,8 +119,18 @@ export default function App() {
         {screen === "evaluate" && (
           <GateEvaluation token={session.token} onSessionExpired={handleLogout} />
         )}
-        {screen === "gate-decision" && <GateDecision />}
-        {screen === "dashboard" && <KPIDashboard />}
+        {screen === "gate-decision" && (
+          <GateDecision onBack={() => setScreen("funnel")} />
+        )}
+        {screen === "dashboard" &&
+          session.user.role === "administrador" && <KPIDashboard />}
+        {screen === "approvals" &&
+          session.user.role === "administrador" && (
+            <ApprovalRequests
+              token={session.token}
+              onSessionExpired={handleLogout}
+            />
+          )}
         {screen === "approved" && (
           <ApprovedBoard
             token={session.token}

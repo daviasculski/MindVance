@@ -6,14 +6,14 @@ const STORAGE_KEY = "ims.session";
 const roleFromApi: Record<ApiRole, Role> = {
   COLLABORATOR: "colaborador",
   EVALUATOR: "avaliador",
-  GESTOR_INOVACAO: "gestor-inovacao",
+  GATEKEEPER: "gatekeeper",
   ADMIN: "administrador",
 };
 
 const roleToApi: Record<Role, ApiRole> = {
   colaborador: "COLLABORATOR",
   avaliador: "EVALUATOR",
-  "gestor-inovacao": "GESTOR_INOVACAO",
+  gatekeeper: "GATEKEEPER",
   administrador: "ADMIN",
 };
 
@@ -75,6 +75,33 @@ export async function register(input: {
   }
 }
 
+export interface PendingApproval {
+  id: string;
+  name: string;
+  email: string;
+  role: "GATEKEEPER" | "EVALUATOR";
+  approvalStatus: "PENDING";
+  createdAt: string;
+}
+
+export async function listPendingApprovals(
+  token: string,
+): Promise<PendingApproval[]> {
+  return apiRequest<PendingApproval[]>("/users/approvals/pending", { token });
+}
+
+export async function decideUserApproval(
+  userId: string,
+  status: "APPROVED" | "REJECTED",
+  token: string,
+): Promise<void> {
+  await apiRequest(`/users/${encodeURIComponent(userId)}/approval`, {
+    method: "PATCH",
+    body: { status },
+    token,
+  });
+}
+
 function tokenExpired(token: string): boolean {
   try {
     const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
@@ -89,7 +116,18 @@ export function loadSession(): AuthSession | null {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const session = JSON.parse(raw) as AuthSession;
-    if (!session.token || !session.user || tokenExpired(session.token)) {
+    const supportedRoles: Role[] = [
+      "colaborador",
+      "avaliador",
+      "gatekeeper",
+      "administrador",
+    ];
+    if (
+      !session.token ||
+      !session.user ||
+      !supportedRoles.includes(session.user.role) ||
+      tokenExpired(session.token)
+    ) {
       clearSession();
       return null;
     }

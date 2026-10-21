@@ -12,8 +12,8 @@ import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUse
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
-import { ensureManagementRole } from "../middlewares/ensureManagementRole";
-import { ensureInnovationManagerRole } from "../middlewares/ensureInnovationManagerRole";
+import { ensureAdminRole } from "../middlewares/ensureAdminRole";
+import { ensureGatekeeperRole } from "../middlewares/ensureGatekeeperRole";
 import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
 import { GetInnovationMetricsController } from "../controllers/GetInnovationMetricsController";
 import { ListIdeaEvaluationsUserStory } from "../../application/userstories/ListIdeaEvaluationsUserStory";
@@ -75,7 +75,7 @@ ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 ideaRoutes.get(
   "/metrics",
   ensureAuthenticated,
-  ensureManagementRole,
+  ensureAdminRole,
   (req, res) => getInnovationMetricsController.handle(req, res),
 );
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
@@ -88,7 +88,7 @@ ideaRoutes.get("/:id/gate-decisions", (req, res) =>
 ideaRoutes.post(
   "/:id/gate-decisions",
   ensureAuthenticated,
-  ensureInnovationManagerRole,
+  ensureGatekeeperRole,
   (req, res) => gateDecisionController.decide(req, res),
 );
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));

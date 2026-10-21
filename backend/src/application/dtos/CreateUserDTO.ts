@@ -2,7 +2,7 @@ export interface CreateUserInputDTO {
   name: string;
   email: string;
   password: string;
-  role?: 'COLLABORATOR' | 'EVALUATOR' | 'GESTOR_INOVACAO' | 'ADMIN';
+  role?: "COLLABORATOR" | "EVALUATOR" | "GATEKEEPER" | "ADMIN";
 }
 
 export interface CreateUserOutputDTO {

@@ -1,14 +1,14 @@
 export type Role =
   | "colaborador"
   | "avaliador"
-  | "gestor-inovacao"
+  | "gatekeeper"
   | "administrador";
 
 /** Papéis como o backend os representa (enum UserRole do Prisma). */
 export type ApiRole =
   | "COLLABORATOR"
   | "EVALUATOR"
-  | "GESTOR_INOVACAO"
+  | "GATEKEEPER"
   | "ADMIN";
 
 export interface AuthUser {
@@ -110,4 +110,5 @@ export type Screen =
   | "evaluate"
   | "gate-decision"
   | "dashboard"
+  | "approvals"
   | "approved";

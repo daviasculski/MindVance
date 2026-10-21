@@ -25,7 +25,7 @@ export class ListGateDecisionsUserStory {
     // Mesma regra das avaliações: autor, avaliadores e administradores
     const isManagement =
       input.requesterRole === "EVALUATOR" ||
-      input.requesterRole === "GESTOR_INOVACAO" ||
+      input.requesterRole === "GATEKEEPER" ||
       input.requesterRole === "ADMIN";
 
     if (!isManagement && idea.authorId !== input.requesterId) {

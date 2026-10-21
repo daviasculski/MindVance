@@ -6,6 +6,7 @@ import {
   BarChart3,
   Trophy,
   LogOut,
+  UserCheck,
 } from "lucide-react";
 import type { AuthUser, Role, Screen } from "../types";
 
@@ -24,7 +25,7 @@ function initials(name: string) {
 const roleLabels: Record<Role, string> = {
   colaborador: "Colaborador",
   avaliador: "Avaliador",
-  "gestor-inovacao": "Gestor de Inovação",
+  gatekeeper: "Gestor de Inovação",
   administrador: "Administrador",
 };
 
@@ -38,14 +39,14 @@ const navByRole: Record<Role, { screen: Screen; label: string; icon: React.React
     { screen: "evaluate", label: "Fila de Avaliações", icon: <ClipboardCheck size={16} /> },
     { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
   ],
-  "gestor-inovacao": [
+  gatekeeper: [
     { screen: "gate-decision", label: "Decisão de Gate", icon: <ClipboardCheck size={16} /> },
     { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
-    { screen: "dashboard", label: "Indicadores", icon: <BarChart3 size={16} /> },
   ],
   administrador: [
     { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
     { screen: "dashboard", label: "Indicadores", icon: <BarChart3 size={16} /> },
+    { screen: "approvals", label: "Solicitações", icon: <UserCheck size={16} /> },
   ],
 };
 

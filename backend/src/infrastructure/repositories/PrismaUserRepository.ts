@@ -17,7 +17,7 @@ export class PrismaUserRepository implements IUserRepository {
           password: data.password,
           role: data.role, // <-- Adicionado aqui para salvar no banco!
           approvalStatus:
-            data.role === "EVALUATOR" || data.role === "GESTOR_INOVACAO"
+            data.role === "EVALUATOR" || data.role === "GATEKEEPER"
               ? "PENDING"
               : "APPROVED",
         },

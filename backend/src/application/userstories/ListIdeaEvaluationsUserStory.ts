@@ -25,7 +25,7 @@ export class ListIdeaEvaluationsUserStory {
     // Evaluators, managers, and admins see all; collaborators only see their own.
     const isManagement =
       input.requesterRole === "EVALUATOR" ||
-      input.requesterRole === "GESTOR_INOVACAO" ||
+      input.requesterRole === "GATEKEEPER" ||
       input.requesterRole === "ADMIN";
 
     if (!isManagement && idea.authorId !== input.requesterId) {

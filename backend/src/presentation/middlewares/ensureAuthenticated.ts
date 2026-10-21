@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { isUserRole } from "../../domain/entities/UserRole";
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 
 const userRepository = new PrismaUserRepository();
@@ -39,11 +38,6 @@ export async function ensureAuthenticated(
       typeof payload.sub !== "string" ||
       payload.sub.length === 0
     ) {
-      res.status(401).json({ error: "Invalid or expired token" });
-      return;
-    }
-
-    if (payload.role !== undefined && !isUserRole(payload.role)) {
       res.status(401).json({ error: "Invalid or expired token" });
       return;
     }

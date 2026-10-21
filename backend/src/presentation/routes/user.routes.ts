@@ -34,12 +34,6 @@ userRoutes.get(
   ensureAdminRole,
   (req, res) => userApprovalController.listPending(req, res),
 );
-userRoutes.get(
-  "/aprovals/pending",
-  ensureAuthenticated,
-  ensureAdminRole,
-  (req, res) => userApprovalController.listPending(req, res),
-);
 userRoutes.patch(
   "/:id/approval",
   ensureAuthenticated,

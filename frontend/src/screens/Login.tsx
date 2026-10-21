@@ -174,7 +174,7 @@ export default function Login({ onLogin }: LoginProps) {
                 >
                   <option value="colaborador">Colaborador</option>
                   <option value="avaliador">Avaliador</option>
-                  <option value="gestor-inovacao">Gestor de Inovação</option>
+                  <option value="gatekeeper">Gestor de Inovação</option>
                 </select>
               </Field>
             )}

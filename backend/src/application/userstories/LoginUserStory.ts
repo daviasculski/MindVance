@@ -16,7 +16,8 @@ export class LoginUserStory {
       throw new Error("Invalid credentials");
     }
 
-    const user = await this.userRepository.findByEmail(input.email);
+    const email = input.email.trim().toLowerCase();
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new Error("Invalid credentials");

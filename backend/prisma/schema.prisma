@@ -32,7 +32,7 @@ enum GateDecisionType {
 enum UserRole {
   COLLABORATOR
   EVALUATOR
-  GESTOR_INOVACAO
+  GATEKEEPER
   ADMIN
 }
 

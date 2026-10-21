@@ -20,8 +20,8 @@ export class DecideGateUserStory {
   ) {}
 
   async execute(input: DecideGateInputDTO): Promise<DecideGateOutputDTO> {
-    if (input.deciderRole !== "GESTOR_INOVACAO") {
-      throw new Error("Only innovation managers can decide gates");
+    if (input.deciderRole !== "GATEKEEPER") {
+      throw new Error("Only gatekeepers can decide gates");
     }
 
     if (!isGateDecisionType(input.decision)) {

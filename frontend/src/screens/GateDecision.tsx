@@ -57,7 +57,7 @@ const decidingGate = gateForStage(decidingIdea.stage)!;
 
 type DecisionType = "aprovada" | "revisão" | "rejeitada" | null;
 
-export default function GateDecision() {
+export default function GateDecision({ onBack }: { onBack: () => void }) {
   const [decision, setDecision] = useState<DecisionType>(null);
   const [justification, setJustification] = useState("");
   const [justError, setJustError] = useState(false);
@@ -103,11 +103,17 @@ export default function GateDecision() {
             A decisão e justificativa foram registradas. O autor da ideia será notificado automaticamente.
           </p>
           <button
-            onClick={() => { setConfirmed(false); setDecision(null); setJustification(""); }}
-            className="mt-6 px-6 py-2.5 rounded-xl font-medium"
-            style={{ background: "#F5F5F7", border: "none", color: "#6E6E73", cursor: "pointer", fontSize: 14 }}
+            onClick={onBack}
+            className="mt-6 rounded-xl px-6 py-2.5 font-medium"
+            style={{
+              background: "#F59E0B",
+              border: "none",
+              color: "#FFFFFF",
+              cursor: "pointer",
+              fontSize: 14,
+            }}
           >
-            Nova decisão
+            Voltar para o Funil
           </button>
         </div>
       </div>
