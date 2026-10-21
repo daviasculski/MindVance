@@ -1,0 +1,9 @@
+CREATE TYPE "UserApprovalStatus" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+
+ALTER TYPE "UserRole" ADD VALUE 'GESTOR_INOVACAO';
+
+ALTER TABLE "users"
+ADD COLUMN "approvalStatus" "UserApprovalStatus" NOT NULL DEFAULT 'APPROVED';
+
+ALTER TABLE "users"
+ALTER COLUMN "approvalStatus" SET DEFAULT 'PENDING';

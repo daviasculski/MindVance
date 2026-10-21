@@ -16,7 +16,8 @@ export class LoginUserStory {
       throw new Error("Invalid credentials");
     }
 
-    const user = await this.userRepository.findByEmail(input.email);
+    const email = input.email.trim().toLowerCase();
+    const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
       throw new Error("Invalid credentials");
@@ -26,6 +27,10 @@ export class LoginUserStory {
 
     if (!passwordMatches) {
       throw new Error("Invalid credentials");
+    }
+
+    if (user.approvalStatus !== "APPROVED") {
+      throw new Error("Account is not approved");
     }
 
     const secret = process.env.JWT_SECRET;
@@ -46,6 +51,7 @@ export class LoginUserStory {
         name: user.name,
         email: user.email,
         role: user.role,
+        approvalStatus: user.approvalStatus,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

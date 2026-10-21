@@ -2,17 +2,18 @@ import { Request, Response } from "express";
 import { CreateUserUserStory } from "../../application/userstories/CreateUserUserStory";
 
 export class CreateUserController {
-  constructor(private readonly createUserUserStory: CreateUserUserStory) {}
+  constructor(
+    private readonly createUserUserStory: CreateUserUserStory,
+    private readonly allowAdminCreation = false,
+  ) {}
 
   async handle(req: Request, res: Response): Promise<Response> {
     try {
-      const { name, email, password, role } = req.body; // <-- Incluído o role aqui
-      const user = await this.createUserUserStory.execute({
-        name,
-        email,
-        password,
-        role, // Passando o role corretamente
-      });
+      const { name, email, password, role } = req.body;
+      const user = await this.createUserUserStory.execute(
+        { name, email, password, role },
+        this.allowAdminCreation,
+      );
 
       return res.status(201).json(user);
     } catch (error: unknown) {
@@ -21,6 +22,17 @@ export class CreateUserController {
         error.message === "Email is already registered"
       ) {
         return res.status(409).json({ error: error.message });
+      }
+
+      if (
+        error instanceof Error &&
+        (error.message === "Invalid user role" ||
+          error.message ===
+            "Admin accounts cannot be created through public registration")
+      ) {
+        return res
+          .status(error.message === "Invalid user role" ? 400 : 403)
+          .json({ error: error.message });
       }
 
       if (

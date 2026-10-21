@@ -1,3 +1,4 @@
+import { UserApprovalStatus } from "../../domain/entities/User";
 import { UserRole } from "../../domain/entities/UserRole";
 
 export interface LoginInputDTO {
@@ -12,6 +13,7 @@ export interface LoginOutputDTO {
     name: string;
     email: string;
     role: UserRole;
+    approvalStatus: UserApprovalStatus;
     createdAt: Date;
     updatedAt: Date;
   };

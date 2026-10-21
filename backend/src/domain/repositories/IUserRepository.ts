@@ -1,4 +1,4 @@
-import { User } from "../entities/User";
+import { User, UserApprovalStatus } from "../entities/User";
 import { UserRole } from "../entities/UserRole"; // Ajuste o caminho se necessário
 
 export interface CreateUserData {
@@ -11,4 +11,8 @@ export interface CreateUserData {
 export interface IUserRepository {
   create(data: CreateUserData): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
+  findByIds(ids: string[]): Promise<User[]>;
+  findById(id: string): Promise<User | null>;
+  findPendingApprovals(): Promise<User[]>;
+  updateApprovalStatus(id: string, status: UserApprovalStatus): Promise<User>;
 }

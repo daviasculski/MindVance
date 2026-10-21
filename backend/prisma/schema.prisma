@@ -16,10 +16,30 @@ enum IdeaStage {
   LANCAMENTO
 }
 
+enum IdeaStatus {
+  EM_ANDAMENTO
+  EM_REVISAO
+  APROVADA
+  REJEITADA
+}
+
+enum GateDecisionType {
+  APROVADA
+  REJEITADA
+  REVISAO
+}
+
 enum UserRole {
   COLLABORATOR
   EVALUATOR
+  GATEKEEPER
   ADMIN
+}
+
+enum UserApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model Idea {
@@ -29,21 +49,39 @@ model Idea {
   author_id     String       @db.VarChar(255)
   extra_fields  Json?        @default("{}")
   current_stage IdeaStage    @default(IDEACAO)
+  status        IdeaStatus   @default(EM_ANDAMENTO)
   created_at    DateTime     @default(now())
   updated_at    DateTime     @updatedAt
   evaluations   Evaluation[]
+  gateDecisions GateDecision[]
 
   @@map("ideas")
 }
 
+model GateDecision {
+  id           String           @id @default(uuid())
+  ideaId       String
+  stage        IdeaStage
+  decision     GateDecisionType
+  feedback     String           @db.Text
+  reviewPoints Json?
+  deciderId    String
+  createdAt    DateTime         @default(now())
+  idea         Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@index([ideaId])
+  @@map("gate_decisions")
+}
+
 model User {
-  id        String   @id @default(uuid())
-  name      String   @db.VarChar(255)
-  email     String   @unique @db.VarChar(255)
-  password  String   @db.Text
-  role      UserRole @default(COLLABORATOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String             @id @default(uuid())
+  name           String             @db.VarChar(255)
+  email          String             @unique @db.VarChar(255)
+  password       String             @db.Text
+  role           UserRole           @default(COLLABORATOR)
+  approvalStatus UserApprovalStatus @default(PENDING)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
 
   @@map("users")
 }
@@ -54,6 +92,8 @@ model Evaluation {
   evaluatorId   String
   score         Float
   justification String   @db.Text
+  stage         IdeaStage
+  criteria      Json?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Restrict)

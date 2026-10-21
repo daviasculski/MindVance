@@ -12,7 +12,7 @@ export class SubmitEvaluationController {
     }
 
     try {
-      const { ideaId, score, justification } = req.body;
+      const { ideaId, score, justification, criteria } = req.body;
 
       const evaluation = await this.submitEvaluationUserStory.execute({
         ideaId,
@@ -20,6 +20,7 @@ export class SubmitEvaluationController {
         evaluatorRole: req.user.role,
         score,
         justification,
+        criteria,
       });
 
       return res.status(201).json(evaluation);
@@ -37,6 +38,10 @@ export class SubmitEvaluationController {
 
       if (message === "Idea not found") {
         return res.status(404).json({ error: message });
+      }
+
+      if (message === "Idea already evaluated by this evaluator in this stage") {
+        return res.status(409).json({ error: message });
       }
 
       return res.status(400).json({ error: message });

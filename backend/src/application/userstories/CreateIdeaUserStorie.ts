@@ -1,6 +1,10 @@
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { Idea } from "../../domain/entities/Idea";
-import { CreateIdeaInputDTO, IdeaOutputDTO } from "../dtos/IdeaDTO";
+import {
+  CreateIdeaInputDTO,
+  IdeaOutputDTO,
+  toIdeaOutputDTO,
+} from "../dtos/IdeaDTO";
 
 export class CreateIdeaUserStorie {
   constructor(private readonly ideaRepository: IIdeaRepository) {}
@@ -23,15 +27,6 @@ export class CreateIdeaUserStorie {
 
     const savedIdea = await this.ideaRepository.create(idea);
 
-    return {
-      id: savedIdea.id!,
-      title: savedIdea.title,
-      description: savedIdea.description,
-      authorId: savedIdea.authorId,
-      extraFields: savedIdea.extraFields ?? null,
-      currentStage: savedIdea.currentStage,
-      createdAt: savedIdea.createdAt!,
-      updatedAt: savedIdea.updatedAt!,
-    };
+    return toIdeaOutputDTO(savedIdea);
   }
 }

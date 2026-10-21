@@ -4,11 +4,15 @@ import {
   CreateUserInputDTO,
   CreateUserOutputDTO,
 } from "../dtos/CreateUserDTO";
+import { isUserRole } from "../../domain/entities/UserRole";
 
 export class CreateUserUserStory {
   constructor(private readonly userRepository: IUserRepository) {}
 
-  async execute(input: CreateUserInputDTO): Promise<CreateUserOutputDTO> {
+  async execute(
+    input: CreateUserInputDTO,
+    allowAdminCreation = false,
+  ): Promise<CreateUserOutputDTO> {
     if (
       typeof input.name !== "string" ||
       input.name.trim().length === 0 ||
@@ -22,7 +26,17 @@ export class CreateUserUserStory {
 
     const name = input.name.trim();
     const email = input.email.trim().toLowerCase();
-    const role = input.role; // <-- Captura o role enviado
+    const role = input.role ?? "COLLABORATOR";
+
+    if (!isUserRole(role)) {
+      throw new Error("Invalid user role");
+    }
+
+    if (role === "ADMIN" && !allowAdminCreation) {
+      throw new Error(
+        "Admin accounts cannot be created through public registration",
+      );
+    }
 
     if (await this.userRepository.findByEmail(email)) {
       throw new Error("Email is already registered");
@@ -37,6 +51,7 @@ export class CreateUserUserStory {
       name: user.name,
       email: user.email,
       role: user.role, // <-- Opcional, mas útil para retornar no output DTO
+      approvalStatus: user.approvalStatus,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

@@ -1,9 +1,20 @@
+import { IdeaStage } from "./IdeaStage";
+
+export interface EvaluationCriterion {
+  name: string;
+  weight: number;
+  score: number;
+  comment?: string;
+}
+
 export interface EvaluationProps {
   id?: string;
   ideaId: string;
   evaluatorId: string;
   score: number;
   justification: string;
+  stage: IdeaStage;
+  criteria?: EvaluationCriterion[] | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -39,6 +50,14 @@ export class Evaluation {
     return this.props.justification;
   }
 
+  get stage(): IdeaStage {
+    return this.props.stage;
+  }
+
+  get criteria(): EvaluationCriterion[] | null {
+    return this.props.criteria ?? null;
+  }
+
   get createdAt(): Date | undefined {
     return this.props.createdAt;
   }
@@ -54,6 +73,8 @@ export class Evaluation {
       evaluatorId: this.evaluatorId,
       score: this.score,
       justification: this.justification,
+      stage: this.stage,
+      criteria: this.criteria,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     };

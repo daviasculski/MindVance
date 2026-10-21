@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { isUserRole } from "../../domain/entities/UserRole";
+import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 
-export function ensureAuthenticated(
+const userRepository = new PrismaUserRepository();
+
+export async function ensureAuthenticated(
   req: Request,
   res: Response,
   next: NextFunction,
-): void {
+): Promise<void> {
   const authorization = req.headers.authorization;
   const authorizationParts = authorization?.trim().split(/\s+/) ?? [];
   const [scheme, token] = authorizationParts;
@@ -40,14 +42,19 @@ export function ensureAuthenticated(
       return;
     }
 
-    if (payload.role !== undefined && !isUserRole(payload.role)) {
+    const user = await userRepository.findById(payload.sub);
+    if (!user) {
       res.status(401).json({ error: "Invalid or expired token" });
+      return;
+    }
+    if (user.approvalStatus !== "APPROVED") {
+      res.status(403).json({ error: "Account is not approved" });
       return;
     }
 
     req.user = {
       id: payload.sub,
-      ...(isUserRole(payload.role) ? { role: payload.role } : {}),
+      role: user.role,
     };
     next();
   } catch (error: unknown) {
@@ -56,7 +63,7 @@ export function ensureAuthenticated(
       return;
     }
 
-    console.error("Token verification failed:", error);
+    console.error("Authentication failed:", error);
     res.status(500).json({ error: "Unable to verify authentication" });
   }
 }

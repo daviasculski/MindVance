@@ -1,11 +1,14 @@
 import { UserRole } from "./UserRole";
 
+export type UserApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export interface UserProps {
   id: string;
   name: string;
   email: string;
   password: string;
   role?: UserRole;
+  approvalStatus?: UserApprovalStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +20,7 @@ export class User {
     this.props = {
       ...props,
       role: props.role ?? "COLLABORATOR",
+      approvalStatus: props.approvalStatus ?? "APPROVED",
     };
   }
 
@@ -38,6 +42,10 @@ export class User {
 
   get role(): UserRole {
     return this.props.role ?? "COLLABORATOR";
+  }
+
+  get approvalStatus(): UserApprovalStatus {
+    return this.props.approvalStatus ?? "APPROVED";
   }
 
   get createdAt(): Date {

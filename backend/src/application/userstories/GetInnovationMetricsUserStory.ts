@@ -25,7 +25,12 @@ export class GetInnovationMetricsUserStory {
     for (const idea of ideas) {
       ideasByStage[idea.currentStage] += 1;
 
-      const area = [idea.extraFields?.area, idea.extraFields?.departamento].find(
+      // "department" é a chave usada pelo formulário de nova ideia do frontend
+      const area = [
+        idea.extraFields?.area,
+        idea.extraFields?.departamento,
+        idea.extraFields?.department,
+      ].find(
         (value): value is string =>
           typeof value === "string" && value.trim().length > 0,
       );
