@@ -15,4 +15,7 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findPendingApprovals(): Promise<User[]>;
   updateApprovalStatus(id: string, status: UserApprovalStatus): Promise<User>;
+  findAll(): Promise<User[]>;
+  /** Define o papel e marca a conta como aprovada (decisão do Administrador) */
+  updateRole(id: string, role: UserRole): Promise<User>;
 }

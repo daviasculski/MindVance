@@ -105,6 +105,40 @@ export class PrismaUserRepository implements IUserRepository {
     });
   }
 
+  async findAll(): Promise<User[]> {
+    const users = await prisma.user.findMany({ orderBy: { name: "asc" } });
+    return users.map(
+      (raw) =>
+        new User({
+          id: raw.id,
+          name: raw.name,
+          email: raw.email,
+          password: raw.password,
+          role: raw.role as UserRole,
+          approvalStatus: raw.approvalStatus as UserApprovalStatus,
+          createdAt: raw.createdAt,
+          updatedAt: raw.updatedAt,
+        }),
+    );
+  }
+
+  async updateRole(id: string, role: UserRole): Promise<User> {
+    const raw = await prisma.user.update({
+      where: { id },
+      data: { role, approvalStatus: "APPROVED" },
+    });
+    return new User({
+      id: raw.id,
+      name: raw.name,
+      email: raw.email,
+      password: raw.password,
+      role: raw.role as UserRole,
+      approvalStatus: raw.approvalStatus as UserApprovalStatus,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    });
+  }
+
   async findPendingApprovals(): Promise<User[]> {
     const users = await prisma.user.findMany({
       where: { approvalStatus: "PENDING" },

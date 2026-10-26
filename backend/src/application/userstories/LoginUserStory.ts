@@ -29,17 +29,14 @@ export class LoginUserStory {
       throw new Error("Invalid credentials");
     }
 
-    if (user.approvalStatus !== "APPROVED") {
-      throw new Error("Account is not approved");
-    }
-
+    // Pedido de Avaliador/Gestor pendente ou recusado: entra como Colaborador (P1)
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {
       throw new Error("JWT_SECRET is not configured");
     }
 
-    const token = jwt.sign({ role: user.role }, secret, {
+    const token = jwt.sign({ role: user.effectiveRole }, secret, {
       subject: user.id,
       expiresIn: "1d",
     });
@@ -50,7 +47,8 @@ export class LoginUserStory {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.effectiveRole,
+        requestedRole: user.role,
         approvalStatus: user.approvalStatus,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,

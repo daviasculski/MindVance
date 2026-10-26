@@ -47,14 +47,11 @@ export async function ensureAuthenticated(
       res.status(401).json({ error: "Invalid or expired token" });
       return;
     }
-    if (user.approvalStatus !== "APPROVED") {
-      res.status(403).json({ error: "Account is not approved" });
-      return;
-    }
-
+    // O papel vem do banco a cada requisição: aprovar, recusar ou trocar o papel
+    // vale na hora. Sem aprovação, o usuário opera como Colaborador (P1).
     req.user = {
       id: payload.sub,
-      role: user.role,
+      role: user.effectiveRole,
     };
     next();
   } catch (error: unknown) {

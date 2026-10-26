@@ -6,6 +6,9 @@ import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
 import { ensureAdminRole } from "../middlewares/ensureAdminRole";
 import { ManageUserApprovalsUserStory } from "../../application/userstories/ManageUserApprovalsUserStory";
 import { UserApprovalController } from "../controllers/UserApprovalController";
+import { ManageUsersUserStory } from "../../application/userstories/ManageUsersUserStory";
+import { ManageUsersController } from "../controllers/ManageUsersController";
+import { ensureRole } from "../middlewares/ensureRole";
 
 const userRoutes = Router();
 
@@ -20,6 +23,7 @@ const createAdminUserController = new CreateUserController(
 const userApprovalController = new UserApprovalController(
   new ManageUserApprovalsUserStory(userRepository),
 );
+const manageUsersController = new ManageUsersController(new ManageUsersUserStory(userRepository));
 
 userRoutes.post("/", (req, res) => createUserController.handle(req, res));
 userRoutes.post(
@@ -39,6 +43,17 @@ userRoutes.patch(
   ensureAuthenticated,
   ensureAdminRole,
   (req, res) => userApprovalController.decide(req, res),
+);
+// Gestão de usuários pelo Administrador: lista e troca de papel (P1)
+userRoutes.get("/", ensureAuthenticated, ensureAdminRole, (req, res) =>
+  manageUsersController.list(req, res),
+);
+userRoutes.patch("/:id/role", ensureAuthenticated, ensureAdminRole, (req, res) =>
+  manageUsersController.changeRole(req, res),
+);
+// Avaliadores aprovados, para o Gestor designar em um gate
+userRoutes.get("/evaluators", ensureAuthenticated, ensureRole("GATEKEEPER"), (req, res) =>
+  manageUsersController.evaluators(req, res),
 );
 
 export { userRoutes };
