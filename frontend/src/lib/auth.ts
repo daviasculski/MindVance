@@ -1,7 +1,7 @@
 import type { ApiRole, AuthSession, AuthUser, Role } from "../types";
 import { ApiError, apiRequest } from "./api";
 
-const STORAGE_KEY = "ims.session";
+const STORAGE_KEY = "mindvance.session";
 
 const roleFromApi: Record<ApiRole, Role> = {
   COLLABORATOR: "colaborador",

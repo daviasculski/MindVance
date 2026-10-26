@@ -1,5 +1,7 @@
 {
-  "description": "This web application streamlines project management by enabling teams to collaborate efficiently, track progress, and meet deadlines effectively.",
+  "title": "MindVance",
+  "description": "MindVance: gestão da inovação corporativa com a metodologia Stage-Gate.",
+  "language": "pt-BR",
   "robots": {
     "index": false
   },
