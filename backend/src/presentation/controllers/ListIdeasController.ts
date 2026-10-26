@@ -1,39 +1,39 @@
 import { Request, Response } from "express";
 import { ListIdeasUserStory } from "../../application/userstories/ListIdeasUserStory";
 import { ListIdeasFiltersDTO } from "../../application/dtos/ListIdeasFiltersDTO";
+import { sendError } from "../http";
+
+const statusByMessage: Record<string, number> = {
+  "Only the gatekeeper can list all ideas": 403,
+};
 
 export class ListIdeasController {
   constructor(private readonly listIdeasUserStory: ListIdeasUserStory) {}
 
   async handle(req: Request, res: Response): Promise<Response> {
-    try {
-      const filters: ListIdeasFiltersDTO = {
-        stage:
-          typeof req.query.stage === "string"
-            ? req.query.stage
-            : typeof req.query.currentStage === "string"
-              ? req.query.currentStage
-              : undefined,
-        status:
-          typeof req.query.status === "string" ? req.query.status : undefined,
-        startDate:
-          typeof req.query.startDate === "string"
-            ? req.query.startDate
-            : undefined,
-        endDate:
-          typeof req.query.endDate === "string" ? req.query.endDate : undefined,
-        authorId:
-          typeof req.query.authorId === "string"
-            ? req.query.authorId
-            : undefined,
-      };
+    const query = (key: string) =>
+      typeof req.query[key] === "string" ? (req.query[key] as string) : undefined;
 
-      const ideas = await this.listIdeasUserStory.execute(filters);
+    const filters: ListIdeasFiltersDTO = {
+      stage: query("stage") ?? query("currentStage"),
+      status: query("status"),
+      startDate: query("startDate"),
+      endDate: query("endDate"),
+      authorId: query("authorId"),
+    };
+
+    try {
+      const ideas = await this.listIdeasUserStory.execute(filters, {
+        id: req.user!.id,
+        role: req.user!.role,
+      });
       return res.status(200).json(ideas);
-    } catch (error: any) {
-      return res
-        .status(500)
-        .json({ error: error.message || "Erro interno ao listar ideias" });
+    } catch (error: unknown) {
+      // Filtro de estágio/status inválido
+      if (error instanceof Error && error.message.startsWith("Invalid idea")) {
+        return res.status(400).json({ error: error.message });
+      }
+      return sendError(res, error, statusByMessage, "Erro interno ao listar ideias");
     }
   }
 }

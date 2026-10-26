@@ -37,7 +37,7 @@ const listIdeasController = new ListIdeasController(
   new ListIdeasUserStory(ideaRepository, userRepository),
 );
 const getIdeaByIdController = new GetIdeaByIdController(
-  new GetIdeaByIdUserStory(ideaRepository, userRepository),
+  new GetIdeaByIdUserStory(ideaRepository, userRepository, gateReviewRepository),
 );
 const updateIdeaController = new UpdateIdeaController(new UpdateIdeaUserStory(ideaRepository));
 const getInnovationMetricsController = new GetInnovationMetricsController(
