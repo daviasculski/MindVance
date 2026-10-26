@@ -14,15 +14,23 @@ export function isGateDecisionType(value: unknown): value is GateDecisionType {
 export interface GateDecisionProps {
   id?: string;
   ideaId: string;
+  /** Rodada decidida (ausente em decisões anteriores ao modelo de rodadas) */
+  reviewId?: string | null;
   /** Estágio em que a ideia estava quando o gate foi decidido */
   stage: IdeaStage;
+  /** Estágio de destino; só existe quando a decisão é aprovar */
+  toStage?: IdeaStage | null;
   decision: GateDecisionType;
+  /** Recomendação do sistema no momento da decisão (D7) */
+  recommendation?: GateDecisionType | null;
+  consolidatedScore?: number | null;
   feedback: string;
   reviewPoints?: string[] | null;
   deciderId: string;
   createdAt?: Date;
 }
 
+/** Transição registrada a cada decisão de gate (stage_transitions). Imutável. */
 export class GateDecision {
   private readonly props: GateDecisionProps;
 
@@ -41,12 +49,28 @@ export class GateDecision {
     return this.props.ideaId;
   }
 
+  get reviewId(): string | null {
+    return this.props.reviewId ?? null;
+  }
+
   get stage(): IdeaStage {
     return this.props.stage;
   }
 
+  get toStage(): IdeaStage | null {
+    return this.props.toStage ?? null;
+  }
+
   get decision(): GateDecisionType {
     return this.props.decision;
+  }
+
+  get recommendation(): GateDecisionType | null {
+    return this.props.recommendation ?? null;
+  }
+
+  get consolidatedScore(): number | null {
+    return this.props.consolidatedScore ?? null;
   }
 
   get feedback(): string {

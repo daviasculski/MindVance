@@ -29,6 +29,5 @@ export interface IIdeaRepository {
   findAll(filters?: IdeaFilters): Promise<Idea[]>;
   update(id: string, data: UpdateIdeaData): Promise<Idea>;
   updateProgress(id: string, data: IdeaProgressData): Promise<Idea>;
-  /** Remove a ideia junto com suas avaliações e decisões de gate */
-  delete(id: string): Promise<void>;
+  // Sem delete: o histórico de ideias é imutável (P3)
 }

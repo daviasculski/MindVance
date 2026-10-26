@@ -1,14 +1,15 @@
 import { EvaluationCriterion } from "../../domain/entities/Evaluation";
+import { GateCriterion } from "../../domain/entities/Gate";
 import { IdeaStage } from "../../domain/entities/IdeaStage";
 import { UserRole } from "../../domain/entities/UserRole";
 
 export interface SubmitEvaluationInputDTO {
-  ideaId: string;
+  reviewId: unknown;
   evaluatorId: string;
   evaluatorRole: UserRole | undefined;
-  score: number;
   justification: string;
-  criteria?: EvaluationCriterion[];
+  /** [{ criterionId, score, comment? }] — um item por critério do gate */
+  criteria: unknown;
 }
 
 export interface ListIdeaEvaluationsInputDTO {
@@ -24,13 +25,20 @@ export interface IdeaEvaluationOutputDTO {
   score: number;
   justification: string;
   stage: IdeaStage;
+  /** Rodada e gate da avaliação (null em avaliações anteriores ao modelo de rodadas) */
+  round: number | null;
+  gateOrder: number | null;
   criteria: EvaluationCriterion[] | null;
   createdAt: Date;
 }
 
-export interface EvaluationOutputDTO
-  extends Omit<SubmitEvaluationInputDTO, "evaluatorRole" | "criteria"> {
+export interface EvaluationOutputDTO {
   id: string;
+  ideaId: string;
+  evaluatorId: string;
+  reviewId: string;
+  score: number;
+  justification: string;
   stage: IdeaStage;
   criteria: EvaluationCriterion[] | null;
   createdAt: Date;
@@ -43,6 +51,7 @@ export interface EvaluationQueueInputDTO {
 }
 
 export interface PendingEvaluationDTO {
+  reviewId: string;
   ideaId: string;
   title: string;
   description: string;
@@ -50,6 +59,16 @@ export interface PendingEvaluationDTO {
   extraFields: Record<string, unknown> | null;
   currentStage: IdeaStage;
   createdAt: Date;
+  gate: {
+    orderIndex: number;
+    name: string;
+    approveThreshold: number;
+    reviseThreshold: number;
+    criteria: GateCriterion[];
+  };
+  round: number;
+  deadlineAt: Date | null;
+  overdue: boolean;
 }
 
 export interface CompletedEvaluationDTO {
@@ -57,6 +76,7 @@ export interface CompletedEvaluationDTO {
   ideaId: string;
   ideaTitle: string;
   stage: IdeaStage;
+  round: number | null;
   score: number;
   createdAt: Date;
 }

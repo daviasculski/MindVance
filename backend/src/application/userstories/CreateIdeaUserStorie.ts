@@ -18,11 +18,28 @@ export class CreateIdeaUserStorie {
       throw new Error("Idea authorId is required");
     }
 
+    // UC01 FA01: os mesmos campos obrigatórios do formulário valem na API
+    const extra = input.extraFields ?? {};
+    const isFilled = (value: unknown) =>
+      typeof value === "string" && value.trim().length > 0;
+
+    if (!isFilled(input.description)) {
+      throw new Error("Idea solution is required");
+    }
+    if (!isFilled(extra.problem)) {
+      throw new Error("Idea problem is required");
+    }
+    if (!isFilled(extra.department)) {
+      throw new Error("Idea department is required");
+    }
+
+    // Toda ideia nova aguarda a triagem do Gestor antes do Gate 1 (D6)
     const idea = new Idea({
       title: input.title,
       description: input.description,
       authorId: input.authorId,
-      extraFields: input.extraFields ?? {},
+      extraFields: extra,
+      status: "AGUARDANDO_TRIAGEM",
     });
 
     const savedIdea = await this.ideaRepository.create(idea);

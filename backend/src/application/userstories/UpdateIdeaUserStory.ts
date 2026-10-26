@@ -1,4 +1,7 @@
+import { IdeaStatus } from "../../domain/entities/IdeaStatus";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
+
+const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM", "EM_ANDAMENTO", "EM_REVISAO"];
 import {
   IdeaOutputDTO,
   RequesterDTO,
@@ -24,35 +27,23 @@ export class UpdateIdeaUserStory {
       throw new Error("Only the author can edit this idea");
     }
 
-    // Editável na Ideação, ou em qualquer estágio quando o gate pediu revisão
-    const inRevision = existingIdea.status === "EM_REVISAO";
-    const editable =
-      inRevision ||
-      (existingIdea.currentStage === "IDEACAO" &&
-        existingIdea.status === "EM_ANDAMENTO");
-
-    if (!editable) {
-      throw new Error(
-        "Idea can only be edited during Ideation or when returned for revision",
-      );
+    // O autor edita e produz as entregas fora do gate: antes da triagem, no
+    // trabalho do estágio e em Revisar. Dentro do gate o conteúdo fica congelado
+    // para todos os avaliadores avaliarem a mesma versão (P4).
+    if (!editableStatuses.includes(existingIdea.status)) {
+      throw new Error("Idea cannot be edited while in a gate or after it was closed");
     }
 
     if (data.title !== undefined && data.title.trim().length === 0) {
       throw new Error("Idea title is required");
     }
 
-    let updatedIdea = await this.ideaRepository.update(id, {
+    // Editar não reenvia a ideia: o reenvio é pelo "Solicitar revisão do gate"
+    const updatedIdea = await this.ideaRepository.update(id, {
       title: data.title,
       description: data.description,
       extraFields: data.extraFields,
     });
-
-    // Ajustes feitos após um pedido de revisão reenviam a ideia ao gate
-    if (inRevision) {
-      updatedIdea = await this.ideaRepository.updateProgress(id, {
-        status: "EM_ANDAMENTO",
-      });
-    }
 
     return toIdeaOutputDTO(updatedIdea);
   }

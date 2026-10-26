@@ -3,7 +3,7 @@ import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUse
 
 const forbiddenMessages = [
   "Only the author can edit this idea",
-  "Idea can only be edited during Ideation or when returned for revision",
+  "Idea cannot be edited while in a gate or after it was closed",
 ];
 
 export class UpdateIdeaController {

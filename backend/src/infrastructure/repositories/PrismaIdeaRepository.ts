@@ -33,6 +33,7 @@ export class PrismaIdeaRepository implements IIdeaRepository {
         description: idea.description,
         author_id: idea.authorId,
         extra_fields: (idea.extraFields ?? {}) as Prisma.InputJsonValue,
+        status: idea.status,
       },
     });
 
@@ -110,13 +111,5 @@ export class PrismaIdeaRepository implements IIdeaRepository {
     });
 
     return toEntity(raw);
-  }
-
-  async delete(id: string): Promise<void> {
-    // Avaliações têm onDelete: Restrict; decisões de gate saem em cascata
-    await prisma.$transaction([
-      prisma.evaluation.deleteMany({ where: { ideaId: id } }),
-      prisma.idea.delete({ where: { id } }),
-    ]);
   }
 }
