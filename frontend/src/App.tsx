@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { AuthSession, Idea, Role, Screen } from "./types";
+import type { AuthSession, Idea, Screen } from "./types";
 import { clearSession, loadSession } from "./lib/auth";
+import { canAccess, defaultScreen } from "./lib/navigation";
 import { ideas as mockIdeas } from "./data";
 import Login from "./screens/Login";
 import NewIdea from "./screens/NewIdea";
@@ -14,17 +15,10 @@ import ApprovedBoard from "./screens/ApprovedBoard";
 import ApprovalRequests from "./screens/ApprovalRequests";
 import Sidebar from "./components/Sidebar";
 
-const defaultScreenByRole: Record<Role, Screen> = {
-  colaborador: "new-idea",
-  avaliador: "evaluate",
-  gatekeeper: "gate-decision",
-  administrador: "funnel",
-};
-
 export default function App() {
   const [session, setSession] = useState<AuthSession | null>(loadSession);
   const [screen, setScreen] = useState<Screen>(() =>
-    session ? defaultScreenByRole[session.user.role] : "new-idea",
+    session ? defaultScreen(session.user.role) : "new-idea",
   );
   const [openIdea, setOpenIdea] = useState<Idea | null>(null);
   // Tela para onde o "Voltar" do detalhe retorna
@@ -32,19 +26,16 @@ export default function App() {
   // true quando a ideia aberta veio do backend (e não dos dados de exemplo)
   const [openIdeaFromApi, setOpenIdeaFromApi] = useState(false);
 
+  // Nenhum perfil fica numa tela que não é dele (ex.: sessão antiga ou navegação interna)
   useEffect(() => {
-    if (
-      session &&
-      (screen === "dashboard" || screen === "approvals") &&
-      session.user.role !== "administrador"
-    ) {
-      setScreen(defaultScreenByRole[session.user.role]);
+    if (session && !canAccess(session.user.role, screen)) {
+      setScreen(defaultScreen(session.user.role));
     }
   }, [screen, session]);
 
   function handleLogin(s: AuthSession) {
     setSession(s);
-    setScreen(defaultScreenByRole[s.user.role]);
+    setScreen(defaultScreen(s.user.role));
   }
 
   function handleLogout() {
@@ -60,11 +51,8 @@ export default function App() {
   }
 
   function handleNavigate(target: Screen) {
-    if (
-      (target === "dashboard" || target === "approvals") &&
-      session?.user.role !== "administrador"
-    ) {
-      setScreen(session ? defaultScreenByRole[session.user.role] : "login");
+    if (session && !canAccess(session.user.role, target)) {
+      setScreen(defaultScreen(session.user.role));
       return;
     }
     setScreen(target);
@@ -122,10 +110,8 @@ export default function App() {
         {screen === "gate-decision" && (
           <GateDecision onBack={() => setScreen("funnel")} />
         )}
-        {screen === "dashboard" &&
-          session.user.role === "administrador" && <KPIDashboard />}
-        {screen === "approvals" &&
-          session.user.role === "administrador" && (
+        {screen === "dashboard" && canAccess(session.user.role, "dashboard") && <KPIDashboard />}
+        {screen === "approvals" && canAccess(session.user.role, "approvals") && (
             <ApprovalRequests
               token={session.token}
               onSessionExpired={handleLogout}
