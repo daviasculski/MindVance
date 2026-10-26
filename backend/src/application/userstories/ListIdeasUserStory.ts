@@ -1,6 +1,6 @@
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
-import { IdeaOutputDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
+import { IdeaOutputDTO, RequesterDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
 import { ListIdeasFiltersDTO } from "../dtos/ListIdeasFiltersDTO";
 
 export class ListIdeasUserStory {
@@ -9,7 +9,15 @@ export class ListIdeasUserStory {
     private readonly userRepository: IUserRepository,
   ) {}
 
-  async execute(filters?: ListIdeasFiltersDTO): Promise<IdeaOutputDTO[]> {
+  async execute(filters: ListIdeasFiltersDTO, requester: RequesterDTO): Promise<IdeaOutputDTO[]> {
+    // Matriz de permissões: só o Gestor vê todas as ideias (funil, triagem).
+    // Os demais listam as próprias ideias ou as do Mural (Lançamento).
+    const ownIdeas = filters.authorId === requester.id;
+    const approvedBoard = filters.stage === "LANCAMENTO";
+    if (requester.role !== "GATEKEEPER" && !ownIdeas && !approvedBoard) {
+      throw new Error("Only the gatekeeper can list all ideas");
+    }
+
     const ideas = await this.ideaRepository.findAll(filters);
 
     const authorIds = [...new Set(ideas.map((idea) => idea.authorId))];
