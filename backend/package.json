@@ -1,7 +1,7 @@
 {
-  "name": "idevance-backend",
+  "name": "mindvance-backend",
   "version": "1.0.0",
-  "description": "Backend for Idevance innovation management system.",
+  "description": "Backend do MindVance, sistema de gestão da inovação Stage-Gate.",
   "main": "src/server.ts",
   "scripts": {
     "dev": "ts-node-dev --exit-child --transpile-only --ignore-watch node_modules src/server.ts"

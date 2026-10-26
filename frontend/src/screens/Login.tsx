@@ -81,10 +81,10 @@ export default function Login({ onLogin }: LoginProps) {
               margin: 0,
             }}
           >
-            IMS
+            MindVance
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 6 }}>
-            Innovation Management System
+            Gestão da inovação com Stage-Gate
           </p>
         </div>
 
