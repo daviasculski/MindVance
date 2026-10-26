@@ -42,17 +42,14 @@ export default function Login({ onLogin }: LoginProps) {
     setNotice("");
     try {
       if (mode === "register") {
-        const registration = await register({
+        // Pedido de Avaliador/Gestor fica pendente, mas a pessoa já entra como
+        // Colaborador; o menu mostra o andamento do pedido (P1)
+        await register({
           name: name.trim(),
           email: email.trim(),
           password,
           role,
         });
-        if (registration.approvalStatus === "PENDING") {
-          setNotice("Solicitação enviada. Aguarde a aprovação de um administrador para acessar o sistema.");
-          setLoading(false);
-          return;
-        }
       }
       onLogin(await login(email.trim(), password));
     } catch (err) {
@@ -176,6 +173,11 @@ export default function Login({ onLogin }: LoginProps) {
                   <option value="avaliador">Avaliador</option>
                   <option value="gatekeeper">Gestor de Inovação</option>
                 </select>
+                {role !== "colaborador" && (
+                  <p style={{ color: "#AEAEB2", fontSize: 11.5, lineHeight: 1.5 }}>
+                    Este perfil depende da aprovação de um Administrador. Até lá, você entra como Colaborador.
+                  </p>
+                )}
               </Field>
             )}
 

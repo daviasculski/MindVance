@@ -7,6 +7,8 @@ import {
   Trophy,
   LogOut,
   UserCheck,
+  Inbox,
+  Users,
 } from "lucide-react";
 import type { AuthUser, Role, Screen } from "../types";
 import { navByRole } from "../lib/navigation";
@@ -39,6 +41,8 @@ const iconByScreen: Partial<Record<Screen, React.ReactNode>> = {
   funnel: <LayoutGrid size={16} />,
   dashboard: <BarChart3 size={16} />,
   approvals: <UserCheck size={16} />,
+  triage: <Inbox size={16} />,
+  users: <Users size={16} />,
 };
 
 export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarProps) {
@@ -80,6 +84,22 @@ export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarP
           <div className="rounded-full" style={{ width: 6, height: 6, background: "#F59E0B" }} />
           {roleLabels[role]}
         </div>
+        {/* Pedido de Avaliador/Gestor ainda não aprovado: opera como Colaborador (P1) */}
+        {user.requestedRole && user.requestedRole !== role && user.approvalStatus !== "APPROVED" && (
+          <div
+            className="mt-1.5 rounded-xl px-3 py-2"
+            style={{
+              background: user.approvalStatus === "PENDING" ? "rgba(245,158,11,0.08)" : "#F5F5F7",
+              color: user.approvalStatus === "PENDING" ? "#8A5A00" : "#6E6E73",
+              fontSize: 11.5,
+              lineHeight: 1.45,
+            }}
+          >
+            {user.approvalStatus === "PENDING"
+              ? `Pedido de ${roleLabels[user.requestedRole]} aguardando aprovação.`
+              : `Pedido de ${roleLabels[user.requestedRole]} recusado.`}
+          </div>
+        )}
       </div>
 
       {/* Nav */}

@@ -15,7 +15,11 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  /** Papel com que o usuário opera (Colaborador enquanto um pedido não é aprovado) */
   role: Role;
+  /** Papel pedido no cadastro; difere de `role` enquanto o pedido está pendente ou recusado */
+  requestedRole?: Role;
+  approvalStatus?: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 export interface AuthSession {
@@ -31,7 +35,15 @@ export type Stage =
   | "Teste e Validação"
   | "Lançamento";
 
-export type IdeaStatus = "Em andamento" | "Aprovada" | "Rejeitada" | "Em revisão";
+export type IdeaStatus =
+  | "Aguardando triagem"
+  | "Aguardando designação"
+  | "Em avaliação"
+  | "Aguardando decisão"
+  | "Em andamento"
+  | "Aprovada"
+  | "Rejeitada"
+  | "Em revisão";
 
 export type GateDecisionType = "aprovada" | "rejeitada" | "revisão";
 
@@ -57,8 +69,13 @@ export interface TimelineEntry {
   responsible: string;
   feedback: string;
   reviewPoints?: string[];
-  /** Nota de 0 a 10, presente só nas entradas "avaliada". */
+  /** Nota de 0 a 10: do parecer ("avaliada") ou consolidada da rodada (decisões). */
   score?: number;
+  /** Gate e rodada da entrada (ausentes em registros anteriores ao modelo de rodadas). */
+  gateOrder?: number;
+  round?: number;
+  /** Recomendação do sistema na decisão do Gestor (D7). */
+  recommendation?: GateDecisionType;
 }
 
 export interface Idea {
@@ -109,6 +126,8 @@ export type Screen =
   | "idea-detail"
   | "evaluate"
   | "gate-decision"
+  | "triage"
   | "dashboard"
   | "approvals"
+  | "users"
   | "approved";

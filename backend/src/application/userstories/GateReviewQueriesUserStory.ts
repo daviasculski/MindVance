@@ -22,6 +22,8 @@ export interface GateSummaryDTO {
   deadlineDays: number;
   approveThreshold: number;
   reviseThreshold: number;
+  /** Aprovar este gate leva ao estágio final (sem gate de saída): encerra o ciclo (P2) */
+  leadsToFinalStage: boolean;
 }
 
 export interface GateReviewSummaryDTO {
@@ -55,8 +57,9 @@ export interface GateReviewDetailDTO extends GateReviewSummaryDTO {
   }[];
 }
 
-function toGateSummary(gate: Gate): GateSummaryDTO {
+function toGateSummary(gate: Gate, gates: Gate[]): GateSummaryDTO {
   return {
+    leadsToFinalStage: !gates.some((g) => g.fromStage === gate.toStage),
     id: gate.id,
     orderIndex: gate.orderIndex,
     name: gate.name,
@@ -79,7 +82,7 @@ export class GateReviewQueriesUserStory {
 
   async listGates(): Promise<(GateSummaryDTO & { fromStage: string; toStage: string; criteria: Gate["criteria"] })[]> {
     const gates = await this.gateRepository.findAll();
-    return gates.map((g) => ({ ...toGateSummary(g), fromStage: g.fromStage, toStage: g.toStage, criteria: g.criteria }));
+    return gates.map((g) => ({ ...toGateSummary(g, gates), fromStage: g.fromStage, toStage: g.toStage, criteria: g.criteria }));
   }
 
   async listByStatus(status: unknown): Promise<GateReviewSummaryDTO[]> {
@@ -159,7 +162,7 @@ export class GateReviewQueriesUserStory {
       recommendation: review.recommendation,
       reopenedAfterRevision: review.round > 1,
       idea: toIdeaOutputDTO(idea, author?.name ?? "Colaborador"),
-      gate: toGateSummary(gate),
+      gate: toGateSummary(gate, gates),
       evaluators: review.evaluators.map((e) => ({
         id: e.evaluatorId,
         name: nameById.get(e.evaluatorId) ?? "Avaliador",
