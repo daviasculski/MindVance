@@ -48,6 +48,14 @@ export class User {
     return this.props.approvalStatus ?? "APPROVED";
   }
 
+  /**
+   * Papel com que o usuário opera. Enquanto o pedido de Avaliador ou Gestor não
+   * é aprovado (pendente ou recusado), ele opera como Colaborador (P1).
+   */
+  get effectiveRole(): UserRole {
+    return this.approvalStatus === "APPROVED" ? this.role : "COLLABORATOR";
+  }
+
   get createdAt(): Date {
     return this.props.createdAt;
   }
