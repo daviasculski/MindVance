@@ -1,9 +1,12 @@
 import { IEvaluationRepository } from "../../domain/repositories/IEvaluationRepository";
+import { IGateRepository } from "../../domain/repositories/IGateRepository";
+import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepository";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import {
   EvaluationQueueInputDTO,
   EvaluationQueueOutputDTO,
+  PendingEvaluationDTO,
 } from "../dtos/EvaluationDTO";
 
 export class GetEvaluationQueueUserStory {
@@ -11,57 +14,73 @@ export class GetEvaluationQueueUserStory {
     private readonly ideaRepository: IIdeaRepository,
     private readonly evaluationRepository: IEvaluationRepository,
     private readonly userRepository: IUserRepository,
+    private readonly gateRepository: IGateRepository,
+    private readonly gateReviewRepository: IGateReviewRepository,
   ) {}
 
-  async execute(
-    input: EvaluationQueueInputDTO,
-  ): Promise<EvaluationQueueOutputDTO> {
+  async execute(input: EvaluationQueueInputDTO): Promise<EvaluationQueueOutputDTO> {
     if (input.requesterRole !== "EVALUATOR") {
       throw new Error("Only users with the Evaluator role have an evaluation queue");
     }
 
-    const [ideas, myEvaluations] = await Promise.all([
-      this.ideaRepository.findAll(),
+    const [assigned, myEvaluations, gates] = await Promise.all([
+      this.gateReviewRepository.findAssignedTo(input.requesterId, "EM_AVALIACAO"),
       this.evaluationRepository.findByEvaluatorId(input.requesterId),
+      this.gateRepository.findAll(),
     ]);
+    const gateById = new Map(gates.map((g) => [g.id, g]));
+    const evaluatedReviewIds = new Set(myEvaluations.map((e) => e.reviewId).filter(Boolean));
 
-    // Pendente: ideia de outra pessoa, aguardando gate (não encerrada, aprovada
-    // nem em revisão) e sem avaliação deste avaliador no estágio atual
-    const pendingIdeas = ideas
-      .filter(
-        (idea) =>
-          idea.authorId !== input.requesterId &&
-          idea.status === "EM_ANDAMENTO" &&
-          !myEvaluations.some(
-            (e) => e.ideaId === idea.id && e.stage === idea.currentStage,
-          ),
-      )
-      // Quem espera há mais tempo aparece primeiro
-      .sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime());
+    // Pendente: rodada em avaliação em que ele foi designado e ainda não enviou parecer
+    const pendingReviews = assigned.filter((r) => !evaluatedReviewIds.has(r.id));
 
-    const authorIds = [...new Set(pendingIdeas.map((idea) => idea.authorId))];
-    const authors = await this.userRepository.findByIds(authorIds);
-    const authorNameById = new Map(authors.map((u) => [u.id, u.name]));
-    const ideaTitleById = new Map(ideas.map((idea) => [idea.id!, idea.title]));
-
-    return {
-      pending: pendingIdeas.map((idea) => ({
+    const pending: PendingEvaluationDTO[] = [];
+    for (const review of pendingReviews) {
+      const idea = await this.ideaRepository.findById(review.ideaId);
+      const gate = gateById.get(review.gateId);
+      if (!idea || !gate) continue;
+      const [author] = await this.userRepository.findByIds([idea.authorId]);
+      pending.push({
+        reviewId: review.id,
         ideaId: idea.id!,
         title: idea.title,
         description: idea.description,
-        authorName: authorNameById.get(idea.authorId) ?? "Colaborador",
+        authorName: author?.name ?? "Colaborador",
         extraFields: idea.extraFields ?? null,
         currentStage: idea.currentStage,
         createdAt: idea.createdAt!,
-      })),
-      completed: myEvaluations.map((evaluation) => ({
+        gate: {
+          orderIndex: gate.orderIndex,
+          name: gate.name,
+          approveThreshold: gate.approveThreshold,
+          reviseThreshold: gate.reviseThreshold,
+          criteria: gate.criteria,
+        },
+        round: review.round,
+        deadlineAt: review.deadlineAt,
+        // UC02 FA02: o prazo vencido é sinalizado, mas a avaliação continua aberta
+        overdue: review.deadlineAt !== null && review.deadlineAt.getTime() < Date.now(),
+      });
+    }
+
+    // Concluídas: os pareceres que ele já enviou, do mais recente para o mais antigo
+    const completed = [];
+    for (const evaluation of myEvaluations) {
+      const idea = await this.ideaRepository.findById(evaluation.ideaId);
+      const review = evaluation.reviewId
+        ? await this.gateReviewRepository.findById(evaluation.reviewId)
+        : null;
+      completed.push({
         id: evaluation.id!,
         ideaId: evaluation.ideaId,
-        ideaTitle: ideaTitleById.get(evaluation.ideaId) ?? "Ideia removida",
+        ideaTitle: idea?.title ?? "Ideia",
         stage: evaluation.stage,
+        round: review?.round ?? null,
         score: evaluation.score,
         createdAt: evaluation.createdAt!,
-      })),
-    };
+      });
+    }
+
+    return { pending, completed };
   }
 }

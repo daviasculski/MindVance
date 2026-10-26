@@ -17,6 +17,10 @@ enum IdeaStage {
 }
 
 enum IdeaStatus {
+  AGUARDANDO_TRIAGEM
+  AGUARDANDO_DESIGNACAO
+  EM_AVALIACAO
+  AGUARDANDO_DECISAO
   EM_ANDAMENTO
   EM_REVISAO
   APROVADA
@@ -27,6 +31,13 @@ enum GateDecisionType {
   APROVADA
   REJEITADA
   REVISAO
+}
+
+enum GateReviewStatus {
+  AGUARDANDO_DESIGNACAO
+  EM_AVALIACAO
+  AGUARDANDO_DECISAO
+  DECIDIDA
 }
 
 enum UserRole {
@@ -43,31 +54,106 @@ enum UserApprovalStatus {
 }
 
 model Idea {
-  id            String       @id @default(uuid())
-  title         String       @db.VarChar(255)
-  description   String       @db.Text
-  author_id     String       @db.VarChar(255)
-  extra_fields  Json?        @default("{}")
-  current_stage IdeaStage    @default(IDEACAO)
-  status        IdeaStatus   @default(EM_ANDAMENTO)
-  created_at    DateTime     @default(now())
-  updated_at    DateTime     @updatedAt
+  id            String         @id @default(uuid())
+  title         String         @db.VarChar(255)
+  description   String         @db.Text
+  author_id     String         @db.VarChar(255)
+  extra_fields  Json?          @default("{}")
+  current_stage IdeaStage      @default(IDEACAO)
+  status        IdeaStatus     @default(EM_ANDAMENTO)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
   evaluations   Evaluation[]
   gateDecisions GateDecision[]
+  gateReviews   GateReview[]
 
   @@map("ideas")
 }
 
+/// Gate de saída de um estágio. O estágio sem gate de saída (Lançamento) encerra o fluxo.
+model Gate {
+  id               String          @id @default(uuid())
+  orderIndex       Int             @unique
+  name             String
+  fromStage        IdeaStage       @unique
+  toStage          IdeaStage
+  deliverable      String
+  deadlineDays     Int
+  /// score >= approveThreshold → recomenda aprovar
+  approveThreshold Float
+  /// reviseThreshold <= score < approveThreshold → recomenda revisar; abaixo → rejeitar
+  reviseThreshold  Float
+  criteria         GateCriterion[]
+  reviews          GateReview[]
+
+  @@map("gates")
+}
+
+model GateCriterion {
+  id          String @id @default(uuid())
+  gateId      String
+  name        String
+  description String
+  weight      Int
+  orderIndex  Int
+  gate        Gate   @relation(fields: [gateId], references: [id], onDelete: Restrict)
+
+  @@unique([gateId, orderIndex])
+  @@map("gate_criteria")
+}
+
+/// Uma rodada de avaliação de uma ideia em um gate. Revisar abre uma nova rodada no mesmo gate.
+model GateReview {
+  id                String                @id @default(uuid())
+  ideaId            String
+  gateId            String
+  round             Int
+  status            GateReviewStatus      @default(AGUARDANDO_DESIGNACAO)
+  requestedById     String
+  openedAt          DateTime              @default(now())
+  deadlineAt        DateTime?
+  consolidatedScore Float?
+  recommendation    GateDecisionType?
+  idea              Idea                  @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+  gate              Gate                  @relation(fields: [gateId], references: [id], onDelete: Restrict)
+  evaluators        GateReviewEvaluator[]
+  evaluations       Evaluation[]
+  decision          GateDecision?
+
+  @@unique([ideaId, gateId, round])
+  @@index([status])
+  @@map("gate_reviews")
+}
+
+model GateReviewEvaluator {
+  id           String     @id @default(uuid())
+  reviewId     String
+  evaluatorId  String
+  assignedById String
+  assignedAt   DateTime   @default(now())
+  review       GateReview @relation(fields: [reviewId], references: [id], onDelete: Restrict)
+
+  @@unique([reviewId, evaluatorId])
+  @@index([evaluatorId])
+  @@map("gate_review_evaluators")
+}
+
+/// Transição registrada a cada decisão do Gestor (equivale a stage_transitions). Imutável.
 model GateDecision {
-  id           String           @id @default(uuid())
-  ideaId       String
-  stage        IdeaStage
-  decision     GateDecisionType
-  feedback     String           @db.Text
-  reviewPoints Json?
-  deciderId    String
-  createdAt    DateTime         @default(now())
-  idea         Idea             @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  id                String            @id @default(uuid())
+  ideaId            String
+  reviewId          String?           @unique
+  stage             IdeaStage
+  toStage           IdeaStage?
+  decision          GateDecisionType
+  recommendation    GateDecisionType?
+  consolidatedScore Float?
+  feedback          String            @db.Text
+  reviewPoints      Json?
+  deciderId         String
+  createdAt         DateTime          @default(now())
+  idea              Idea              @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+  review            GateReview?       @relation(fields: [reviewId], references: [id], onDelete: Restrict)
 
   @@index([ideaId])
   @@map("gate_decisions")
@@ -87,17 +173,20 @@ model User {
 }
 
 model Evaluation {
-  id            String   @id @default(uuid())
+  id            String      @id @default(uuid())
   ideaId        String
   evaluatorId   String
   score         Float
-  justification String   @db.Text
+  justification String      @db.Text
   stage         IdeaStage
   criteria      Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+  reviewId      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  idea          Idea        @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+  review        GateReview? @relation(fields: [reviewId], references: [id], onDelete: Restrict)
 
+  @@unique([reviewId, evaluatorId])
   @@index([ideaId])
   @@map("evaluations")
 }

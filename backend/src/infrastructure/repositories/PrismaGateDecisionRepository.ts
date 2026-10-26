@@ -7,8 +7,12 @@ function toEntity(raw: PrismaGateDecision): GateDecision {
   return new GateDecision({
     id: raw.id,
     ideaId: raw.ideaId,
+    reviewId: raw.reviewId,
     stage: raw.stage,
+    toStage: raw.toStage,
     decision: raw.decision,
+    recommendation: raw.recommendation,
+    consolidatedScore: raw.consolidatedScore,
     feedback: raw.feedback,
     reviewPoints: raw.reviewPoints as string[] | null,
     deciderId: raw.deciderId,
@@ -16,13 +20,18 @@ function toEntity(raw: PrismaGateDecision): GateDecision {
   });
 }
 
+/** Só cria e lê: as transições são imutáveis (não há update nem delete). */
 export class PrismaGateDecisionRepository implements IGateDecisionRepository {
   async create(decision: GateDecision): Promise<GateDecision> {
     const raw = await prisma.gateDecision.create({
       data: {
         ideaId: decision.ideaId,
+        reviewId: decision.reviewId,
         stage: decision.stage,
+        toStage: decision.toStage,
         decision: decision.decision,
+        recommendation: decision.recommendation,
+        consolidatedScore: decision.consolidatedScore,
         feedback: decision.feedback,
         reviewPoints: decision.reviewPoints ?? Prisma.DbNull,
         deciderId: decision.deciderId,

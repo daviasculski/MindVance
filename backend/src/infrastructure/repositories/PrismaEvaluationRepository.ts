@@ -15,6 +15,7 @@ function toEntity(raw: PrismaEvaluation): Evaluation {
     justification: raw.justification,
     stage: raw.stage,
     criteria: raw.criteria as EvaluationCriterion[] | null,
+    reviewId: raw.reviewId,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
   });
@@ -29,6 +30,7 @@ export class PrismaEvaluationRepository implements IEvaluationRepository {
         score: evaluation.score,
         justification: evaluation.justification,
         stage: evaluation.stage,
+        reviewId: evaluation.reviewId,
         criteria: evaluation.criteria
           ? (evaluation.criteria as unknown as Prisma.InputJsonValue)
           : Prisma.DbNull,
@@ -42,6 +44,15 @@ export class PrismaEvaluationRepository implements IEvaluationRepository {
     const evaluations = await prisma.evaluation.findMany({
       where: { ideaId },
       orderBy: { createdAt: "desc" },
+    });
+
+    return evaluations.map(toEntity);
+  }
+
+  async findByReviewId(reviewId: string): Promise<Evaluation[]> {
+    const evaluations = await prisma.evaluation.findMany({
+      where: { reviewId },
+      orderBy: { createdAt: "asc" },
     });
 
     return evaluations.map(toEntity);

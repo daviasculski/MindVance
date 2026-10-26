@@ -1,6 +1,8 @@
 import { IdeaStage } from "./IdeaStage";
 
+/** Nota de um critério, com nome e peso copiados do gate no momento do envio (ADM-04) */
 export interface EvaluationCriterion {
+  criterionId?: string;
   name: string;
   weight: number;
   score: number;
@@ -15,6 +17,8 @@ export interface EvaluationProps {
   justification: string;
   stage: IdeaStage;
   criteria?: EvaluationCriterion[] | null;
+  /** Rodada avaliada (ausente em avaliações anteriores ao modelo de rodadas) */
+  reviewId?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -56,6 +60,10 @@ export class Evaluation {
 
   get criteria(): EvaluationCriterion[] | null {
     return this.props.criteria ?? null;
+  }
+
+  get reviewId(): string | null {
+    return this.props.reviewId ?? null;
   }
 
   get createdAt(): Date | undefined {
