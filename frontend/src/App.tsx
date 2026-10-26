@@ -13,6 +13,8 @@ import GateDecision from "./screens/GateDecision";
 import KPIDashboard from "./screens/KPIDashboard";
 import ApprovedBoard from "./screens/ApprovedBoard";
 import ApprovalRequests from "./screens/ApprovalRequests";
+import GateTriage from "./screens/GateTriage";
+import UsersAdmin from "./screens/UsersAdmin";
 import Sidebar from "./components/Sidebar";
 
 export default function App() {
@@ -98,7 +100,6 @@ export default function App() {
         {screen === "idea-detail" && openIdea && (
           <IdeaDetail
             idea={openIdea}
-            role={session.user.role}
             viewerId={session.user.id}
             onBack={() => setScreen(detailBackTo)}
             live={openIdeaFromApi ? { token: session.token, onSessionExpired: handleLogout } : undefined}
@@ -107,8 +108,22 @@ export default function App() {
         {screen === "evaluate" && (
           <GateEvaluation token={session.token} onSessionExpired={handleLogout} />
         )}
+        {screen === "triage" && (
+          <GateTriage
+            token={session.token}
+            onOpenIdea={(idea) => openDetail(idea, "triage", true)}
+            onSessionExpired={handleLogout}
+          />
+        )}
         {screen === "gate-decision" && (
-          <GateDecision onBack={() => setScreen("funnel")} />
+          <GateDecision
+            token={session.token}
+            onOpenIdea={(idea) => openDetail(idea, "gate-decision", true)}
+            onSessionExpired={handleLogout}
+          />
+        )}
+        {screen === "users" && (
+          <UsersAdmin token={session.token} currentUserId={session.user.id} onSessionExpired={handleLogout} />
         )}
         {screen === "dashboard" && canAccess(session.user.role, "dashboard") && <KPIDashboard />}
         {screen === "approvals" && canAccess(session.user.role, "approvals") && (

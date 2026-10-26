@@ -7,18 +7,15 @@ import VerdictRing from "../components/VerdictRing";
 import WeightedSlider from "../components/WeightedSlider";
 import { ApiError } from "../lib/api";
 import { gateForStage } from "../lib/gates";
-import { agingTone } from "../lib/ideaVisuals";
 import {
-  DEFAULT_CRITERIA,
   MAX_SCORE,
-  PASS_THRESHOLD,
   getEvaluationQueue,
   submitEvaluation,
-  weightedScore,
   type CompletedEvaluation,
   type CriterionInput,
   type PendingEvaluation,
 } from "../lib/evaluations";
+import { recommend, recommendationLabel, weightedScore } from "../lib/gateReviews";
 import type { Stage } from "../types";
 
 interface GateEvaluationProps {
@@ -26,25 +23,29 @@ interface GateEvaluationProps {
   onSessionExpired: () => void;
 }
 
-function newCriteria(): CriterionInput[] {
-  return DEFAULT_CRITERIA.map((c) => ({ ...c, score: 0, comment: "" }));
+/** Critérios do gate da rodada, sem nota: o avaliador precisa pontuar cada um (UC02 FA01). */
+function newCriteria(item: PendingEvaluation | null): CriterionInput[] {
+  return (item?.gate.criteria ?? []).map((c) => ({ ...c, score: null, comment: "" }));
+}
+
+function formatDeadline(item: PendingEvaluation) {
+  if (!item.deadlineAt) return "Sem prazo";
+  const date = new Date(item.deadlineAt).toLocaleDateString("pt-BR");
+  return item.overdue ? `Prazo vencido em ${date}` : `Prazo: ${date}`;
 }
 
 function gateLabel(stage: Stage) {
   return gateForStage(stage)?.label ?? stage;
 }
 
-function daysSince(date: string) {
-  return Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24)));
-}
-
 export default function GateEvaluation({ token, onSessionExpired }: GateEvaluationProps) {
   const [queue, setQueue] = useState<{ pending: PendingEvaluation[]; completed: CompletedEvaluation[] } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [active, setActive] = useState<PendingEvaluation | null>(null);
-  const [criteria, setCriteria] = useState<CriterionInput[]>(newCriteria);
+  const [criteria, setCriteria] = useState<CriterionInput[]>([]);
   const [justification, setJustification] = useState("");
   const [justError, setJustError] = useState(false);
+  const [scoreError, setScoreError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submittedTitle, setSubmittedTitle] = useState<string | null>(null);
@@ -70,7 +71,8 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
   function openEvaluation(item: PendingEvaluation) {
     setActive(item);
-    setCriteria(newCriteria());
+    setCriteria(newCriteria(item));
+    setScoreError(false);
     setJustification("");
     setJustError(false);
     setSubmitError(null);
@@ -79,15 +81,19 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
   function updateCriterion(index: number, patch: Partial<CriterionInput>) {
     setCriteria((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
+    if (patch.score !== undefined) setScoreError(false);
   }
 
   async function handleSubmit() {
     if (!active) return;
-    if (!justification.trim()) { setJustError(true); return; }
+    const missingScore = criteria.some((c) => c.score === null);
+    setScoreError(missingScore);
+    setJustError(!justification.trim());
+    if (missingScore || !justification.trim()) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await submitEvaluation({ ideaId: active.ideaId, justification, criteria }, token);
+      await submitEvaluation({ reviewId: active.reviewId, justification, criteria }, token);
       setSubmittedTitle(active.title);
       setActive(null);
       await load();
@@ -97,7 +103,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
         return;
       }
       if (err instanceof ApiError && err.status === 409) {
-        setSubmitError("Você já avaliou esta ideia neste estágio.");
+        setSubmitError("Você já enviou o parecer desta rodada.");
         load();
       } else {
         setSubmitError(err instanceof Error ? err.message : "Erro inesperado");
@@ -108,8 +114,8 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
   }
 
   if (active) {
-    const total = weightedScore(criteria);
-    const waiting = daysSince(active.createdAt);
+    const total = weightedScore(criteria.map((c) => ({ weight: c.weight, score: c.score ?? 0 })));
+    const verdict = recommend(total, active.gate);
     return (
       <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
         <div
@@ -133,9 +139,12 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </button>
           <div style={{ width: 1, height: 20, background: "#E5E5EA" }} />
           <GateBadge label={gateLabel(active.stage)} size="sm" />
-          <div style={{ color: "#8E8E93", fontSize: 12, marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+          {active.round > 1 && (
+            <span style={{ color: "#B6790A", fontSize: 12, fontWeight: 600 }}>Rodada {active.round} · reenviada após revisão</span>
+          )}
+          <div style={{ color: active.overdue ? "#B6790A" : "#8E8E93", fontSize: 12, fontWeight: active.overdue ? 600 : 400, marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <Clock size={12} />
-            Aguardando há {waiting} dia{waiting === 1 ? "" : "s"}
+            {formatDeadline(active)}
           </div>
         </div>
 
@@ -168,15 +177,21 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </div>
 
           <p style={{ color: "#6E6E73", fontSize: 13, marginBottom: 16 }}>
-            Ajuste cada critério com o peso correspondente. O anel de veredito reage em tempo real.
+            Dê uma nota de 0 a 10 a cada critério. O anel mostra a sua nota ponderada e a recomendação que ela gera.
           </p>
+          {scoreError && (
+            <div className="flex items-center gap-1.5 mb-4" style={{ color: "#FF3B30", fontSize: 12.5 }}>
+              <AlertCircle size={13} />
+              Dê nota a todos os critérios antes de confirmar o envio
+            </div>
+          )}
 
           <div className="grid gap-8 mb-8" style={{ gridTemplateColumns: "1fr 220px" }}>
             {/* Criteria */}
             <div className="flex flex-col gap-5">
               {criteria.map((c, i) => (
                 <CriteriaRow
-                  key={c.name}
+                  key={c.id}
                   criteria={c}
                   onScoreChange={(score) => updateCriterion(i, { score })}
                   onCommentChange={(comment) => updateCriterion(i, { comment })}
@@ -193,19 +208,14 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 <div style={{ color: "#AEAEB2", fontSize: 10.5, fontWeight: 600, marginBottom: 12 }}>
                   VEREDITO PONDERADO
                 </div>
-                <VerdictRing score={total} threshold={PASS_THRESHOLD} size={148} strokeWidth={14} />
-                <div
-                  className="mt-3 rounded-full"
-                  style={{
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    padding: "4px 12px",
-                    background: total >= PASS_THRESHOLD ? "rgba(52,199,89,0.12)" : "rgba(245,158,11,0.12)",
-                    color: total >= PASS_THRESHOLD ? "#1F8A3B" : "#B6790A",
-                  }}
-                >
-                  {total >= PASS_THRESHOLD ? "Acima da meta" : "Abaixo da meta"}
-                </div>
+                <VerdictRing
+                  score={total}
+                  approveThreshold={active.gate.approveThreshold}
+                  reviseThreshold={active.gate.reviseThreshold}
+                  size={148}
+                  strokeWidth={14}
+                />
+                <RecommendationPill verdict={verdict} />
               </div>
             </div>
           </div>
@@ -264,7 +274,9 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
               fontSize: 15,
             }}
           >
-            {submitting ? "Enviando..." : `Confirmar Avaliação · nota ${total.toLocaleString("pt-BR")}/${MAX_SCORE}`}
+            {submitting
+              ? "Enviando..."
+              : `Confirmar Avaliação · nota ${total.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}/${MAX_SCORE}`}
           </button>
         </div>
       </div>
@@ -331,7 +343,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 </div>
                 <div className="flex flex-col gap-3">
                   {pending.map((p) => (
-                    <PendingCard key={p.ideaId} item={p} onClick={() => openEvaluation(p)} />
+                    <PendingCard key={p.reviewId} item={p} onClick={() => openEvaluation(p)} />
                   ))}
                 </div>
               </div>
@@ -391,6 +403,7 @@ function CriteriaRow({
         weight={criteria.weight}
         value={criteria.score}
         max={MAX_SCORE}
+        description={criteria.description}
         onChange={onScoreChange}
       />
       <textarea
@@ -415,8 +428,24 @@ function CriteriaRow({
   );
 }
 
+/** Recomendação que a nota atual gera (mesma regra do backend). */
+function RecommendationPill({ verdict }: { verdict: ReturnType<typeof recommend> }) {
+  const tone = {
+    aprovada: { bg: "rgba(52,199,89,0.12)", color: "#1F8A3B" },
+    "revisão": { bg: "rgba(245,158,11,0.12)", color: "#B6790A" },
+    rejeitada: { bg: "#F0F0F2", color: "#6E6E73" },
+  }[verdict];
+  return (
+    <div
+      className="mt-3 rounded-full"
+      style={{ fontSize: 11.5, fontWeight: 600, padding: "4px 12px", background: tone.bg, color: tone.color }}
+    >
+      Recomenda: {recommendationLabel[verdict]}
+    </div>
+  );
+}
+
 function PendingCard({ item, onClick }: { item: PendingEvaluation; onClick: () => void }) {
-  const tone = agingTone(daysSince(item.createdAt));
   return (
     <button
       onClick={onClick}
@@ -427,13 +456,21 @@ function PendingCard({ item, onClick }: { item: PendingEvaluation; onClick: () =
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1.5">
             <GateBadge label={gateLabel(item.stage)} size="sm" />
+            {item.round > 1 && (
+              <span style={{ color: "#B6790A", fontSize: 11, fontWeight: 600 }}>Rodada {item.round}</span>
+            )}
             <span
               className="inline-flex items-center gap-1 rounded-full"
-              style={{ background: tone.bg, color: tone.color, fontSize: 10.5, fontWeight: 600, padding: "2px 8px" }}
-              title="Dias desde a submissão"
+              style={{
+                background: item.overdue ? "#FDE7C8" : "#F0F0F2",
+                color: item.overdue ? "#9A5B0A" : "#6E6E73",
+                fontSize: 10.5,
+                fontWeight: 600,
+                padding: "2px 8px",
+              }}
             >
               <Clock size={10} />
-              {tone.label}
+              {formatDeadline(item)}
             </span>
           </div>
           <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>
@@ -469,9 +506,10 @@ function DoneCard({ item }: { item: CompletedEvaluation }) {
         <span>
           Nota enviada:{" "}
           <span style={{ color: "#B6790A", fontWeight: 600 }}>
-            {item.score.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}/{MAX_SCORE}
+            {item.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}/{MAX_SCORE}
           </span>
         </span>
+        {item.round !== null && item.round > 1 && <span>Rodada {item.round}</span>}
         <span className="flex items-center gap-1">
           <Calendar size={11} />
           {new Date(item.createdAt).toLocaleDateString("pt-BR")}

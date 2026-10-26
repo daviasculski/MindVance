@@ -17,11 +17,21 @@ const roleToApi: Record<Role, ApiRole> = {
   administrador: "ADMIN",
 };
 
+export const roleLabels: Record<ApiRole, string> = {
+  COLLABORATOR: "Colaborador",
+  EVALUATOR: "Avaliador",
+  GATEKEEPER: "Gestor de Inovação",
+  ADMIN: "Administrador",
+};
+
 interface ApiUser {
   id: string;
   name: string;
   email: string;
+  /** Papel efetivo: Colaborador enquanto o pedido não é aprovado */
   role: ApiRole;
+  requestedRole?: ApiRole;
+  approvalStatus?: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 function toAuthUser(user: ApiUser): AuthUser {
@@ -30,6 +40,8 @@ function toAuthUser(user: ApiUser): AuthUser {
     name: user.name,
     email: user.email,
     role: roleFromApi[user.role] ?? "colaborador",
+    ...(user.requestedRole ? { requestedRole: roleFromApi[user.requestedRole] } : {}),
+    ...(user.approvalStatus ? { approvalStatus: user.approvalStatus } : {}),
   };
 }
 
@@ -45,12 +57,6 @@ export async function login(email: string, password: string): Promise<AuthSessio
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       throw new ApiError(401, "E-mail ou senha incorretos");
-    }
-    if (error instanceof ApiError && error.status === 403) {
-      throw new ApiError(
-        403,
-        "Sua conta aguarda aprovação ou teve o acesso negado.",
-      );
     }
     throw error;
   }
@@ -88,6 +94,31 @@ export async function listPendingApprovals(
   token: string,
 ): Promise<PendingApproval[]> {
   return apiRequest<PendingApproval[]>("/users/approvals/pending", { token });
+}
+
+export interface ManagedUser {
+  id: string;
+  name: string;
+  email: string;
+  /** Papel pedido ou atribuído */
+  role: ApiRole;
+  approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  /** Papel com que opera hoje (Colaborador enquanto o pedido não é aprovado) */
+  effectiveRole: ApiRole;
+  createdAt: string;
+}
+
+export function listUsers(token: string): Promise<ManagedUser[]> {
+  return apiRequest<ManagedUser[]>("/users", { token });
+}
+
+/** O Administrador define o papel de qualquer usuário (e isso aprova a conta). */
+export function changeUserRole(userId: string, role: ApiRole, token: string): Promise<ManagedUser> {
+  return apiRequest<ManagedUser>(`/users/${encodeURIComponent(userId)}/role`, {
+    method: "PATCH",
+    body: { role },
+    token,
+  });
 }
 
 export async function decideUserApproval(
