@@ -2,7 +2,7 @@
 
 Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da Ideia ao Lançamento"), BPMN revisado do MindVance e decisões dos autores.
 
-**Auditoria feita em 26/10/2026** sobre a branch `feat-avanco-da-integracao` (commit `ea1298a`), que contém toda a `dev`.
+**Auditoria feita em 26/10/2026** sobre a branch `feat-avanco-da-integracao` (commit `ea1298a`, que contém toda a `dev`), atualizada com as entregas registradas na seção 7.
 
 ---
 
@@ -20,7 +20,7 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir |
 |---|---|---|---|---|
-| 12 | 38 | 40 | 8 | 7 |
+| 16 | 39 | 38 | 5 | 7 |
 
 Referências de código são relativas à raiz do repositório. "Mock" significa que a tela usa os dados de exemplo de `frontend/src/data.ts`, e não a API.
 
@@ -60,8 +60,8 @@ As marcadas com ⚠️ **mudam a lógica do fluxo** e travam as fases seguintes.
 | P5 | **Nome do 3º estágio** (SEED-02) | "Plano de Negócios" (`PLANO_DE_NEGOCIOS`) | Usar "Construção do Plano de Negócios" na interface, conforme a tabela da seção 2 | 1 |
 | GAT-01 | E se o Gestor **não abrir o G1**? | A ideia nem passa por triagem: vai direto para a fila dos avaliadores | Manter em Ideação, contando os dias parados (Gate Aging), sem saída automática | 4 |
 | GAT-09 | O parecer pode ser **editado** depois de enviado? | Não há rota de edição | Não pode (recomendação do documento) | 5 |
-| SUB-07 | Gestor e Admin **submetem ideias**? | A API aceita ideia de qualquer perfil; o menu só oferece ao Colaborador | Avaliador e Gestor sim; Admin não (perfil de backoffice) | 3 |
-| ACO-06 | "Aprovada" no Mural é ter passado em qualquer gate ou ter chegado ao Lançamento? | Mostra as que chegaram ao Lançamento (aprovadas e aguardando o último gate) | Chegar ao Lançamento (casa com P2) | 3 |
+| SUB-07 | Gestor e Admin **submetem ideias**? | A API aceita ideia de qualquer perfil; o Avaliador já tem a tela (D1); Gestor e Admin não | Avaliador e Gestor sim; Admin não (perfil de backoffice) | 3 |
+| ACO-06 | "Aprovada" no Mural é ter passado em qualquer gate ou ter chegado ao Lançamento? | Mostra as que chegaram ao Lançamento (aprovadas e aguardando o último gate), para os 4 perfis | Chegar ao Lançamento (casa com P2) | 3 |
 | ADM-06 | Log das alterações de backoffice? | Não existe | Tabela simples `audit_logs` só se sobrar tempo | 2 |
 | ADM-07 | Departamentos pela interface? | Fixos no front (`frontend/src/data.ts`); o backend não guarda departamento | Tabela `departments` com seed; CRUD pela interface só se sobrar tempo | 1 |
 | ENG-02 | Pontos por "colaboração em ideias alheias"? | Não existe nada de colaboração no código | Fora do escopo desta integração | 8 |
@@ -121,10 +121,10 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| INF-01 | `docker-compose.yml` sobe o PostgreSQL; o projeto roda seguindo o README | ⬜ PENDENTE | `README.md` (seção "Como rodar") | Não há `docker-compose.yml`; o README usa `docker run` |
+| INF-01 | `docker-compose.yml` sobe o PostgreSQL; o projeto roda seguindo o README | ✅ FEITO | `docker-compose.yml`, `README.md` (passo 2) | Banco `mindvance`, porta configurável por `POSTGRES_PORT`, healthcheck |
 | INF-02 | Nenhuma referência a AWS, EC2, Cognito ou nuvem | ✅ FEITO | busca em `backend/`, `frontend/src`, `README.md` | Nada encontrado no repositório (o TCC é tratado em DOC-09) |
-| INF-03 | Nome **MindVance** visível; sem "IMS" ou "Ideavance" | ⬜ PENDENTE | `frontend/src/screens/Login.tsx:84`, `frontend/src/components/Sidebar.tsx:78`, `backend/package.json`, `README.md:1` | "IMS" no login e no menu; "idevance" no README, no `package.json` e no nome do banco; `<title>` "Figma Make App"; chave `ims.session` |
-| INF-04 | `.env.example` com banco, segredo JWT e limite de upload | 🟡 PARCIAL | `backend/.env.example`, `frontend/.env.example` | Banco e JWT documentados; falta o limite de upload |
+| INF-03 | Nome **MindVance** visível; sem "IMS" ou "Ideavance" | ✅ FEITO | `Login.tsx`, `Sidebar.tsx`, `frontend/.figma/make/site.json` (título da aba), `package.json` (front e back), `README.md`, logos (`aria-label`) | Sobra só `frontend/src/imports/figma-make-prompt-ims.md`, o prompt histórico do Figma, que não é visível ao usuário |
+| INF-04 | `.env.example` com banco, segredo JWT e limite de upload | 🟡 PARCIAL | `backend/.env.example`, `frontend/.env.example` | Banco (já apontando para o Docker Compose) e JWT documentados; o limite de upload entra com os anexos (SUB-02) |
 | INF-05 | Erros padronizados, com mensagens por campo | ⬜ PENDENTE | controllers em `backend/src/presentation/controllers/` | Cada controller monta `{ error }` do seu jeito; mensagens misturam inglês e português; sem erro por campo |
 
 ### 3.2 Modelo de dados (DER)
@@ -158,8 +158,8 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | AUT-01 | Cadastro com nome, e-mail, senha e departamento; papel padrão Colaborador | 🟡 PARCIAL | `CreateUserUserStory.ts`, `PrismaUserRepository.ts:19-22`, `Login.tsx` | Padrão é Colaborador. O departamento é pedido na tela, mas **não é salvo**. O cadastro deixa escolher Avaliador ou Gestor (com aprovação do Admin; ver P1) |
 | AUT-02 | Login com bcrypt; JWT com id e papel | ✅ FEITO | `LoginUserStory.ts` | JWT de 1 dia com `sub` e `role`; bloqueia contas não aprovadas |
 | AUT-03 | Middleware JWT nas rotas protegidas | ✅ FEITO | `ensureAuthenticated.ts`, `routes/index.ts` | Aplicado a tudo depois de `/auth` e `/users`; relê o usuário no banco a cada requisição (papel e aprovação sempre atualizados) |
-| AUT-04 | RBAC com a matriz da seção 3.12 | 🟡 PARCIAL | `ensureAdminRole.ts`, `ensureGatekeeperRole.ts`, regras nas UserStories | Existem guardas de Admin e Gestor. Desvios da matriz: KPIs só para Admin (deveria ser Gestor); `GET /ideas` e `GET /ideas/:id` abertos a qualquer perfil; avaliação sem checar designação |
-| AUT-05 | Rotas protegidas por papel e menu por perfil no front | 🟡 PARCIAL | `Sidebar.tsx` (`navByRole`), `App.tsx` | Há menu por perfil, mas: o Admin vê funil e KPIs; o Gestor não vê KPIs; o Avaliador não tem Nova Ideia, Minhas Ideias nem Mural (D1); só as telas `dashboard` e `approvals` têm guarda de rota |
+| AUT-04 | RBAC com a matriz da seção 3.12 | 🟡 PARCIAL | `ensureAdminRole.ts`, `ensureGatekeeperRole.ts`, regras nas UserStories | Guardas de Admin e Gestor; KPIs corrigidos para o Gestor. Desvios restantes: `GET /ideas` e `GET /ideas/:id` abertos a qualquer perfil; avaliação sem checar designação |
+| AUT-05 | Rotas protegidas por papel e menu por perfil no front | ✅ FEITO | `frontend/src/lib/navigation.ts` (`navByRole`, `canAccess`), `Sidebar.tsx`, `App.tsx` | Menu e guarda de tela vêm da mesma fonte, conforme a matriz: Avaliador herda o Colaborador; funil e KPIs só do Gestor; Admin só no backoffice; Mural para todos |
 | AUT-06 | Logout e token expirado → login | ✅ FEITO | `lib/auth.ts` (`loadSession`, `clearSession`), telas integradas tratam 401 | — |
 
 ### 3.5 Módulo 1 — Submissão de ideias
@@ -172,7 +172,7 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | SUB-04 | UC01 FA02: anexo inválido sem perder os campos | ⬜ PENDENTE | — | Depende de SUB-02 |
 | SUB-05 | Após submeter, vai para "Minhas ideias" com o status | 🟡 PARCIAL | `NewIdea.tsx` (tela de sucesso) | Mostra uma tela de sucesso com o botão "Ver minhas ideias", sem redirecionar |
 | SUB-06 | Registra em Ideação e **notifica o Gestor** | 🟡 PARCIAL | `CreateIdeaUserStorie.ts` | Registra em `IDEACAO`/`EM_ANDAMENTO`; não há notificação |
-| SUB-07 | Avaliadores também submetem; Gestor/Admin a decidir | ❓ A DECIDIR | `Sidebar.tsx`, `idea.routes.ts` | A API aceita ideia de qualquer perfil; só o menu do Colaborador oferece a tela. O Avaliador **deveria** ter o acesso (D1) e não tem |
+| SUB-07 | Avaliadores também submetem; Gestor/Admin a decidir | ❓ A DECIDIR | `lib/navigation.ts`, `idea.routes.ts` | O Avaliador já tem Nova Ideia e Minhas Ideias (D1). Gestor e Admin não têm a tela, mas a API aceita ideia de qualquer perfil |
 
 ### 3.6 Acompanhamento da ideia
 
@@ -183,7 +183,7 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | ACO-03 | Pontos a ajustar em destaque quando em Revisar | ✅ FEITO | `IdeaDetail.tsx` (aviso "Devolvida para revisão") | — |
 | ACO-04 | Autor edita a ideia e anexa entregas (Revisar e próximo estágio) | 🟡 PARCIAL | `UpdateIdeaUserStory.ts`, `PUT /api/ideas/:id` | O backend deixa o autor editar na Ideação e em Revisar. **Não há tela de edição**, não há entregas, e editar uma ideia aprovada para o próximo estágio é bloqueado |
 | ACO-05 | "Solicitar revisão do gate": só autor, só G2–G5, só fora de avaliação | 🔴 DIVERGENTE | `IdeaDetail.tsx` | Aparece para o autor em **qualquer** estágio "Em andamento", inclusive Ideação (contraria D6), e **não tem ação**: não há rota no backend |
-| ACO-06 | Vitrine de aprovadas para todos os perfis | ❓ A DECIDIR | `ApprovedBoard.tsx`, `GET /ideas?stage=LANCAMENTO` | Integrado; mostra as que chegaram ao Lançamento. **Só o menu do Colaborador** tem o Mural, mas a matriz pede todos os perfis |
+| ACO-06 | Vitrine de aprovadas para todos os perfis | ❓ A DECIDIR | `ApprovedBoard.tsx`, `GET /ideas?stage=LANCAMENTO` | Integrado e no menu dos 4 perfis. Mostra as que chegaram ao Lançamento; falta decidir o que é "aprovada" |
 | ACO-07 | Autor vê em que estágio está e qual o próximo passo | 🟡 PARCIAL | `GateRail`, `GateBadge` em `MyIdeas.tsx` e `IdeaDetail.tsx` | Mostra o estágio e o gate; não diz "próximo passo esperado" |
 
 ### 3.7 Módulo 2 — Funil (Gestor)
@@ -193,7 +193,7 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | FUN-01 | Kanban com 6 colunas e contagem | 🟡 PARCIAL | `KanbanFunnel.tsx` | Tela pronta, **mock** |
 | FUN-02 | Card com título, autor, departamento, status e gate | 🟡 PARCIAL | `KanbanFunnel.tsx` | Mock; a API já devolve `authorName`, `status` e departamento |
 | FUN-03 | Filtros por departamento, período e status | 🟡 PARCIAL | `ListIdeasController.ts`, `PrismaIdeaRepository.findAll` | A API filtra por estágio, status, período e autor. Falta filtrar por departamento (está no JSON). Front mock |
-| FUN-04 | Funil completo só para o Gestor; Avaliador vê só as atribuídas | 🔴 DIVERGENTE | `Sidebar.tsx` | Admin, Gestor e Avaliador veem o mesmo funil (mock) |
+| FUN-04 | Funil completo só para o Gestor; Avaliador vê só as atribuídas | 🟡 PARCIAL | `lib/navigation.ts` | O funil agora é só do Gestor. "Avaliador vê só as atribuídas" depende da designação (GAT-03) |
 | FUN-05 | Gate Aging no card | 🟡 PARCIAL | `GateAgingBadge.tsx`, `lib/ideaVisuals.ts` | O componente existe e conta desde a última movimentação; no funil, só com mock |
 
 ### 3.8 Módulo 3 — Ciclo de gate
@@ -254,7 +254,7 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | KPI-03 | Tempo médio em cada estágio | ⬜ PENDENTE | — | Calculável a partir de `gate_decisions` |
 | KPI-04 | Distribuição por departamento | 🟡 PARCIAL | `GetInnovationMetricsUserStory.ts` | A API agrupa por departamento (`extraFields.department`); o painel é mock |
 | KPI-05 | Status dos projetos aprovados em desenvolvimento | ⬜ PENDENTE | — | — |
-| KPI-06 | Painel só para o Gestor, com filtro de período | 🔴 DIVERGENTE | `idea.routes.ts` (`/metrics` com `ensureAdminRole`), `Sidebar.tsx`, `App.tsx` | Hoje é **só do Administrador**, no backend e no menu (contraria D2) |
+| KPI-06 | Painel só para o Gestor, com filtro de período | 🟡 PARCIAL | `idea.routes.ts` (`/metrics` com `ensureGatekeeperRole`), `lib/navigation.ts` | Só o Gestor acessa (backend e menu). Falta o filtro de período; o painel ainda é mock |
 
 ### 3.12 Backoffice (Administrador)
 
@@ -264,7 +264,7 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | ADM-02 | Atribuir papel pela interface (fim do Prisma Studio) | 🟡 PARCIAL | `ManageUserApprovalsUserStory.ts`, `POST /users/admin` | O Admin aprova ou recusa o papel **pedido no cadastro** e pode criar usuários de qualquer papel pela API. Não há troca de papel de quem já existe |
 | ADM-03 | Configurar critérios, pesos (soma 100), threshold e prazo por gate | ⬜ PENDENTE | — | Depende de DER-03/04 |
 | ADM-04 | Mudar critérios não altera avaliações enviadas | 🟡 PARCIAL | `Evaluation.criteria` | Cada avaliação já guarda nome, peso e nota no momento do envio; falta a configuração em si |
-| ADM-05 | Admin não acessa funil, KPIs, triagem, designação nem decisão | 🔴 DIVERGENTE | `Sidebar.tsx`, `idea.routes.ts` | O Admin acessa o **funil** e os **KPIs** (que só ele acessa). A decisão está corretamente bloqueada |
+| ADM-05 | Admin não acessa funil, KPIs, triagem, designação nem decisão | ✅ FEITO | `lib/navigation.ts`, `idea.routes.ts` | Sem funil e KPIs no menu; `/metrics` e decisão de gate devolvem 403 ao Admin |
 | ADM-06 | Log de alterações do backoffice | ❓ A DECIDIR | — | Não existe |
 | ADM-07 | Departamentos pela interface | ❓ A DECIDIR | `frontend/src/data.ts` | Fixos no front; o backend não guarda departamento |
 
@@ -274,14 +274,14 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 |---|---|---|
 | Submeter ideia | Colab., Aval. (Gestor/Admin a decidir) | Qualquer perfil (sem guarda) |
 | Ver as próprias ideias | Colab., Aval. | Qualquer perfil; `GET /ideas` lista **todas** as ideias para qualquer perfil |
-| Ver ideias aprovadas | Todos | Todos (API); só o Colaborador tem a tela |
+| Ver ideias aprovadas | Todos | ✅ Todos (API e menu) |
 | Solicitar revisão de gate | Colab., Aval. (próprias, G2–G5) | Não existe |
 | Triagem e abertura do G1 | Gestor | Não existe |
 | Designar avaliadores | Gestor | Não existe |
 | Avaliar | Aval. designado, não autor | Qualquer Avaliador, não autor |
 | Decidir gate | Gestor | ✅ Gestor |
-| Ver funil completo | Gestor | Não há API de funil; a tela (mock) aparece para Admin, Gestor e Avaliador |
-| KPIs | Gestor | 🔴 Admin |
+| Ver funil completo | Gestor | Tela (mock) só no menu do Gestor; ainda não há API de funil |
+| KPIs | Gestor | ✅ Gestor |
 | Ranking | Todos | Não existe |
 | Usuários e papéis | Admin | Admin (só aprovações pendentes) |
 | Parâmetros dos gates | Admin | Não existe |
@@ -306,15 +306,15 @@ Estágios e gates hoje são um **enum**, não tabelas. Prazos, threshold e entre
 | Tela | Arquivo | Perfil(is) no menu hoje | Fonte de dados |
 |---|---|---|---|
 | Login e cadastro | `screens/Login.tsx` | — | ✅ API |
-| Nova ideia | `screens/NewIdea.tsx` | Colaborador | ✅ API |
-| Minhas ideias | `screens/MyIdeas.tsx` | Colaborador | ✅ API |
+| Nova ideia | `screens/NewIdea.tsx` | Colaborador, Avaliador | ✅ API |
+| Minhas ideias | `screens/MyIdeas.tsx` | Colaborador, Avaliador | ✅ API |
 | Detalhe da ideia + timeline | `screens/IdeaDetail.tsx` | Todos (ao abrir uma ideia) | ✅ API (mock quando aberto pelo Funil) |
-| Mural de aprovadas | `screens/ApprovedBoard.tsx` | Colaborador | ✅ API |
+| Mural de aprovadas | `screens/ApprovedBoard.tsx` | Todos | ✅ API |
 | Fila de avaliações + avaliação | `screens/GateEvaluation.tsx` | Avaliador | ✅ API |
 | Solicitações de cadastro | `screens/ApprovalRequests.tsx` | Administrador | ✅ API |
-| Painel do funil (Kanban) | `screens/KanbanFunnel.tsx` | Avaliador, Gestor, Administrador | ⚠️ Mock |
+| Painel do funil (Kanban) | `screens/KanbanFunnel.tsx` | Gestor | ⚠️ Mock |
 | Decisão de gate | `screens/GateDecision.tsx` | Gestor | ⚠️ Mock |
-| Indicadores (KPIs) | `screens/KPIDashboard.tsx` | Administrador | ⚠️ Mock |
+| Indicadores (KPIs) | `screens/KPIDashboard.tsx` | Gestor | ⚠️ Mock (a API `/ideas/metrics` já responde ao Gestor) |
 | Notificações, ranking, edição de ideia, triagem, solicitações de revisão, designação, usuários, configuração de gates | — | — | ⬜ Não existem |
 
 ### 3.14 Testes
@@ -365,40 +365,58 @@ Não são itens de código. A coluna indica se o **código** já reflete a decis
 
 ## 5. Roadmap reordenado (só o que não está FEITO)
 
+**Prioridade definida pelos autores:** completar a **integração e as funcionalidades**. **Seed e testes ficam para o fim, só se houver tempo.**
+
 Ordem pelas dependências. Cada fase só fecha quando o fluxo dela funciona **de ponta a ponta na interface**. As fases 3 a 7 podem se sobrepor.
 
 | Fase | Conteúdo | Itens | Pronto quando |
 |---|---|---|---|
 | **0 · Decisões** | Responder a seção 1.2 (prioridade às marcadas ⚠️) | P1–P5, GAT-12/13/14, SUB-07, ACO-06, GAT-01/09 | Decisões registradas neste arquivo |
-| **1 · Fundação** | Docker Compose, renomear para MindVance, `.env.example`, padrão de erros. Modelo: tabelas `departments`, `stages`, `gates` (prazo, threshold), `gate_criteria`, designação, rodadas, transição completa e imutável. Seed com os 4 perfis. Corrigir o RBAC: KPIs e funil só do Gestor; Avaliador herda o Colaborador; departamento salvo no cadastro | INF-01, 03, 04, 05 · DER-01, 03 a 09 · SEED-01 a 05 · AUT-01, 04, 05 · ADM-05 · KPI-06 · FUN-04 · GAT-21 | `docker compose up` + seed; login com os 4 perfis, cada um vendo só o seu menu |
-| **2 · Backoffice** | Lista de usuários, troca de papel, configuração de gates | ADM-01 a 04 (06, 07 se decidido) | Promover um usuário a Avaliador ou Gestor e alterar pesos de um gate pela interface |
-| **3 · Colaborador** | Tela de edição; solicitar revisão (G2–G5); anexos e entregas; redirecionamento; próximo passo; validação no backend | SUB-02 a 06 · ACO-02, 04, 05, 07 · ACO-06 | Colaborador ajusta uma ideia em Revisar, anexa entregas e solicita o gate |
-| **4 · Triagem e designação** | Fila de triagem e abertura do G1; fila de solicitações; designação (autor bloqueado); funil real | GAT-01 a 05 · FUN-01 a 05 | Gestor abre o G1, designa 2 avaliadores; o autor é recusado |
+| **1 · Fundação** | Padrão de erros. Modelo: tabelas `departments`, `stages`, `gates` (prazo, threshold), `gate_criteria`, designação, rodadas, transição completa e imutável. Departamento salvo no cadastro. Corrigir o fim do fluxo no G5 | INF-05 · DER-01, 03 a 09 · AUT-01, 04 · GAT-21 | Migrations aplicadas e regras de acesso restantes corrigidas |
+| **2 · Backoffice** | Lista de usuários, troca de papel, configuração de gates | ADM-01 a 04 (06, 07 se decidido) | Promover um usuário e alterar pesos de um gate pela interface |
+| **3 · Colaborador** | Tela de edição; solicitar revisão (G2–G5); anexos e entregas; redirecionamento; próximo passo; validação no backend | SUB-02 a 06 · ACO-02, 04, 05, 07 · ACO-06 · INF-04 | Colaborador ajusta uma ideia em Revisar, anexa entregas e solicita o gate |
+| **4 · Triagem e designação** | Fila de triagem e abertura do G1; fila de solicitações; designação (autor bloqueado); funil real | GAT-01 a 05 · FUN-01 a 05 | Gestor abre o G1 e designa 2 avaliadores; o autor é recusado |
 | **5 · Avaliação** | Fila só dos designados, com prazo; rodada; histórico ao lado; bloqueio sem nota; alerta de prazo | GAT-06 a 11 (12 se decidido) | Dois avaliadores enviam pareceres; o alerta de prazo dispara |
 | **6 · Consolidação e decisão** | Score consolidado, threshold, recomendação; tela de decisão real; transição completa; nova rodada após Revisar | GAT-10, 13 a 18, 20, 23 a 25 | Ideia vai de G1 a G5 até Lançamento, com um Revisar e um Rejeitar no caminho |
 | **7 · Notificações** | Tabela, sino com não lidas, gatilhos e links | NOT-01 a 05 · GAT-05, 15, 24 · SUB-06 | Cada perfil recebe as notificações da seção 3.9 |
-| **8 · Engajamento e KPIs** | Pontos, ranking, painel do Gestor com dados reais | ENG-01, 03, 04 · KPI-01 a 05 | Ranking e painel do Gestor com dados reais |
+| **8 · Engajamento e KPIs** | Pontos, ranking, painel do Gestor com dados reais e filtro de período | ENG-01, 03, 04 · KPI-01 a 06 | Ranking e painel do Gestor com dados reais |
 | **9 · Acabamento do frontend** | Marcadores do Gate Rail, telas restantes, estados de erro, 403 central | FRO-02 a 05, 07 | Nenhuma tela usa `data.ts` |
-| **10 · Testes** | Framework + testes de regra, autorização e fluxo | TST-01 a 06 | Testes passando, incluindo o fluxo completo |
-| **11 · Documento** | Alinhamento final do TCC | DOC-01 a 10 | TCC, BPMN, DER e código contam a mesma história |
+| **10 · Documento** | Alinhamento final do TCC | DOC-01 a 10 | TCC, BPMN, DER e código contam a mesma história |
+| *Se houver tempo* | Seed com departamentos, estágios, gates, critérios e um usuário por perfil; framework de testes e testes de regra, autorização e fluxo | SEED-01 a 05 · TST-01 a 06 | — |
 
-**Por que essa ordem difere do roadmap original:** a fase 1 concentra todas as mudanças de modelo (gates, designação, rodadas, transição), porque as fases 3 a 6 dependem delas e mexer no schema várias vezes gera migrations conflitantes entre colegas. As 8 divergências também entram na fase 1, porque são rápidas e afetam o que cada perfil vê.
+**Por que essa ordem difere do roadmap original:** a fase 1 concentra todas as mudanças de modelo (gates, designação, rodadas, transição), porque as fases 3 a 6 dependem delas e mexer no schema várias vezes gera migrations conflitantes entre colegas.
+
+**Sem o seed**, os gates, critérios e departamentos padrão precisam existir de outra forma. Proposta: as migrations da fase 1 já inserem esses registros padrão (é configuração do sistema, não dado de teste). O seed opcional fica só com os usuários de demonstração.
 
 ---
 
 ## 6. Cronograma
 
-**Premissas** (ajustar com o time): sprints de **1 semana**, começando em **27/10/2026**; a branch `feat-avanco-da-integracao` concentra a integração e é mergeada na `dev` ao fim de cada semana; as sprints 10 e 11 do TCC correspondem às semanas 6 e 7. Se a data de entrega do TCC for antes de 20/12, comprimir as semanas 5–7.
+**Premissas** (ajustar com o time): sprints de **1 semana**, começando em **27/10/2026**; a branch `feat-avanco-da-integracao` concentra a integração e é mergeada na `dev` ao fim de cada semana. Se a data de entrega do TCC for antes de 21/12, comprimir as semanas 6–8.
 
 | Semana | Período | Fases | Entregas principais | Marco |
 |---|---|---|---|---|
-| 1 | 27/10 – 02/11 | 0 · 1 (parte A) | Decisões da seção 1.2; Docker Compose; renomear para MindVance; seed; correção das 8 divergências de RBAC/menu | Login com os 4 perfis, menus corretos |
-| 2 | 03/11 – 09/11 | 1 (parte B) · 2 | Novo modelo (gates, critérios, threshold, designação, rodadas, transições); telas de usuários e de configuração dos gates | Admin promove usuário e configura gate pela interface |
-| 3 | 10/11 – 16/11 | 3 · 4 | Edição da ideia, solicitar revisão, anexos; triagem, designação e funil real | Gestor abre o G1 e designa avaliadores |
+| 1 | 27/10 – 02/11 | 0 · 1 | Decisões da seção 1.2; novo modelo de dados (gates, critérios, threshold, designação, rodadas, transições) com os registros padrão; padrão de erros | Modelo pronto; Docker Compose, MindVance e menus por perfil já entregues (ver seção 7) |
+| 2 | 03/11 – 09/11 | 2 · 3 (parte A) | Telas de usuários e de configuração dos gates; edição da ideia e "solicitar revisão" | Admin promove usuário pela interface; Colaborador reenvia ideia em Revisar |
+| 3 | 10/11 – 16/11 | 3 (parte B) · 4 | Anexos e entregas; triagem, designação e funil real | Gestor abre o G1 e designa avaliadores |
 | 4 | 17/11 – 23/11 | 5 · 6 (parte A) | Fila só dos designados, prazo e alerta; score consolidado e recomendação | Dois pareceres geram uma recomendação |
-| 5 | 24/11 – 30/11 | 6 (parte B) · 7 | Tela de decisão real; nova rodada após Revisar; notificações | **Levantamento intermediário:** fluxo G1→Lançamento na interface, com Revisar e Rejeitar |
-| 6 | 01/12 – 07/12 | 8 (Sprint 10) | Pontos, ranking e painel de KPIs do Gestor | Painel com dados reais |
-| 7 | 08/12 – 14/12 | 9 · 10 (Sprint 11) | Acabamento visual; testes de regra, autorização e fluxo | Testes passando |
-| 8 | 15/12 – 21/12 | 11 · folga | Alinhamento do TCC; correções finais | **Levantamento final:** o que foi entregue e o que ficou pendente |
+| 5 | 24/11 – 30/11 | 6 (parte B) | Tela de decisão real; nova rodada após Revisar; transição completa | **Levantamento intermediário:** fluxo G1→Lançamento na interface, com Revisar e Rejeitar |
+| 6 | 01/12 – 07/12 | 7 | Notificações (tabela, sino, gatilhos) | Cada perfil recebe as suas notificações |
+| 7 | 08/12 – 14/12 | 8 | Pontos, ranking e painel de KPIs do Gestor | Painel com dados reais |
+| 8 | 15/12 – 21/12 | 9 · 10 | Acabamento visual; alinhamento do TCC; seed e testes **se houver tempo** | **Levantamento final:** o que foi entregue e o que ficou pendente |
 
 **Levantamentos:** ao fim das semanas 5 e 8, atualizar a coluna "Status" da seção 3 e o resumo do início deste documento. O que não couber vira a lista de pendências declarada no TCC.
+
+---
+
+## 7. Registro de andamento da integração
+
+Atualizar a cada entrega desta branch. É a base dos levantamentos.
+
+| Data | O que foi feito | Itens |
+|---|---|---|
+| 26/10/2026 | Auditoria inicial dos 105 itens e cronograma | FRO-01 |
+| 26/10/2026 | `docker-compose.yml` com o PostgreSQL (banco `mindvance`, porta configurável) e README atualizado | INF-01 |
+| 26/10/2026 | Renomeação para MindVance: login, menu, título da aba, `package.json`, logos, README, chave da sessão | INF-03 |
+| 26/10/2026 | Menu e guarda de telas em uma fonte única (`lib/navigation.ts`): Avaliador herda o Colaborador, funil e KPIs só do Gestor, Admin só no backoffice, Mural para todos | AUT-05, ADM-05, FUN-04, ACO-06, SUB-07 |
+| 26/10/2026 | `GET /ideas/metrics` passa do Admin para o Gestor | KPI-06, AUT-04 |
