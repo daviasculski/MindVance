@@ -1,0 +1,25 @@
+# Infraestrutura local do MindVance: sobe o PostgreSQL usado pelo backend.
+# Uso: `docker compose up -d` na raiz do repositório.
+name: mindvance
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mindvance
+    ports:
+      # Porta ocupada por outro Postgres? Rode com POSTGRES_PORT=5433 e ajuste o DATABASE_URL
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mindvance"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
