@@ -9,6 +9,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import type { AuthUser, Role, Screen } from "../types";
+import { navByRole } from "../lib/navigation";
 
 interface SidebarProps {
   user: AuthUser;
@@ -29,25 +30,15 @@ const roleLabels: Record<Role, string> = {
   administrador: "Administrador",
 };
 
-const navByRole: Record<Role, { screen: Screen; label: string; icon: React.ReactNode }[]> = {
-  colaborador: [
-    { screen: "new-idea", label: "Nova Ideia", icon: <PlusCircle size={16} /> },
-    { screen: "my-ideas", label: "Minhas Ideias", icon: <Lightbulb size={16} /> },
-    { screen: "approved", label: "Mural de Aprovadas", icon: <Trophy size={16} /> },
-  ],
-  avaliador: [
-    { screen: "evaluate", label: "Fila de Avaliações", icon: <ClipboardCheck size={16} /> },
-    { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
-  ],
-  gatekeeper: [
-    { screen: "gate-decision", label: "Decisão de Gate", icon: <ClipboardCheck size={16} /> },
-    { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
-  ],
-  administrador: [
-    { screen: "funnel", label: "Painel do Funil", icon: <LayoutGrid size={16} /> },
-    { screen: "dashboard", label: "Indicadores", icon: <BarChart3 size={16} /> },
-    { screen: "approvals", label: "Solicitações", icon: <UserCheck size={16} /> },
-  ],
+const iconByScreen: Partial<Record<Screen, React.ReactNode>> = {
+  "new-idea": <PlusCircle size={16} />,
+  "my-ideas": <Lightbulb size={16} />,
+  approved: <Trophy size={16} />,
+  evaluate: <ClipboardCheck size={16} />,
+  "gate-decision": <ClipboardCheck size={16} />,
+  funnel: <LayoutGrid size={16} />,
+  dashboard: <BarChart3 size={16} />,
+  approvals: <UserCheck size={16} />,
 };
 
 export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarProps) {
@@ -75,7 +66,7 @@ export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarP
             letterSpacing: "-0.02em",
           }}
         >
-          IMS
+          MindVance
         </span>
         <span style={{ fontSize: 11, color: "#AEAEB2", marginLeft: 2 }}>Stage-Gate</span>
       </div>
@@ -108,7 +99,7 @@ export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarP
                 cursor: "pointer",
               }}
             >
-              {item.icon}
+              {iconByScreen[item.screen]}
               {item.label}
             </button>
           );

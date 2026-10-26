@@ -12,7 +12,6 @@ import { DeleteIdeaUserStory } from "../../application/userstories/DeleteIdeaUse
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated";
-import { ensureAdminRole } from "../middlewares/ensureAdminRole";
 import { ensureGatekeeperRole } from "../middlewares/ensureGatekeeperRole";
 import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
 import { GetInnovationMetricsController } from "../controllers/GetInnovationMetricsController";
@@ -72,10 +71,11 @@ const listIdeaEvaluationsController = new ListIdeaEvaluationsController(
 //testadas no postman
 ideaRoutes.post("/", (req, res) => ideaController.create(req, res));
 ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
+// KPIs: só o Gestor de Inovação (D2: o Administrador não acessa funil nem KPIs)
 ideaRoutes.get(
   "/metrics",
   ensureAuthenticated,
-  ensureAdminRole,
+  ensureGatekeeperRole,
   (req, res) => getInnovationMetricsController.handle(req, res),
 );
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
