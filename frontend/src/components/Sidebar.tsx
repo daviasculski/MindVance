@@ -12,12 +12,16 @@ import {
 } from "lucide-react";
 import type { AuthUser, Role, Screen } from "../types";
 import { navByRole } from "../lib/navigation";
+import NotificationBell from "./NotificationBell";
 
 interface SidebarProps {
   user: AuthUser;
   screen: Screen;
   onNavigate: (s: Screen) => void;
   onLogout: () => void;
+  token: string;
+  /** Abre o item de uma notificação ("idea:<id>", "evaluate", "triage", "decision") */
+  onOpenNotification: (link: string) => void;
 }
 
 function initials(name: string) {
@@ -45,7 +49,7 @@ const iconByScreen: Partial<Record<Screen, React.ReactNode>> = {
   users: <Users size={16} />,
 };
 
-export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarProps) {
+export default function Sidebar({ user, screen, onNavigate, onLogout, token, onOpenNotification }: SidebarProps) {
   const role = user.role;
   const nav = navByRole[role];
 
@@ -60,7 +64,7 @@ export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarP
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5">
+      <div className="flex items-center gap-2.5 pl-5 pr-3 py-5">
         <img src="/assets/logo-dark.svg" alt="" width={24} height={24} style={{ flexShrink: 0 }} />
         <span
           style={{
@@ -73,6 +77,9 @@ export default function Sidebar({ user, screen, onNavigate, onLogout }: SidebarP
           MindVance
         </span>
         <span style={{ fontSize: 11, color: "#AEAEB2", marginLeft: 2 }}>Stage-Gate</span>
+        <div className="ml-auto">
+          <NotificationBell token={token} onOpen={onOpenNotification} onSessionExpired={onLogout} />
+        </div>
       </div>
 
       {/* Perfil do usuário (vem do backend) */}

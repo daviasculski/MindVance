@@ -187,6 +187,52 @@ export async function listIdeaEvaluations(ideaId: string, token: string): Promis
   }));
 }
 
+interface ApiIdeaGateReview {
+  id: string;
+  gateOrder: number | null;
+  gateName: string;
+  stage: ApiStage | null;
+  round: number;
+  openedAt: string;
+  overdueAt: string | null;
+}
+
+/** Rodadas da ideia no histórico: abertura de cada gate e prazo vencido (GAT-11). */
+export async function listIdeaGateReviews(ideaId: string, token: string): Promise<TimelineEntry[]> {
+  const reviews = await apiRequest<ApiIdeaGateReview[]>(
+    `/ideas/${encodeURIComponent(ideaId)}/gate-reviews`,
+    { token },
+  );
+  return reviews.flatMap((r) => {
+    const base = {
+      ...(r.stage ? { stage: stageFromApi[r.stage] } : {}),
+      ...(r.gateOrder !== null ? { gateOrder: r.gateOrder } : {}),
+      round: r.round,
+    };
+    const triage = r.gateOrder === 1 && r.round === 1;
+    const opened: TimelineEntry = {
+      id: `${r.id}-aberto`,
+      date: r.openedAt,
+      decision: "gate-aberto",
+      responsible: triage ? "Gestor de Inovação (triagem)" : "Solicitado pelo autor",
+      feedback: r.round > 1 ? `${r.gateName} reaberto após a revisão.` : `${r.gateName} aberto para avaliação.`,
+      ...base,
+    };
+    if (!r.overdueAt) return [opened];
+    return [
+      opened,
+      {
+        id: `${r.id}-atraso`,
+        date: r.overdueAt,
+        decision: "atraso",
+        responsible: "Sistema",
+        feedback: "O prazo venceu com pareceres pendentes. A avaliação continua aberta.",
+        ...base,
+      },
+    ];
+  });
+}
+
 export async function getIdea(id: string, token: string): Promise<Idea> {
   return toIdea(await apiRequest<ApiIdea>(`/ideas/${encodeURIComponent(id)}`, { token }));
 }

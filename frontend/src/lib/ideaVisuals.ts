@@ -26,7 +26,8 @@ export function presenceForIdea(idea: Idea): CSSProperties {
 export function lastMovementDate(idea: Idea): Date {
   // The API reports it directly (funnel); otherwise derive it from the timeline
   if (idea.lastMovementAt) return new Date(idea.lastMovementAt);
-  const moves = idea.timeline.filter((t) => t.decision !== "avaliada");
+  // Pareceres e alertas de prazo não movem a ideia entre gates
+  const moves = idea.timeline.filter((t) => t.decision !== "avaliada" && t.decision !== "atraso");
   if (moves.length === 0) return new Date(idea.submittedAt);
   return new Date(moves[moves.length - 1].date);
 }

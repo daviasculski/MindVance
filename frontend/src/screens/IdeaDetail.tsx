@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle } from "lucide-react";
+import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen } from "lucide-react";
 import type { Idea, TimelineEntry } from "../types";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
@@ -15,6 +15,7 @@ import {
   editableStatuses,
   getIdea,
   listGateDecisions,
+  listIdeaGateReviews,
   listIdeaEvaluations,
   nextStep,
   openGateReview,
@@ -51,10 +52,14 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
     if (!token) return;
     let cancelled = false;
     setEvalState("loading");
-    Promise.all([listIdeaEvaluations(baseIdea.id, token), listGateDecisions(baseIdea.id, token)])
-      .then(([evaluations, decisions]) => {
+    Promise.all([
+      listIdeaEvaluations(baseIdea.id, token),
+      listGateDecisions(baseIdea.id, token),
+      listIdeaGateReviews(baseIdea.id, token),
+    ])
+      .then(([evaluations, decisions, rounds]) => {
         if (cancelled) return;
-        setHistory([...evaluations, ...decisions]);
+        setHistory([...rounds, ...evaluations, ...decisions]);
         setEvalState("idle");
       })
       .catch((err) => {
@@ -391,10 +396,16 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
                                   ? "rgba(245,158,11,0.12)"
                                   : entry.decision === "avaliada"
                                   ? "rgba(139,124,246,0.12)"
+                                  : entry.decision === "atraso"
+                                  ? "#FEF3E2"
                                   : "rgba(59,130,246,0.12)",
                             }}
                           >
-                            {entry.decision === "avaliada" ? (
+                            {entry.decision === "gate-aberto" ? (
+                              <DoorOpen size={13} style={{ color: "#3B82F6" }} />
+                            ) : entry.decision === "atraso" ? (
+                              <Clock size={13} style={{ color: "#B6790A" }} />
+                            ) : entry.decision === "avaliada" ? (
                               <Star size={13} style={{ color: "#8B7CF6" }} />
                             ) : entry.decision === "aprovada" ? (
                               <CheckCircle2 size={13} style={{ color: "#34C759" }} />
@@ -430,7 +441,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
                                   nota {(entry.score ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}/10
                                 </span>
                               </>
-                            ) : entry.decision === "submetida"
+                            ) : entry.decision === "gate-aberto"
+                              ? entry.round !== undefined && entry.round > 1
+                                ? "Gate reaberto"
+                                : "Gate aberto"
+                              : entry.decision === "atraso"
+                              ? "Prazo de avaliação vencido"
+                              : entry.decision === "submetida"
                               ? "Submetida"
                               : entry.decision === "aprovada"
                               ? "Aprovada no gate"
