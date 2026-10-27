@@ -24,6 +24,8 @@ export function presenceForIdea(idea: Idea): CSSProperties {
  * Evaluations don't move the idea between gates, so they don't reset the clock.
  */
 export function lastMovementDate(idea: Idea): Date {
+  // The API reports it directly (funnel); otherwise derive it from the timeline
+  if (idea.lastMovementAt) return new Date(idea.lastMovementAt);
   const moves = idea.timeline.filter((t) => t.decision !== "avaliada");
   if (moves.length === 0) return new Date(idea.submittedAt);
   return new Date(moves[moves.length - 1].date);
@@ -35,8 +37,9 @@ export function daysWaiting(idea: Idea): number {
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
 }
 
+/** Every status of an idea still moving through the funnel (not approved for launch nor closed). */
 export function isAwaitingGate(idea: Idea): boolean {
-  return idea.status === "Em andamento" || idea.status === "Em revisão";
+  return idea.status !== "Aprovada" && idea.status !== "Rejeitada";
 }
 
 /** The recorded justification for why a rejected idea was killed. */

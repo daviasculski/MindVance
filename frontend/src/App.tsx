@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import type { AuthSession, Idea, Screen } from "./types";
 import { clearSession, loadSession } from "./lib/auth";
 import { canAccess, defaultScreen } from "./lib/navigation";
-import { ideas as mockIdeas } from "./data";
 import Login from "./screens/Login";
 import NewIdea from "./screens/NewIdea";
 import MyIdeas from "./screens/MyIdeas";
@@ -60,12 +59,6 @@ export default function App() {
     setScreen(target);
   }
 
-  // Funil e Mural ainda usam dados de exemplo, identificados por id
-  function handleOpenMockIdea(id: string) {
-    const idea = mockIdeas.find((i) => i.id === id);
-    if (idea) openDetail(idea, screen, false);
-  }
-
   if (!session) {
     return <Login onLogin={handleLogin} />;
   }
@@ -96,7 +89,13 @@ export default function App() {
             onSessionExpired={handleLogout}
           />
         )}
-        {screen === "funnel" && <KanbanFunnel onOpenIdea={handleOpenMockIdea} />}
+        {screen === "funnel" && (
+          <KanbanFunnel
+            token={session.token}
+            onOpenIdea={(idea) => openDetail(idea, "funnel", true)}
+            onSessionExpired={handleLogout}
+          />
+        )}
         {screen === "idea-detail" && openIdea && (
           <IdeaDetail
             idea={openIdea}
@@ -125,7 +124,13 @@ export default function App() {
         {screen === "users" && (
           <UsersAdmin token={session.token} currentUserId={session.user.id} onSessionExpired={handleLogout} />
         )}
-        {screen === "dashboard" && canAccess(session.user.role, "dashboard") && <KPIDashboard />}
+        {screen === "dashboard" && canAccess(session.user.role, "dashboard") && (
+          <KPIDashboard
+            token={session.token}
+            readOnly={session.user.role === "administrador"}
+            onSessionExpired={handleLogout}
+          />
+        )}
         {screen === "approvals" && canAccess(session.user.role, "approvals") && (
             <ApprovalRequests
               token={session.token}
