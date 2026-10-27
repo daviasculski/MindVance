@@ -23,6 +23,8 @@ import { GateDecisionController } from "../controllers/GateDecisionController";
 import { gateReviewController } from "./gateReview.routes";
 import { GetFunnelUserStory } from "../../application/userstories/GetFunnelUserStory";
 import { sendError } from "../http";
+import { notifier } from "../dependencies";
+import { ListIdeaGateReviewsUserStory } from "../../application/userstories/ListIdeaGateReviewsUserStory";
 
 const ideaRoutes = Router();
 
@@ -34,7 +36,8 @@ const gateDecisionRepository = new PrismaGateDecisionRepository();
 const gateRepository = new PrismaGateRepository();
 const gateReviewRepository = new PrismaGateReviewRepository();
 
-const ideaController = new IdeaController(new CreateIdeaUserStorie(ideaRepository));
+const ideaController = new IdeaController(new CreateIdeaUserStorie(ideaRepository, notifier));
+const listIdeaGateReviews = new ListIdeaGateReviewsUserStory(ideaRepository, gateRepository, gateReviewRepository);
 const listIdeasController = new ListIdeasController(
   new ListIdeasUserStory(ideaRepository, userRepository),
 );
@@ -88,6 +91,21 @@ ideaRoutes.get("/funnel", ensureRole("GATEKEEPER"), async (_req, res) => {
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.get("/:id/evaluations", (req, res) => listIdeaEvaluationsController.handle(req, res));
 ideaRoutes.get("/:id/gate-decisions", (req, res) => gateDecisionController.list(req, res));
+// Rodadas da ideia para o histórico (abertura do gate e atraso registrado)
+ideaRoutes.get("/:id/gate-reviews", async (req, res) => {
+  try {
+    return res.status(200).json(
+      await listIdeaGateReviews.execute(req.params.id, { id: req.user!.id, role: req.user!.role }),
+    );
+  } catch (error) {
+    return sendError(
+      res,
+      error,
+      { "Idea not found": 404, "Only the idea author can view its gate reviews": 403 },
+      "Unable to list gate reviews",
+    );
+  }
+});
 // Abre uma rodada: Gestor na triagem (G1) ou autor solicitando revisão do gate
 ideaRoutes.post("/:id/gate-reviews", (req, res) => gateReviewController.open(req, res));
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));

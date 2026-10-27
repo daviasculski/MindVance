@@ -2,6 +2,7 @@ import { IGateRepository } from "../../domain/repositories/IGateRepository";
 import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepository";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { RequesterDTO } from "../dtos/IdeaDTO";
+import { Notifier } from "../services/Notifier";
 
 export interface OpenGateReviewOutputDTO {
   reviewId: string;
@@ -22,6 +23,7 @@ export class OpenGateReviewUserStory {
     private readonly ideaRepository: IIdeaRepository,
     private readonly gateRepository: IGateRepository,
     private readonly gateReviewRepository: IGateReviewRepository,
+    private readonly notifier?: Notifier,
   ) {}
 
   async execute(ideaId: string, requester: RequesterDTO): Promise<OpenGateReviewOutputDTO> {
@@ -36,7 +38,8 @@ export class OpenGateReviewUserStory {
       throw new Error("Idea is in the final stage and has no gate to review");
     }
 
-    if (idea.status === "AGUARDANDO_TRIAGEM") {
+    const fromTriage = idea.status === "AGUARDANDO_TRIAGEM";
+    if (fromTriage) {
       if (requester.role !== "GATEKEEPER") {
         throw new Error("Only the gatekeeper opens Gate 1 after triage");
       }
@@ -61,6 +64,12 @@ export class OpenGateReviewUserStory {
       requestedById: requester.id,
     });
     await this.ideaRepository.updateProgress(idea.id!, { status: "AGUARDANDO_DESIGNACAO" });
+    // Triagem: avisa o autor. Solicitação do autor: avisa os Gestores (NOT-02, NOT-03)
+    if (fromTriage) {
+      await this.notifier?.gateOpened(idea, gate);
+    } else {
+      await this.notifier?.reviewRequested(idea, gate, round);
+    }
 
     return {
       reviewId: review.id,

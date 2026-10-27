@@ -4,6 +4,7 @@ import { ideaRoutes } from "./idea.routes";
 import { evaluationRoutes } from "./evaluation.routes";
 import { userRoutes } from "./user.routes";
 import { gateReviewRoutes, gateRoutes } from "./gateReview.routes";
+import { notificationRoutes } from "./notification.routes";
 import prisma from "../../infrastructure/database/prisma/client";
 import { ensureAuthenticated } from "../middlewares/ensureAuthenticated"; // Importa o middleware
 
@@ -38,5 +39,6 @@ routes.use("/ideas", ideaRoutes);
 routes.use("/evaluations", evaluationRoutes);
 routes.use("/gate-reviews", gateReviewRoutes);
 routes.use("/gates", gateRoutes);
+routes.use("/notifications", notificationRoutes);
 
 export { routes };

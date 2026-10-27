@@ -24,5 +24,7 @@ export interface GateReview {
   deadlineAt: Date | null;
   consolidatedScore: number | null;
   recommendation: GateDecisionType | null;
+  /** Quando o prazo venceu com pareceres faltando (null se não venceu) */
+  overdueAt: Date | null;
   evaluators: GateReviewEvaluator[];
 }

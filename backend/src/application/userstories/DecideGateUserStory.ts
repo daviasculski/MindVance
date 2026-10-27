@@ -5,6 +5,7 @@ import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepo
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { DecideGateInputDTO, DecideGateOutputDTO } from "../dtos/GateDecisionDTO";
 import { toIdeaOutputDTO } from "../dtos/IdeaDTO";
+import { Notifier } from "../services/Notifier";
 
 /**
  * Decisão do Gestor sobre a rodada (D4, D5, D7). A recomendação do sistema é só
@@ -16,6 +17,7 @@ export class DecideGateUserStory {
     private readonly gateRepository: IGateRepository,
     private readonly gateReviewRepository: IGateReviewRepository,
     private readonly gateDecisionRepository: IGateDecisionRepository,
+    private readonly notifier?: Notifier,
   ) {}
 
   async execute(input: DecideGateInputDTO): Promise<DecideGateOutputDTO> {
@@ -65,8 +67,10 @@ export class DecideGateUserStory {
     // Aprovar leva ao estágio seguinte. Se ele não tem gate de saída (Lançamento),
     // o ciclo de gates termina com a ideia aprovada para lançamento (P2).
     let progress;
+    let finalStage = false;
     if (input.decision === "APROVADA") {
       const nextGate = await this.gateRepository.findByFromStage(gate.toStage);
+      finalStage = !nextGate;
       progress = {
         currentStage: gate.toStage,
         status: nextGate ? ("EM_ANDAMENTO" as const) : ("APROVADA" as const),
@@ -93,6 +97,8 @@ export class DecideGateUserStory {
     );
     await this.gateReviewRepository.markDecided(review.id);
     const updatedIdea = await this.ideaRepository.updateProgress(idea.id!, progress);
+    // O autor recebe a decisão com o feedback do Gestor (NOT-02)
+    await this.notifier?.gateDecided(idea, gate, input.decision, feedback, finalStage);
 
     return {
       decision: {

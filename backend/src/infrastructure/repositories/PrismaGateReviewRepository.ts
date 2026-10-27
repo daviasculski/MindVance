@@ -22,6 +22,7 @@ function toReview(raw: RawReview): GateReview {
     deadlineAt: raw.deadlineAt,
     consolidatedScore: raw.consolidatedScore,
     recommendation: raw.recommendation,
+    overdueAt: raw.overdueAt,
     evaluators: raw.evaluators.map((e) => ({
       evaluatorId: e.evaluatorId,
       assignedById: e.assignedById,
@@ -117,6 +118,15 @@ export class PrismaGateReviewRepository implements IGateReviewRepository {
     const raw = await prisma.gateReview.update({
       where: { id: reviewId },
       data: { status: "AGUARDANDO_DECISAO", consolidatedScore, recommendation },
+      include: withEvaluators,
+    });
+    return toReview(raw);
+  }
+
+  async markOverdue(reviewId: string, at: Date): Promise<GateReview> {
+    const raw = await prisma.gateReview.update({
+      where: { id: reviewId },
+      data: { overdueAt: at },
       include: withEvaluators,
     });
     return toReview(raw);

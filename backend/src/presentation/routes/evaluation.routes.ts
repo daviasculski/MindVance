@@ -9,6 +9,7 @@ import { PrismaGateReviewRepository } from "../../infrastructure/repositories/Pr
 import { SubmitEvaluationController } from "../controllers/SubmitEvaluationController";
 import { GetEvaluationQueueController } from "../controllers/GetEvaluationQueueController";
 import { ensureRole } from "../middlewares/ensureRole";
+import { notifier } from "../dependencies";
 
 const evaluationRoutes = Router();
 
@@ -20,7 +21,7 @@ const gateRepository = new PrismaGateRepository();
 const gateReviewRepository = new PrismaGateReviewRepository();
 
 const submitEvaluationController = new SubmitEvaluationController(
-  new SubmitEvaluationUserStory(evaluationRepository, ideaRepository, gateRepository, gateReviewRepository),
+  new SubmitEvaluationUserStory(evaluationRepository, ideaRepository, gateRepository, gateReviewRepository, notifier),
 );
 const getEvaluationQueueController = new GetEvaluationQueueController(
   new GetEvaluationQueueUserStory(
