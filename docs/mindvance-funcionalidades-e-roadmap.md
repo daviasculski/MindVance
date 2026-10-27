@@ -162,7 +162,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| DER-01 | Entidades do DER | 🟡 PARCIAL | `backend/prisma/schema.prisma` | Existem `users`, `ideas`, `gates`, `gate_criteria`, `gate_reviews` (rodadas), `gate_review_evaluators` (designação), `evaluations` (≈ `gate_evaluations`) e `gate_decisions` (≈ `stage_transitions`). Faltam `departments`, `stages` (enum), `attachments`, `notifications`, `engagement_points`; notas por critério em JSON, não em tabela |
+| DER-01 | Entidades do DER | 🟡 PARCIAL | `backend/prisma/schema.prisma` | Existem `users`, `ideas`, `gates`, `gate_criteria`, `gate_reviews` (rodadas), `gate_review_evaluators` (designação), `evaluations` (≈ `gate_evaluations`), `gate_decisions` (≈ `stage_transitions`) e `notifications`. Faltam `departments`, `stages` (enum), `attachments`, `engagement_points`; notas por critério em JSON, não em tabela |
 | DER-02 | Quatro papéis | ✅ FEITO | enum `UserRole` | — |
 | DER-03 | `gates` com prazo e threshold | ✅ FEITO | modelo `Gate` | `deadlineDays`, `approveThreshold`, `reviseThreshold` |
 | DER-04 | `gate_criteria` por gate, pesos somando 100 | ✅ FEITO | modelo `GateCriterion`, migration `20261026232000` | Sem validação de soma porque não há edição pela interface (D12) |
@@ -322,7 +322,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | FRO-01 | Inventário das telas | ✅ FEITO | seção 3.13.1 | — |
-| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam notificações, ranking e anexos |
+| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam ranking e anexos |
 | FRO-03 | Cliente da API | 🟡 PARCIAL | `lib/api.ts` | URL por env, JWT, 401 → login; sem 403 central nem erros por campo |
 | FRO-04 | Mocks substituídos | ✅ FEITO | `frontend/src/data.ts` | Nenhuma tela usa dados de exemplo; `data.ts` ficou só com os departamentos |
 | FRO-05 | Assinaturas visuais | 🟡 PARCIAL | `components/` | Real Funnel, Verdict Ring, Weighted Sliders, Stage Weight e Gate Aging com dados reais; faltam os marcadores de gate no Gate Rail |
@@ -346,7 +346,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Indicadores | `screens/KPIDashboard.tsx` | Gestor, Admin (leitura) | ✅ API |
 | Usuários | `screens/UsersAdmin.tsx` | Admin | ✅ API |
 | Solicitações de acesso | `screens/ApprovalRequests.tsx` | Admin | ✅ API |
-| Notificações, ranking | — | — | ⬜ Não existem |
+| Notificações (sino) | `components/NotificationBell.tsx` | Todos | ✅ API |
+| Ranking | — | — | ⬜ Não existe |
 
 ### 3.14 Testes (só se houver tempo)
 
