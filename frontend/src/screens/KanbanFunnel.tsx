@@ -1,13 +1,15 @@
-import { useState } from "react";
-import { Filter, ChevronDown, Quote } from "lucide-react";
-import { ideas, departments, kpiData } from "../data";
-import type { Stage, Idea } from "../types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Filter, ChevronDown, Quote, AlertCircle, RotateCw } from "lucide-react";
+import { departments } from "../data";
+import type { Stage, Idea, IdeaStatus } from "../types";
 import StatusBadge from "../components/StatusBadge";
 import DeptTag from "../components/DeptTag";
 import GateRail from "../components/GateRail";
 import GateAgingBadge from "../components/GateAgingBadge";
-import { presenceForIdea, rejectionFeedback } from "../lib/ideaVisuals";
+import { presenceForIdea } from "../lib/ideaVisuals";
 import { STAGES } from "../lib/gates";
+import { ApiError } from "../lib/api";
+import { getFunnel, type Funnel, type FunnelIdea } from "../lib/insights";
 
 const stages: Stage[] = STAGES;
 
@@ -23,23 +25,68 @@ const stageShort: Record<Stage, string> = {
 // Real funnel: columns physically narrow toward later stages.
 const columnWidth = [252, 232, 212, 196, 180, 164];
 
+const statusOptions: IdeaStatus[] = [
+  "Aguardando triagem",
+  "Aguardando designação",
+  "Em avaliação",
+  "Aguardando decisão",
+  "Em andamento",
+  "Em revisão",
+  "Aprovada",
+  "Rejeitada",
+];
+
 interface KanbanFunnelProps {
-  onOpenIdea: (id: string) => void;
+  token: string;
+  onOpenIdea: (idea: Idea) => void;
+  onSessionExpired: () => void;
 }
 
-export default function KanbanFunnel({ onOpenIdea }: KanbanFunnelProps) {
+/** Painel do funil do Gestor de Inovação (FUN-01 a FUN-05), com dados reais. */
+export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: KanbanFunnelProps) {
+  const [funnel, setFunnel] = useState<Funnel | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [filterDept, setFilterDept] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [showClosed, setShowClosed] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const sessionExpiredRef = useRef(onSessionExpired);
+  sessionExpiredRef.current = onSessionExpired;
 
-  const filtered = ideas.filter((i) => {
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      setFunnel(await getFunnel(token));
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        sessionExpiredRef.current();
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Erro inesperado");
+    }
+  }, [token]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const filtered = (funnel?.ideas ?? []).filter((i) => {
+    // Rejeitadas saem do funil ativo (GAT-23), mas continuam consultáveis
+    if (!showClosed && filterStatus !== "Rejeitada" && i.status === "Rejeitada") return false;
     if (filterDept !== "all" && i.department !== filterDept) return false;
     if (filterStatus !== "all" && i.status !== filterStatus) return false;
+    const submitted = i.submittedAt.slice(0, 10);
+    if (from && submitted < from) return false;
+    if (to && submitted > to) return false;
     return true;
   });
+  const activeFilters = filterDept !== "all" || filterStatus !== "all" || from !== "" || to !== "";
+  const closedCount = (funnel?.ideas ?? []).filter((i) => i.status === "Rejeitada").length;
 
   const byStage = (stage: Stage) => filtered.filter((i) => i.stage === stage);
-  const survival = kpiData.funnelConversion.map((r) => r.count).join(" → ");
+  const survival = funnel?.reachedByStage.map((r) => r.count).join(" → ") ?? "";
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ background: "#F5F5F7" }}>
@@ -53,65 +100,85 @@ export default function KanbanFunnel({ onOpenIdea }: KanbanFunnelProps) {
             Painel do Funil
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 3 }}>
-            {filtered.length} ideia{filtered.length !== 1 ? "s" : ""} no funil ·{" "}
-            <span style={{ color: "#AEAEB2" }}>histórico: {survival}</span>
+            {funnel ? (
+              <>
+                {filtered.length} ideia{filtered.length !== 1 ? "s" : ""} no funil ·{" "}
+                <span style={{ color: "#AEAEB2" }} title="Quantas ideias chegaram a cada estágio">
+                  chegaram a cada estágio: {survival}
+                </span>
+              </>
+            ) : (
+              "Todas as ideias por estágio"
+            )}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {closedCount > 0 && (
+            <button
+              onClick={() => setShowClosed((v) => !v)}
+              className="rounded-xl px-4 py-2"
+              style={{
+                background: showClosed ? "#F5F5F7" : "#FFFFFF",
+                border: "1px solid #E5E5EA",
+                color: "#6E6E73",
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              {showClosed ? "Ocultar encerradas" : `Mostrar encerradas (${closedCount})`}
+            </button>
+          )}
           <button
             onClick={() => setFilterOpen((v) => !v)}
             className="flex items-center gap-2 rounded-xl px-4 py-2 transition-all"
             style={{
-              background: filterOpen ? "#F5F5F7" : "#FFFFFF",
+              background: filterOpen || activeFilters ? "#F5F5F7" : "#FFFFFF",
               border: "1px solid #E5E5EA",
-              color: "#6E6E73",
+              color: activeFilters ? "#B6790A" : "#6E6E73",
               fontSize: 13,
               cursor: "pointer",
             }}
           >
             <Filter size={14} />
-            Filtros
+            Filtros{activeFilters ? " (ativos)" : ""}
             <ChevronDown size={12} />
           </button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters (FUN-03): área, status e período de submissão */}
       {filterOpen && (
         <div
-          className="px-8 py-4 flex items-center gap-4 flex-shrink-0"
+          className="px-8 py-4 flex items-center gap-5 flex-wrap flex-shrink-0"
           style={{ borderBottom: "1px solid #E5E5EA", background: "#FFFFFF" }}
         >
           <div className="flex items-center gap-2">
             <label style={{ color: "#AEAEB2", fontSize: 12 }}>Área:</label>
-            <select
-              value={filterDept}
-              onChange={(e) => setFilterDept(e.target.value)}
-              style={selStyle}
-            >
+            <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} style={selStyle}>
               <option value="all">Todas</option>
               {departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-2">
             <label style={{ color: "#AEAEB2", fontSize: 12 }}>Status:</label>
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              style={selStyle}
-            >
+            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={selStyle}>
               <option value="all">Todos</option>
-              <option value="Em andamento">Em andamento</option>
-              <option value="Aprovada">Aprovada</option>
-              <option value="Rejeitada">Rejeitada</option>
-              <option value="Em revisão">Em revisão</option>
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>{s === "Aprovada" ? "Aprovada para lançamento" : s === "Rejeitada" ? "Encerrada" : s}</option>
+              ))}
             </select>
           </div>
-          {(filterDept !== "all" || filterStatus !== "all") && (
+          <div className="flex items-center gap-2">
+            <label style={{ color: "#AEAEB2", fontSize: 12 }}>Submetidas de</label>
+            <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} style={selStyle} />
+            <label style={{ color: "#AEAEB2", fontSize: 12 }}>até</label>
+            <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} style={selStyle} />
+          </div>
+          {activeFilters && (
             <button
-              onClick={() => { setFilterDept("all"); setFilterStatus("all"); }}
-              style={{ color: "#F59E0B", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
+              onClick={() => { setFilterDept("all"); setFilterStatus("all"); setFrom(""); setTo(""); }}
+              style={{ color: "#B6790A", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
             >
               Limpar filtros
             </button>
@@ -119,73 +186,93 @@ export default function KanbanFunnel({ onOpenIdea }: KanbanFunnelProps) {
         </div>
       )}
 
-      {/* Kanban */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
-        <div className="flex gap-0 h-full items-start" style={{ minWidth: "max-content" }}>
-          {stages.map((stage, idx) => {
-            const cards = byStage(stage);
-
-            return (
-              <div
-                key={stage}
-                className="flex flex-col h-full"
-                style={{
-                  width: columnWidth[idx],
-                  flexShrink: 0,
-                  borderRight: idx < stages.length - 1 ? "1px solid #E5E5EA" : "none",
-                }}
-              >
-                {/* Column header */}
-                <div className="px-3 py-3 flex-shrink-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div style={{ fontSize: 10.5, fontWeight: 700, color: "#B6790A", letterSpacing: "0.02em" }}>
-                      GATE {idx + 1}
-                    </div>
-                    <div
-                      className="flex items-center justify-center rounded-full"
-                      style={{
-                        minWidth: 20,
-                        height: 20,
-                        padding: "0 6px",
-                        background: cards.length > 0 ? "rgba(245,158,11,0.12)" : "#F0F0F2",
-                        color: cards.length > 0 ? "#B6790A" : "#AEAEB2",
-                        fontWeight: 700,
-                        fontSize: 11,
-                      }}
-                    >
-                      {cards.length}
-                    </div>
-                  </div>
-                  <div style={{ fontWeight: 600, fontSize: 13.5, color: "#1D1D1F" }}>
-                    {stageShort[stage]}
-                  </div>
-                </div>
-
-                {/* Cards */}
-                <div className="flex-1 overflow-y-auto px-2.5 pb-3 flex flex-col gap-2.5">
-                  {cards.length === 0 ? (
-                    <div
-                      className="flex items-center justify-center rounded-2xl py-8"
-                      style={{ border: "1.5px dashed #E5E5EA", color: "#AEAEB2", fontSize: 12 }}
-                    >
-                      Nenhuma ideia
-                    </div>
-                  ) : (
-                    cards.map((idea) => <IdeaCard key={idea.id} idea={idea} onClick={() => onOpenIdea(idea.id)} />)
-                  )}
-                </div>
-              </div>
-            );
-          })}
+      {error ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
+            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+              <AlertCircle size={15} />
+              {error}
+            </div>
+            <button
+              onClick={load}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+            >
+              <RotateCw size={13} />
+              Tentar novamente
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Kanban */
+        <div className="flex-1 overflow-x-auto overflow-y-hidden">
+          <div className="flex gap-0 h-full items-start" style={{ minWidth: "max-content" }}>
+            {stages.map((stage, idx) => {
+              const cards = byStage(stage);
+              const isFinal = idx === stages.length - 1;
+
+              return (
+                <div
+                  key={stage}
+                  className="flex flex-col h-full"
+                  style={{
+                    width: columnWidth[idx],
+                    flexShrink: 0,
+                    borderRight: idx < stages.length - 1 ? "1px solid #E5E5EA" : "none",
+                  }}
+                >
+                  {/* Column header */}
+                  <div className="px-3 py-3 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div style={{ fontSize: 10.5, fontWeight: 700, color: "#B6790A", letterSpacing: "0.02em" }}>
+                        {isFinal ? "ESTÁGIO FINAL" : `GATE ${idx + 1}`}
+                      </div>
+                      <div
+                        className="flex items-center justify-center rounded-full"
+                        style={{
+                          minWidth: 20,
+                          height: 20,
+                          padding: "0 6px",
+                          background: cards.length > 0 ? "rgba(245,158,11,0.12)" : "#F0F0F2",
+                          color: cards.length > 0 ? "#B6790A" : "#AEAEB2",
+                          fontWeight: 700,
+                          fontSize: 11,
+                        }}
+                      >
+                        {funnel ? cards.length : "–"}
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 13.5, color: "#1D1D1F" }}>{stageShort[stage]}</div>
+                  </div>
+
+                  {/* Cards */}
+                  <div className="flex-1 overflow-y-auto px-2.5 pb-3 flex flex-col gap-2.5">
+                    {!funnel ? (
+                      <div className="rounded-2xl animate-pulse" style={{ background: "#FFFFFF", height: 120 }} />
+                    ) : cards.length === 0 ? (
+                      <div
+                        className="flex items-center justify-center rounded-2xl py-8"
+                        style={{ border: "1.5px dashed #E5E5EA", color: "#AEAEB2", fontSize: 12 }}
+                      >
+                        Nenhuma ideia
+                      </div>
+                    ) : (
+                      cards.map((idea) => <IdeaCard key={idea.id} idea={idea} onClick={() => onOpenIdea(idea)} />)
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function IdeaCard({ idea, onClick }: { idea: Idea; onClick: () => void }) {
+function IdeaCard({ idea, onClick }: { idea: FunnelIdea; onClick: () => void }) {
   const rejected = idea.status === "Rejeitada";
-  const feedback = rejectionFeedback(idea);
+  const feedback = idea.rejectionFeedback;
   const presence = presenceForIdea(idea);
 
   return (
@@ -196,33 +283,27 @@ function IdeaCard({ idea, onClick }: { idea: Idea; onClick: () => void }) {
         ...presence,
         background: rejected ? "#FAFAFA" : presence.background,
         cursor: "pointer",
+        border: "none",
       }}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: 12.5,
-            color: rejected ? "#6E6E73" : "#1D1D1F",
-            lineHeight: 1.4,
-          }}
-        >
+        <div style={{ fontWeight: 600, fontSize: 12.5, color: rejected ? "#6E6E73" : "#1D1D1F", lineHeight: 1.4 }}>
           {idea.title}
         </div>
         <GateAgingBadge idea={idea} />
       </div>
       <div style={{ fontSize: 11, color: "#AEAEB2", marginBottom: 8 }}>
         {idea.author}
+        {idea.currentRound !== null && idea.currentRound > 1 && ` · rodada ${idea.currentRound}`}
       </div>
-      <div className="flex items-center gap-1 flex-wrap mb-2">
-        <DeptTag name={idea.department} />
-      </div>
+      {idea.department && (
+        <div className="flex items-center gap-1 flex-wrap mb-2">
+          <DeptTag name={idea.department} />
+        </div>
+      )}
 
       {rejected && feedback && (
-        <div
-          className="flex items-start gap-1.5 mb-2 rounded-xl px-2.5 py-2"
-          style={{ background: "#F5F5F7" }}
-        >
+        <div className="flex items-start gap-1.5 mb-2 rounded-xl px-2.5 py-2" style={{ background: "#F5F5F7" }}>
           <Quote size={11} style={{ color: "#AEAEB2", flexShrink: 0, marginTop: 2 }} />
           <p style={{ fontSize: 10.5, color: "#8E8E93", lineHeight: 1.4 }}>
             {feedback.length > 90 ? feedback.slice(0, 90) + "…" : feedback}
@@ -247,5 +328,4 @@ const selStyle: React.CSSProperties = {
   fontSize: 12,
   padding: "5px 8px",
   outline: "none",
-  appearance: "none",
 };

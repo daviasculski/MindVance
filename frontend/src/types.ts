@@ -93,29 +93,10 @@ export interface Idea {
   impact: string;
   resources: string;
   submittedAt: string;
+  /** Última movimentação (submissão, abertura de rodada ou decisão), quando a API informa */
+  lastMovementAt?: string;
   attachments: Attachment[];
   timeline: TimelineEntry[];
-}
-
-export interface EvaluationCriteria {
-  id: string;
-  name: string;
-  weight: number;
-  score: number;
-  comment: string;
-}
-
-export interface Evaluation {
-  id: string;
-  evaluatorName: string;
-  ideaId: string;
-  ideaTitle: string;
-  gate: string;
-  deadline: string;
-  criteria: EvaluationCriteria[];
-  justification: string;
-  completed: boolean;
-  totalScore: number;
 }
 
 export type Screen =
