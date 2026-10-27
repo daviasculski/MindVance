@@ -1,20 +1,26 @@
 import { Request, Response } from "express";
 import { GetInnovationMetricsUserStory } from "../../application/userstories/GetInnovationMetricsUserStory";
+import { sendError } from "../http";
+
+const statusByMessage: Record<string, number> = {
+  "Invalid start date": 400,
+  "Invalid end date": 400,
+  "Start date must be before end date": 400,
+};
 
 export class GetInnovationMetricsController {
-  constructor(
-    private readonly getInnovationMetricsUserStory: GetInnovationMetricsUserStory,
-  ) {}
+  constructor(private readonly getInnovationMetricsUserStory: GetInnovationMetricsUserStory) {}
 
-  async handle(_req: Request, res: Response): Promise<Response> {
+  /** GET /ideas/metrics?startDate=&endDate= — período pela data de submissão (KPI-06) */
+  async handle(req: Request, res: Response): Promise<Response> {
     try {
-      const metrics = await this.getInnovationMetricsUserStory.execute();
+      const metrics = await this.getInnovationMetricsUserStory.execute({
+        startDate: typeof req.query.startDate === "string" ? req.query.startDate : undefined,
+        endDate: typeof req.query.endDate === "string" ? req.query.endDate : undefined,
+      });
       return res.status(200).json(metrics);
     } catch (error: unknown) {
-      console.error("Failed to retrieve innovation metrics:", error);
-      return res
-        .status(500)
-        .json({ error: "Unable to retrieve innovation metrics" });
+      return sendError(res, error, statusByMessage, "Unable to retrieve innovation metrics");
     }
   }
 }

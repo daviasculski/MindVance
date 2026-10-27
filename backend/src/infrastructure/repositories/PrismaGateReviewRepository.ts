@@ -63,6 +63,14 @@ export class PrismaGateReviewRepository implements IGateReviewRepository {
     return result._max.round ?? 0;
   }
 
+  async findAll(): Promise<GateReview[]> {
+    const list = await prisma.gateReview.findMany({
+      include: withEvaluators,
+      orderBy: { openedAt: "asc" },
+    });
+    return list.map(toReview);
+  }
+
   async findByStatus(status: GateReviewStatus): Promise<GateReview[]> {
     const list = await prisma.gateReview.findMany({
       where: { status },

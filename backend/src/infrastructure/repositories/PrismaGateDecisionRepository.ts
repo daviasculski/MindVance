@@ -41,6 +41,11 @@ export class PrismaGateDecisionRepository implements IGateDecisionRepository {
     return toEntity(raw);
   }
 
+  async findAll(): Promise<GateDecision[]> {
+    const list = await prisma.gateDecision.findMany({ orderBy: { createdAt: "asc" } });
+    return list.map(toEntity);
+  }
+
   async findByIdeaId(ideaId: string): Promise<GateDecision[]> {
     const list = await prisma.gateDecision.findMany({
       where: { ideaId },
