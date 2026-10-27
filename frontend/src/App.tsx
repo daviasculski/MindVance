@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { AuthSession, Idea, Screen } from "./types";
 import { clearSession, loadSession } from "./lib/auth";
 import { canAccess, defaultScreen } from "./lib/navigation";
+import { getIdea } from "./lib/ideas";
 import Login from "./screens/Login";
 import NewIdea from "./screens/NewIdea";
 import MyIdeas from "./screens/MyIdeas";
@@ -59,6 +60,22 @@ export default function App() {
     setScreen(target);
   }
 
+  // NOT-05: a notificação leva ao item correspondente
+  async function handleNotificationLink(link: string) {
+    if (!session) return;
+    if (link.startsWith("idea:")) {
+      try {
+        const idea = await getIdea(link.slice("idea:".length), session.token);
+        openDetail(idea, screen === "idea-detail" ? detailBackTo : screen, true);
+      } catch {
+        // Ideia sem acesso ou inexistente: permanece na tela atual
+      }
+      return;
+    }
+    const target: Record<string, Screen> = { evaluate: "evaluate", triage: "triage", decision: "gate-decision" };
+    if (target[link]) handleNavigate(target[link]);
+  }
+
   if (!session) {
     return <Login onLogin={handleLogin} />;
   }
@@ -70,6 +87,8 @@ export default function App() {
         screen={screen}
         onNavigate={handleNavigate}
         onLogout={handleLogout}
+        token={session.token}
+        onOpenNotification={handleNotificationLink}
       />
 
       <main className="flex-1 flex overflow-hidden">
