@@ -2,7 +2,7 @@
 
 Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da Ideia ao Lançamento"), BPMN revisado do MindVance e decisões dos autores.
 
-**Situação em 26/10/2026**, branch `feat-avanco-da-integracao`. O fluxo de gates do BPMN (triagem → designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta e foi validado pela API com 70 cenários. Funil e indicadores usam dados reais; nenhuma tela usa mais dados de exemplo. O que falta está na seção 5.
+**Situação em 26/10/2026**, branch `feat-avanco-da-integracao`. O fluxo de gates do BPMN (triagem → designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta e foi validado pela API com 70 cenários. Funil e indicadores usam dados reais; nenhuma tela usa mais dados de exemplo. As notificações cobrem todos os gatilhos do BPMN, incluindo o prazo vencido. O que falta está na seção 5.
 
 ---
 
@@ -21,7 +21,7 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 60 | 17 | 20 | 0 | 7 | 1 |
+| 69 | 15 | 13 | 0 | 7 | 1 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -93,15 +93,15 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 | Passo | Ator | O que o BPMN prevê | Situação | Status da ideia |
 |---|---|---|---|---|
 | 1 | Colaborador | Cria e submete a ideia (formulário + anexos) | ✅ Formulário com validação no front e na API · ⬜ anexos | — |
-| 2 | Sistema | Registra em Ideação e notifica o Gestor | ✅ Registra · ⬜ notificação | Aguardando triagem |
+| 2 | Sistema | Registra em Ideação e notifica o Gestor | ✅ | Aguardando triagem |
 | 3 | Gestor | Triagem e abertura do G1 | ✅ Tela **Triagem e designação** | Aguardando designação |
 | 4 | Gestor | Designa avaliadores (autor bloqueado) | ✅ Só avaliadores aprovados; autor recusado no backend; prazo começa a contar | Em avaliação |
-| 5 | Sistema | Notifica os designados | ⬜ | — |
+| 5 | Sistema | Notifica os designados | ✅ | — |
 | 6 | Avaliadores | Nota 0–10 e comentário por critério + justificativa | ✅ Só designados; critérios do gate; todas as notas obrigatórias; um parecer por rodada | Em avaliação |
-| 6a | Sistema | Prazo vencido → alerta e registra atraso | 🟡 Atraso sinalizado na fila do Avaliador e do Gestor · ⬜ notificação e registro no histórico | — |
-| 7 | Sistema | Consolida, compara ao threshold, recomenda, notifica o Gestor | ✅ Consolidação e recomendação automáticas ao último parecer · ⬜ notificação | Aguardando decisão |
+| 6a | Sistema | Prazo vencido → alerta e registra atraso | ✅ Rotina periódica registra o atraso no histórico e notifica; a avaliação continua aberta | — |
+| 7 | Sistema | Consolida, compara ao threshold, recomenda, notifica o Gestor | ✅ | Aguardando decisão |
 | 8 | Gestor | Analisa recomendação e pareceres, decide com justificativa | ✅ Tela **Decisão de Gate** | — |
-| 9 | Sistema | Registra a transição, atualiza estágio/status, notifica o autor, pontua | ✅ Transição imutável com recomendação e score · ⬜ notificação e pontos | — |
+| 9 | Sistema | Registra a transição, atualiza estágio/status, notifica o autor, pontua | ✅ Transição imutável e notificação com feedback · ⬜ pontos | — |
 | 10a | — | Rejeitar: arquiva, fim | ✅ | Encerrada |
 | 10b | Colaborador | Revisar: ajusta e solicita nova revisão (mesmo gate) | ✅ Edição livre; "Solicitar revisão" abre nova rodada | Em revisão → Aguardando designação |
 | 10c | Colaborador | Aprovar antes do G5: produz entregas e solicita o próximo gate | ✅ Avança; autor edita e solicita · ⬜ anexar entregas | Em andamento → Aguardando designação |
@@ -202,7 +202,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | SUB-03 | UC01 FA01: obrigatórios por campo | ✅ FEITO | `NewIdea.tsx`, `CreateIdeaUserStorie.ts` | Front e API validam |
 | SUB-04 | UC01 FA02: anexo inválido sem perder campos | ⬜ PENDENTE | — | Depende de SUB-02 |
 | SUB-05 | Redireciona para "Minhas ideias" | 🟡 PARCIAL | `NewIdea.tsx` | Tela de sucesso com botão "Ver minhas ideias" |
-| SUB-06 | Registra em Ideação e notifica o Gestor | 🟡 PARCIAL | `CreateIdeaUserStorie.ts` | Entra em "Aguardando triagem" e aparece na triagem; falta a notificação |
+| SUB-06 | Registra em Ideação e notifica o Gestor | ✅ FEITO | `CreateIdeaUserStorie.ts`, `Notifier.ideaSubmitted` | — |
 | SUB-07 | Avaliador submete; Gestor/Admin a decidir | ❓ A DECIDIR | `lib/navigation.ts` | Avaliador sim |
 
 ### 3.6 Acompanhamento da ideia
@@ -210,7 +210,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | ACO-01 | "Minhas ideias" com estágio e status | ✅ FEITO | `MyIdeas.tsx` | — |
-| ACO-02 | Detalhe com conteúdo, anexos e timeline | 🟡 PARCIAL | `IdeaDetail.tsx` | Timeline com submissão, pareceres e decisões por gate e rodada, com recomendação; faltam anexos |
+| ACO-02 | Detalhe com conteúdo, anexos e timeline | 🟡 PARCIAL | `IdeaDetail.tsx` | Timeline com submissão, abertura de cada gate, pareceres, prazo vencido e decisões, por gate e rodada; faltam anexos |
 | ACO-03 | Pontos a ajustar em destaque em Revisar | ✅ FEITO | `IdeaDetail.tsx` | — |
 | ACO-04 | Editar a ideia e anexar entregas | 🟡 PARCIAL | `IdeaDetail.tsx` (`EditIdeaForm`), `UpdateIdeaUserStory.ts` | Edição pronta (D13); falta anexar entregas |
 | ACO-05 | "Solicitar revisão do gate" | ✅ FEITO | `IdeaDetail.tsx`, `OpenGateReviewUserStory.ts` | Notificar o Gestor entra com as notificações |
@@ -235,17 +235,17 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | GAT-02 | Fila de solicitações G2–G5 | ✅ FEITO | `GateTriage.tsx` (Aguardando designação) | Mesma fila da designação; reenvios após Revisar sinalizados |
 | GAT-03 | Designação pelo Gestor | ✅ FEITO | `GateTriage.tsx`, `AssignEvaluatorsUserStory.ts` | — |
 | GAT-04 | Autor não pode ser designado (backend) | ✅ FEITO | `AssignEvaluatorsUserStory.ts` | Testado |
-| GAT-05 | Notificar os designados | ⬜ PENDENTE | — | Fase de notificações |
+| GAT-05 | Notificar os designados | ✅ FEITO | `services/Notifier.ts` | Com o prazo na mensagem |
 | GAT-06 | Fila só dos designados, com prazo | ✅ FEITO | `GetEvaluationQueueUserStory.ts`, `GateEvaluation.tsx` | — |
 | GAT-07 | Tela de avaliação com conteúdo e histórico ao lado | 🟡 PARCIAL | `GateEvaluation.tsx` | Conteúdo, critérios com descrição, peso, comentário e justificativa; falta o histórico ao lado |
 | GAT-08 | UC02 FA01: bloquear sem nota ou sem justificativa | ✅ FEITO | `GateEvaluation.tsx`, `SubmitEvaluationUserStory.ts` | Notas começam vazias |
 | GAT-09 | Um parecer por rodada; só designados | ✅ FEITO | `SubmitEvaluationUserStory.ts` | Parecer não é editável |
 | GAT-10 | Verdict Ring com a regra do backend | ✅ FEITO | `VerdictRing.tsx`, `lib/gateReviews.ts` | Empate correto; mostra até 2 casas |
-| GAT-11 | UC02 FA02: prazo vencido | 🟡 PARCIAL | `GetEvaluationQueueUserStory.ts`, `GateReviewQueriesUserStory.ts` | Atraso calculado na consulta e sinalizado ao Avaliador e ao Gestor; faltam notificação e registro no histórico |
+| GAT-11 | UC02 FA02: prazo vencido | ✅ FEITO | `CheckOverdueReviewsUserStory.ts`, `jobs/overdueReviewsJob.ts` | Rotina a cada 15 min (e na subida): registra o atraso na rodada, aparece no histórico e notifica avaliadores atrasados e Gestores; a avaliação continua aberta |
 | GAT-12 | Avaliador atrasado | ❓ A DECIDIR | — | Hoje aguarda |
 | GAT-13 | Consolidação quando todos concluem | ✅ FEITO | `domain/entities/Gate.ts` | Média por critério (D14) |
 | GAT-14 | Recomendação | ✅ FEITO | `domain/entities/Gate.ts` | Faixas 7,0 / 4,0 (D14) |
-| GAT-15 | Notificar o Gestor | 🟡 PARCIAL | `GateDecision.tsx` | O gate entra na fila de decisão; falta a notificação |
+| GAT-15 | Notificar o Gestor | ✅ FEITO | `services/Notifier.ts` | Com score e recomendação |
 | GAT-16 | Painel de decisão | ✅ FEITO | `GateDecision.tsx` | Score, recomendação, pareceres por critério |
 | GAT-17 | Três botões; justificativa obrigatória | ✅ FEITO | `GateDecision.tsx`, `DecideGateUserStory.ts` | — |
 | GAT-18 | Decidir contra a recomendação, registrando as duas | ✅ FEITO | `gate_decisions.recommendation` | Tela avisa ao decidir diferente |
@@ -254,18 +254,18 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | GAT-21 | Aprovar avança; G5 → Lançamento | ✅ FEITO | `DecideGateUserStory.ts` | D11 |
 | GAT-22 | Revisar | ✅ FEITO | `DecideGateUserStory.ts` | — |
 | GAT-23 | Rejeitar arquiva e preserva histórico | ✅ FEITO | `DecideGateUserStory.ts` | Sem exclusão (D12) |
-| GAT-24 | Notificar o autor e lançar pontos | ⬜ PENDENTE | — | Fases de notificações e engajamento |
+| GAT-24 | Notificar o autor e lançar pontos | 🟡 PARCIAL | `services/Notifier.ts` | Notificação com o feedback pronta; faltam os pontos (engajamento) |
 | GAT-25 | Ciclo nos 5 gates com nova rodada | ✅ FEITO | roteiro de teste pela API | G1→G5 com Revisar e Rejeitar |
 
 ### 3.9 Notificações
 
 | ID | Item | Status |
 |---|---|---|
-| NOT-01 | Notificações persistidas, não lidas, marcar como lida | ⬜ PENDENTE |
-| NOT-02 | Autor notificado a cada mudança de status | ⬜ PENDENTE |
-| NOT-03 | Gestor: ideia nova, solicitação, gate pronto, atraso | ⬜ PENDENTE |
-| NOT-04 | Avaliador: designação, prazo vencido | ⬜ PENDENTE |
-| NOT-05 | Link para o item | ⬜ PENDENTE |
+| NOT-01 | Notificações persistidas, não lidas, marcar como lida | ✅ FEITO |
+| NOT-02 | Autor notificado a cada mudança de status | ✅ FEITO |
+| NOT-03 | Gestor: ideia nova, solicitação, gate pronto, atraso | ✅ FEITO |
+| NOT-04 | Avaliador: designação, prazo vencido | ✅ FEITO |
+| NOT-05 | Link para o item | ✅ FEITO |
 
 ### 3.10 Engajamento
 
@@ -366,7 +366,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | DOC-01 | Quatro perfis | Sim |
 | DOC-02 | Designação pelo Gestor | Sim |
 | DOC-03 | "Dois perfis fundamentais" | Sim (4 papéis) |
-| DOC-04 | Decisão, designação e alerta com o Gestor | Decisão e designação sim; alerta parcial (sem notificação) |
+| DOC-04 | Decisão, designação e alerta com o Gestor | Sim |
 | DOC-05 | US novas do Gestor e do Admin | Sim: triagem, designação, decisão, funil, KPIs e usuários |
 | DOC-06 | Primeiro estágio "Ideação" | Sim |
 | DOC-07 | DER com novo papel e designação | Sim (incluir `gate_reviews` e `gate_review_evaluators` no DER) |
@@ -393,9 +393,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | Bloco | Itens | Depende de |
 |---|---|---|
-| **B · Notificações** | NOT-01 a 05 · GAT-05, 11, 15, 24 · SUB-06 | Nada |
 | **C · Anexos e entregas** | SUB-02, 04 · ACO-02, 04 · INF-04 · DER-01 (`attachments`) | Nada |
-| **D · Engajamento** | ENG-01, 03, 04 · GAT-24 (pontos) | B (mesmos gatilhos) |
+| **D · Engajamento** | ENG-01, 03, 04 · GAT-24 (pontos) | Notificações (prontas): mesmos gatilhos |
 | **E · Departamento** | AUT-01 · ADM-01 · DER-05 · FUN-03 · SEED-01 | Decidir ADM-07 |
 | **F · Acabamento** | GAT-07 · SUB-05 · FRO-02, 03, 05, 07 · INF-05 | — |
 | **G · Documento do TCC** | DOC-01 a 10 | Blocos A–F |
@@ -411,7 +410,7 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | Semana | Período | Entregas | Itens | Marco |
 |---|---|---|---|---|
 | 1 | 27/10 – 02/11 | ✅ Funil real e painel de KPIs com dados reais e filtro de período (entregue em 26/10) | Bloco A | Gestor vê o funil e os KPIs reais |
-| 2 | 03/11 – 09/11 | Notificações (tabela, sino, gatilhos do BPMN) e alerta de prazo registrado no histórico | Bloco B | Cada perfil recebe as suas notificações |
+| 2 | 03/11 – 09/11 | ✅ Notificações (tabela, sino, gatilhos do BPMN) e alerta de prazo registrado no histórico (entregue em 26/10) | Bloco B | Cada perfil recebe as suas notificações |
 | 3 | 10/11 – 16/11 | Anexos e entregas; pontos e ranking; departamento no cadastro | Blocos C, D, E | **Levantamento intermediário** |
 | 4 | 17/11 – 23/11 | Acabamento visual; alinhamento do TCC; seed e testes se houver tempo | Blocos F, G | **Levantamento final** |
 
@@ -433,3 +432,4 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | 26/10/2026 | Exclusão de ideias removida; KPIs para Gestor e Admin (leitura); visibilidade de ideias pela matriz | D12, DIV-1, DIV-9, AUT-04 |
 | 26/10/2026 | Telas: Triagem e designação, Decisão de Gate integrada, Usuários, edição da ideia, próximo passo | GAT-01, 03, 16, ACO-04, 07, ADM-02 |
 | 26/10/2026 | Bloco A: funil e indicadores com dados reais, filtro de período, Gate Aging pela última movimentação; dados de exemplo removidos | FUN-01, 02, 03, 05, KPI-01 a 06, FRO-04, FRO-07 |
+| 26/10/2026 | Bloco B: notificações (sino, gatilhos do BPMN, links) e rotina de prazo vencido com registro no histórico | NOT-01 a 05, GAT-05, 11, 15, SUB-06 |
