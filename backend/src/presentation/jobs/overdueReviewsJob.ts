@@ -23,6 +23,11 @@ export function startOverdueReviewsJob(intervalMs: number): NodeJS.Timeout {
       console.error("Overdue reviews check failed:", error);
     }
   };
-  void run();
+
+  // Aguarda 2 segundos para garantir que o Prisma Client e a conexão estão prontos
+  setTimeout(() => {
+    void run();
+  }, 2000);
+
   return setInterval(run, intervalMs);
 }
