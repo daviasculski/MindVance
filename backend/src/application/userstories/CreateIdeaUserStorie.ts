@@ -5,9 +5,13 @@ import {
   IdeaOutputDTO,
   toIdeaOutputDTO,
 } from "../dtos/IdeaDTO";
+import { Notifier } from "../services/Notifier";
 
 export class CreateIdeaUserStorie {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly notifier?: Notifier,
+  ) {}
 
   async execute(input: CreateIdeaInputDTO): Promise<IdeaOutputDTO> {
     if (!input.title || input.title.trim().length === 0) {
@@ -43,6 +47,7 @@ export class CreateIdeaUserStorie {
     });
 
     const savedIdea = await this.ideaRepository.create(idea);
+    await this.notifier?.ideaSubmitted(savedIdea);
 
     return toIdeaOutputDTO(savedIdea);
   }

@@ -114,6 +114,8 @@ model GateReview {
   deadlineAt        DateTime?
   consolidatedScore Float?
   recommendation    GateDecisionType?
+  /// Quando o prazo venceu com pareceres faltando (UC02 FA02); null se não venceu
+  overdueAt         DateTime?
   idea              Idea                  @relation(fields: [ideaId], references: [id], onDelete: Restrict)
   gate              Gate                  @relation(fields: [gateId], references: [id], onDelete: Restrict)
   evaluators        GateReviewEvaluator[]
@@ -136,6 +138,22 @@ model GateReviewEvaluator {
   @@unique([reviewId, evaluatorId])
   @@index([evaluatorId])
   @@map("gate_review_evaluators")
+}
+
+/// Notificação interna (Módulo 5). `link` aponta para a tela do item (ideia, avaliação, triagem, decisão).
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  message   String    @db.Text
+  ideaId    String?
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
 }
 
 /// Transição registrada a cada decisão do Gestor (equivale a stage_transitions). Imutável.

@@ -3,6 +3,7 @@ import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepo
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { RequesterDTO } from "../dtos/IdeaDTO";
+import { Notifier } from "../services/Notifier";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -13,6 +14,7 @@ export class AssignEvaluatorsUserStory {
     private readonly gateRepository: IGateRepository,
     private readonly gateReviewRepository: IGateReviewRepository,
     private readonly userRepository: IUserRepository,
+    private readonly notifier?: Notifier,
   ) {}
 
   async execute(reviewId: string, evaluatorIds: unknown, requester: RequesterDTO) {
@@ -66,6 +68,7 @@ export class AssignEvaluatorsUserStory {
       deadlineAt,
     );
     await this.ideaRepository.updateProgress(idea.id!, { status: "EM_AVALIACAO" });
+    await this.notifier?.evaluatorsAssigned(idea, gate, review.round, ids, deadlineAt);
 
     return {
       reviewId: updated.id,

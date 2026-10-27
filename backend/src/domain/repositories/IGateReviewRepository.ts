@@ -29,4 +29,6 @@ export interface IGateReviewRepository {
     recommendation: GateDecisionType,
   ): Promise<GateReview>;
   markDecided(reviewId: string): Promise<GateReview>;
+  /** Registra o atraso da rodada (UC02 FA02); a avaliação continua aberta */
+  markOverdue(reviewId: string, at: Date): Promise<GateReview>;
 }

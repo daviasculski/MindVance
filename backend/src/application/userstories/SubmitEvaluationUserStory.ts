@@ -11,6 +11,7 @@ import { IGateRepository } from "../../domain/repositories/IGateRepository";
 import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepository";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { EvaluationOutputDTO, SubmitEvaluationInputDTO } from "../dtos/EvaluationDTO";
+import { Notifier } from "../services/Notifier";
 
 export const MIN_SCORE = 0;
 export const MAX_SCORE = 10;
@@ -64,6 +65,7 @@ export class SubmitEvaluationUserStory {
     private readonly ideaRepository: IIdeaRepository,
     private readonly gateRepository: IGateRepository,
     private readonly gateReviewRepository: IGateReviewRepository,
+    private readonly notifier?: Notifier,
   ) {}
 
   async execute(input: SubmitEvaluationInputDTO): Promise<EvaluationOutputDTO> {
@@ -140,12 +142,10 @@ export class SubmitEvaluationUserStory {
           (e.criteria ?? []).map((c) => ({ criterionId: c.criterionId ?? "", score: c.score })),
         ),
       );
-      await this.gateReviewRepository.markReadyForDecision(
-        review.id,
-        score,
-        recommendation(gate, score),
-      );
+      const recommended = recommendation(gate, score);
+      await this.gateReviewRepository.markReadyForDecision(review.id, score, recommended);
       await this.ideaRepository.updateProgress(idea.id!, { status: "AGUARDANDO_DECISAO" });
+      await this.notifier?.readyForDecision(idea, gate, score, recommended);
     }
 
     return {

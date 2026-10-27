@@ -11,6 +11,7 @@ import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaId
 import { PrismaUserRepository } from "../../infrastructure/repositories/PrismaUserRepository";
 import { GateReviewController } from "../controllers/GateReviewController";
 import { ensureRole } from "../middlewares/ensureRole";
+import { notifier } from "../dependencies";
 
 // Injeção de dependências
 const ideaRepository = new PrismaIdeaRepository();
@@ -21,9 +22,9 @@ const userRepository = new PrismaUserRepository();
 const gateDecisionRepository = new PrismaGateDecisionRepository();
 
 export const gateReviewController = new GateReviewController(
-  new OpenGateReviewUserStory(ideaRepository, gateRepository, gateReviewRepository),
-  new AssignEvaluatorsUserStory(ideaRepository, gateRepository, gateReviewRepository, userRepository),
-  new DecideGateUserStory(ideaRepository, gateRepository, gateReviewRepository, gateDecisionRepository),
+  new OpenGateReviewUserStory(ideaRepository, gateRepository, gateReviewRepository, notifier),
+  new AssignEvaluatorsUserStory(ideaRepository, gateRepository, gateReviewRepository, userRepository, notifier),
+  new DecideGateUserStory(ideaRepository, gateRepository, gateReviewRepository, gateDecisionRepository, notifier),
   new GateReviewQueriesUserStory(
     ideaRepository,
     gateRepository,
