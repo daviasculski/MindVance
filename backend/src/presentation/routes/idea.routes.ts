@@ -21,6 +21,8 @@ import { PrismaGateReviewRepository } from "../../infrastructure/repositories/Pr
 import { ListGateDecisionsUserStory } from "../../application/userstories/ListGateDecisionsUserStory";
 import { GateDecisionController } from "../controllers/GateDecisionController";
 import { gateReviewController } from "./gateReview.routes";
+import { GetFunnelUserStory } from "../../application/userstories/GetFunnelUserStory";
+import { sendError } from "../http";
 
 const ideaRoutes = Router();
 
@@ -41,7 +43,13 @@ const getIdeaByIdController = new GetIdeaByIdController(
 );
 const updateIdeaController = new UpdateIdeaController(new UpdateIdeaUserStory(ideaRepository));
 const getInnovationMetricsController = new GetInnovationMetricsController(
-  new GetInnovationMetricsUserStory(ideaRepository),
+  new GetInnovationMetricsUserStory(ideaRepository, gateRepository, gateDecisionRepository),
+);
+const getFunnelUserStory = new GetFunnelUserStory(
+  ideaRepository,
+  userRepository,
+  gateReviewRepository,
+  gateDecisionRepository,
 );
 const gateDecisionController = new GateDecisionController(
   new ListGateDecisionsUserStory(
@@ -69,6 +77,14 @@ ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 ideaRoutes.get("/metrics", ensureRole("GATEKEEPER", "ADMIN"), (req, res) =>
   getInnovationMetricsController.handle(req, res),
 );
+// Painel do funil: só o Gestor de Inovação (FUN-04)
+ideaRoutes.get("/funnel", ensureRole("GATEKEEPER"), async (_req, res) => {
+  try {
+    return res.status(200).json(await getFunnelUserStory.execute());
+  } catch (error) {
+    return sendError(res, error, {}, "Unable to load funnel");
+  }
+});
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.get("/:id/evaluations", (req, res) => listIdeaEvaluationsController.handle(req, res));
 ideaRoutes.get("/:id/gate-decisions", (req, res) => gateDecisionController.list(req, res));

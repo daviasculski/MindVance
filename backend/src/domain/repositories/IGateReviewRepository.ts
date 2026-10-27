@@ -14,6 +14,8 @@ export interface IGateReviewRepository {
   /** Maior número de rodada da ideia nesse gate (0 se nunca passou por ele) */
   lastRound(ideaId: string, gateId: string): Promise<number>;
   findByStatus(status: GateReviewStatus): Promise<GateReview[]>;
+  /** Todas as rodadas, em ordem de abertura (funil) */
+  findAll(): Promise<GateReview[]>;
   findAssignedTo(evaluatorId: string, status: GateReviewStatus): Promise<GateReview[]>;
   assignEvaluators(
     reviewId: string,
