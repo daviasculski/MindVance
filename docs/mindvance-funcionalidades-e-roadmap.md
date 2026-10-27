@@ -2,7 +2,7 @@
 
 Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da Ideia ao Lançamento"), BPMN revisado do MindVance e decisões dos autores.
 
-**Situação em 26/10/2026**, branch `feat-avanco-da-integracao`. O fluxo de gates do BPMN (triagem → designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta e foi validado pela API com 70 cenários. O que falta está na seção 5.
+**Situação em 26/10/2026**, branch `feat-avanco-da-integracao`. O fluxo de gates do BPMN (triagem → designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta e foi validado pela API com 70 cenários. Funil e indicadores usam dados reais; nenhuma tela usa mais dados de exemplo. O que falta está na seção 5.
 
 ---
 
@@ -21,7 +21,7 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 48 | 26 | 23 | 0 | 7 | 1 |
+| 60 | 17 | 20 | 0 | 7 | 1 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -221,11 +221,11 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| FUN-01 | Kanban 6 colunas com contagem | 🟡 PARCIAL | `KanbanFunnel.tsx` | Mock; a API já fornece os dados (`GET /ideas` para o Gestor) |
-| FUN-02 | Card com título, autor, departamento, status e gate | 🟡 PARCIAL | `KanbanFunnel.tsx` | Mock |
-| FUN-03 | Filtros por departamento, período e status | 🟡 PARCIAL | `ListIdeasController.ts` | API filtra estágio, status, período e autor; falta departamento |
+| FUN-01 | Kanban 6 colunas com contagem | ✅ FEITO | `KanbanFunnel.tsx`, `GET /ideas/funnel` | Dados reais; colunas que afunilam e contagem de quantas chegaram a cada estágio |
+| FUN-02 | Card com título, autor, departamento, status e gate | ✅ FEITO | `KanbanFunnel.tsx` | Também a rodada (quando > 1) e a justificativa das encerradas |
+| FUN-03 | Filtros por departamento, período e status | ✅ FEITO | `KanbanFunnel.tsx` | Área, status e período de submissão; encerradas fora do funil ativo, com opção de exibir |
 | FUN-04 | Funil só do Gestor; Avaliador só as atribuídas | ✅ FEITO | `lib/navigation.ts`, `GetEvaluationQueueUserStory.ts` | — |
-| FUN-05 | Gate Aging no card | 🟡 PARCIAL | `GateAgingBadge.tsx` | Usado na triagem; funil mock |
+| FUN-05 | Gate Aging no card | ✅ FEITO | `GetFunnelUserStory.ts` (`lastMovementAt`), `GateAgingBadge.tsx` | Conta desde a última submissão, abertura de rodada ou decisão |
 
 ### 3.8 Ciclo de gate
 
@@ -280,12 +280,12 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| KPI-01 | Ideias por período | 🟡 PARCIAL | `GetInnovationMetricsUserStory.ts` | API dá o total geral; painel mock |
-| KPI-02 | Conversão entre estágios | ⬜ PENDENTE | — | Dados em `gate_decisions` |
-| KPI-03 | Tempo médio por estágio | ⬜ PENDENTE | — | Dados em `gate_decisions` e `gate_reviews` |
-| KPI-04 | Distribuição por departamento | 🟡 PARCIAL | `GetInnovationMetricsUserStory.ts` | API pronta; painel mock |
-| KPI-05 | Status dos aprovados em desenvolvimento | ⬜ PENDENTE | — | — |
-| KPI-06 | Painel para Gestor (e Admin, leitura), com período | 🟡 PARCIAL | `idea.routes.ts`, `lib/navigation.ts` | Acesso correto; falta o filtro de período e trocar o mock |
+| KPI-01 | Ideias por período | ✅ FEITO | `GetInnovationMetricsUserStory.ts`, `KPIDashboard.tsx` | Série mensal contínua |
+| KPI-02 | Conversão entre estágios | ✅ FEITO | idem | Aprovação por gate (aprovadas / decisões finais) e quantas ideias chegaram a cada estágio |
+| KPI-03 | Tempo médio por estágio | ✅ FEITO | idem, `services/ideaJourney.ts` | Inclui ideias ainda no estágio; gargalo rotulado |
+| KPI-04 | Distribuição por departamento | ✅ FEITO | idem | — |
+| KPI-05 | Status dos aprovados em desenvolvimento | ✅ FEITO | idem | Ideias em Desenvolvimento ou Teste e Validação, com status |
+| KPI-06 | Painel para Gestor (e Admin, leitura), com período | ✅ FEITO | `KPIDashboard.tsx`, `idea.routes.ts` | 30 dias, 90 dias, 12 meses, tudo ou personalizado; Admin vê "somente leitura" |
 
 ### 3.12 Backoffice (Administrador)
 
@@ -322,12 +322,12 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | FRO-01 | Inventário das telas | ✅ FEITO | seção 3.13.1 | — |
-| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam notificações, ranking e anexos; funil e KPIs são mock |
+| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam notificações, ranking e anexos |
 | FRO-03 | Cliente da API | 🟡 PARCIAL | `lib/api.ts` | URL por env, JWT, 401 → login; sem 403 central nem erros por campo |
-| FRO-04 | Mocks substituídos | 🟡 PARCIAL | seção 3.13.1 | Restam Funil e Indicadores |
-| FRO-05 | Assinaturas visuais | 🟡 PARCIAL | `components/` | Verdict Ring e Weighted Sliders atualizados; faltam marcadores de gate no Gate Rail; Real Funnel mock |
+| FRO-04 | Mocks substituídos | ✅ FEITO | `frontend/src/data.ts` | Nenhuma tela usa dados de exemplo; `data.ts` ficou só com os departamentos |
+| FRO-05 | Assinaturas visuais | 🟡 PARCIAL | `components/` | Real Funnel, Verdict Ring, Weighted Sliders, Stage Weight e Gate Aging com dados reais; faltam os marcadores de gate no Gate Rail |
 | FRO-06 | Reprovação com tratamento neutro | ✅ FEITO | `StatusBadge.tsx`, `VerdictRing.tsx` | Cinza, sem vermelho |
-| FRO-07 | Carregamento, vazio e erro | 🟡 PARCIAL | telas integradas | Presentes em todas as integradas; ausentes nas mock |
+| FRO-07 | Carregamento, vazio e erro | ✅ FEITO | todas as telas | Funil e Indicadores incluídos |
 | FRO-08 | `Create` como frontend oficial | ❓ A DECIDIR | `frontend/` | Na prática já é: o `frontend/` é o conteúdo da `Create` |
 
 #### 3.13.1 Inventário de telas
@@ -342,8 +342,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Fila de avaliações e avaliação | `screens/GateEvaluation.tsx` | Avaliador | ✅ API |
 | Triagem e designação | `screens/GateTriage.tsx` | Gestor | ✅ API |
 | Decisão de gate | `screens/GateDecision.tsx` | Gestor | ✅ API |
-| Painel do funil | `screens/KanbanFunnel.tsx` | Gestor | ⚠️ Mock |
-| Indicadores | `screens/KPIDashboard.tsx` | Gestor, Admin | ⚠️ Mock (API pronta) |
+| Painel do funil | `screens/KanbanFunnel.tsx` | Gestor | ✅ API |
+| Indicadores | `screens/KPIDashboard.tsx` | Gestor, Admin (leitura) | ✅ API |
 | Usuários | `screens/UsersAdmin.tsx` | Admin | ✅ API |
 | Solicitações de acesso | `screens/ApprovalRequests.tsx` | Admin | ✅ API |
 | Notificações, ranking | — | — | ⬜ Não existem |
@@ -367,7 +367,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | DOC-02 | Designação pelo Gestor | Sim |
 | DOC-03 | "Dois perfis fundamentais" | Sim (4 papéis) |
 | DOC-04 | Decisão, designação e alerta com o Gestor | Decisão e designação sim; alerta parcial (sem notificação) |
-| DOC-05 | US novas do Gestor e do Admin | Triagem, designação, decisão e usuários existem; funil e KPIs com dados mock |
+| DOC-05 | US novas do Gestor e do Admin | Sim: triagem, designação, decisão, funil, KPIs e usuários |
 | DOC-06 | Primeiro estágio "Ideação" | Sim |
 | DOC-07 | DER com novo papel e designação | Sim (incluir `gate_reviews` e `gate_review_evaluators` no DER) |
 | DOC-08 | BPMN revisado e adaptações | Sim: avaliador separado de quem decide, 3 decisões, rodadas após Revisar, fim no Lançamento |
@@ -393,7 +393,6 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | Bloco | Itens | Depende de |
 |---|---|---|
-| **A · Funil e KPIs reais** | FUN-01, 02, 03, 05 · KPI-01 a 06 · FRO-04 | Nada (API pronta em grande parte) |
 | **B · Notificações** | NOT-01 a 05 · GAT-05, 11, 15, 24 · SUB-06 | Nada |
 | **C · Anexos e entregas** | SUB-02, 04 · ACO-02, 04 · INF-04 · DER-01 (`attachments`) | Nada |
 | **D · Engajamento** | ENG-01, 03, 04 · GAT-24 (pontos) | B (mesmos gatilhos) |
@@ -411,7 +410,7 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 
 | Semana | Período | Entregas | Itens | Marco |
 |---|---|---|---|---|
-| 1 | 27/10 – 02/11 | Funil real (Kanban do Gestor) e painel de KPIs com dados reais e filtro de período | Bloco A | Gestor vê o funil e os KPIs reais |
+| 1 | 27/10 – 02/11 | ✅ Funil real e painel de KPIs com dados reais e filtro de período (entregue em 26/10) | Bloco A | Gestor vê o funil e os KPIs reais |
 | 2 | 03/11 – 09/11 | Notificações (tabela, sino, gatilhos do BPMN) e alerta de prazo registrado no histórico | Bloco B | Cada perfil recebe as suas notificações |
 | 3 | 10/11 – 16/11 | Anexos e entregas; pontos e ranking; departamento no cadastro | Blocos C, D, E | **Levantamento intermediário** |
 | 4 | 17/11 – 23/11 | Acabamento visual; alinhamento do TCC; seed e testes se houver tempo | Blocos F, G | **Levantamento final** |
@@ -433,3 +432,4 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | 26/10/2026 | Fluxo completo: triagem, designação, avaliação, consolidação, recomendação e decisão; fim no Lançamento; nova rodada após Revisar | GAT-01 a 04, 06, 08 a 10, 13, 14, 16 a 23, 25, ACO-05, DIV-4 a DIV-8 |
 | 26/10/2026 | Exclusão de ideias removida; KPIs para Gestor e Admin (leitura); visibilidade de ideias pela matriz | D12, DIV-1, DIV-9, AUT-04 |
 | 26/10/2026 | Telas: Triagem e designação, Decisão de Gate integrada, Usuários, edição da ideia, próximo passo | GAT-01, 03, 16, ACO-04, 07, ADM-02 |
+| 26/10/2026 | Bloco A: funil e indicadores com dados reais, filtro de período, Gate Aging pela última movimentação; dados de exemplo removidos | FUN-01, 02, 03, 05, KPI-01 a 06, FRO-04, FRO-07 |
