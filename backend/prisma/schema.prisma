@@ -25,6 +25,7 @@ enum IdeaStatus {
   EM_REVISAO
   APROVADA
   REJEITADA
+  CANCELLED
 }
 
 enum GateDecisionType {

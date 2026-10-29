@@ -119,6 +119,7 @@ export default function App() {
           <IdeaDetail
             idea={openIdea}
             viewerId={session.user.id}
+            viewerRole={session.user.role}
             onBack={() => setScreen(detailBackTo)}
             live={openIdeaFromApi ? { token: session.token, onSessionExpired: handleLogout } : undefined}
           />
