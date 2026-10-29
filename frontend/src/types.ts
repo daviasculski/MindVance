@@ -43,6 +43,10 @@ export type IdeaStatus =
   | "Em andamento"
   | "Aprovada"
   | "Rejeitada"
+<<<<<<< HEAD
+=======
+  | "Cancelada"
+>>>>>>> feature/editar-cancelar-ideia
   | "Em revisão";
 
 export type GateDecisionType = "aprovada" | "rejeitada" | "revisão";

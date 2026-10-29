@@ -36,11 +36,20 @@ export class GetFunnelUserStory {
       this.gateReviewRepository.findAll(),
       this.gateDecisionRepository.findAll(),
     ]);
+<<<<<<< HEAD
     const authors = await this.userRepository.findByIds([...new Set(ideas.map((i) => i.authorId))]);
     const nameById = new Map(authors.map((u) => [u.id, u.name]));
 
     return {
       ideas: ideas.map((idea) => {
+=======
+    const activeIdeas = ideas.filter((idea) => idea.status !== "CANCELLED");
+    const authors = await this.userRepository.findByIds([...new Set(activeIdeas.map((i) => i.authorId))]);
+    const nameById = new Map(authors.map((u) => [u.id, u.name]));
+
+    return {
+      ideas: activeIdeas.map((idea) => {
+>>>>>>> feature/editar-cancelar-ideia
         const ideaReviews = reviews.filter((r) => r.ideaId === idea.id);
         const rejection = [...decisions]
           .reverse()
@@ -54,7 +63,11 @@ export class GetFunnelUserStory {
       }),
       reachedByStage: ideaStages.map((stage, i) => ({
         stage,
+<<<<<<< HEAD
         count: ideas.filter((idea) => furthestStageIndex(idea) >= i).length,
+=======
+        count: activeIdeas.filter((idea) => furthestStageIndex(idea) >= i).length,
+>>>>>>> feature/editar-cancelar-ideia
       })),
     };
   }

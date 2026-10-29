@@ -1,0 +1,1 @@
+ALTER TYPE "IdeaStatus" ADD VALUE 'CANCELLED';

@@ -17,8 +17,11 @@ interface MyIdeasProps {
   onSessionExpired: () => void;
 }
 
+type IdeaFilter = "active" | "cancelled" | "all";
+
 export default function MyIdeas({ user, token, onOpenIdea, onNewIdea, onSessionExpired }: MyIdeasProps) {
   const [ideas, setIdeas] = useState<Idea[] | null>(null);
+  const [filter, setFilter] = useState<IdeaFilter>("active");
   const [error, setError] = useState<string | null>(null);
   // Ref para não recarregar a lista quando o App recria o callback
   const sessionExpiredRef = useRef(onSessionExpired);
@@ -43,6 +46,19 @@ export default function MyIdeas({ user, token, onOpenIdea, onNewIdea, onSessionE
     load();
   }, [load]);
 
+  const activeIdeas = ideas?.filter((idea) => idea.status !== "Cancelada") ?? [];
+  const cancelledIdeas = ideas?.filter((idea) => idea.status === "Cancelada") ?? [];
+  const visibleIdeas =
+    filter === "active" ? activeIdeas : filter === "cancelled" ? cancelledIdeas : ideas ?? [];
+  const countLabel =
+    ideas === null
+      ? "Acompanhe o andamento das ideias que você submeteu"
+      : filter === "active"
+        ? `${activeIdeas.length} ideia${activeIdeas.length !== 1 ? "s" : ""} ativa${activeIdeas.length !== 1 ? "s" : ""} de ${ideas.length} submetida${ideas.length !== 1 ? "s" : ""}`
+        : filter === "cancelled"
+          ? `${cancelledIdeas.length} ideia${cancelledIdeas.length !== 1 ? "s" : ""} cancelada${cancelledIdeas.length !== 1 ? "s" : ""} de ${ideas.length} submetida${ideas.length !== 1 ? "s" : ""}`
+          : `${ideas.length} ideia${ideas.length !== 1 ? "s" : ""} submetida${ideas.length !== 1 ? "s" : ""} por você`;
+
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
       <div className="max-w-3xl mx-auto">
@@ -56,9 +72,7 @@ export default function MyIdeas({ user, token, onOpenIdea, onNewIdea, onSessionE
               </h1>
             </div>
             <p style={{ color: "#6E6E73", fontSize: 13 }}>
-              {ideas
-                ? `${ideas.length} ideia${ideas.length !== 1 ? "s" : ""} submetida${ideas.length !== 1 ? "s" : ""} por você`
-                : "Acompanhe o andamento das ideias que você submeteu"}
+              {countLabel}
             </p>
           </div>
           {ideas && ideas.length > 0 && (
@@ -72,6 +86,37 @@ export default function MyIdeas({ user, token, onOpenIdea, onNewIdea, onSessionE
             </button>
           )}
         </div>
+
+        {ideas && ideas.length > 0 && (
+          <div className="flex items-center gap-2 mb-5" role="group" aria-label="Filtrar ideias">
+            {([
+              ["active", "Ativas", activeIdeas.length],
+              ["cancelled", "Canceladas", cancelledIdeas.length],
+              ["all", "Todas", ideas.length],
+            ] as const).map(([value, label, count]) => {
+              const selected = filter === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => setFilter(value)}
+                  className="px-3.5 py-2 rounded-xl transition-colors"
+                  style={{
+                    background: selected ? "#1D1D1F" : "#FFFFFF",
+                    color: selected ? "#FFFFFF" : "#6E6E73",
+                    border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                    cursor: "pointer",
+                    fontSize: 12.5,
+                    fontWeight: selected ? 600 : 500,
+                  }}
+                >
+                  {label} <span style={{ opacity: selected ? 0.75 : 0.65 }}>({count})</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {error ? (
           <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
@@ -117,9 +162,20 @@ export default function MyIdeas({ user, token, onOpenIdea, onNewIdea, onSessionE
               Submeter minha primeira ideia
             </button>
           </div>
+        ) : visibleIdeas.length === 0 ? (
+          <div className="p-8 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
+            <div style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
+              {filter === "cancelled" ? "Nenhuma ideia cancelada" : "Nenhuma ideia ativa"}
+            </div>
+            <p style={{ color: "#6E6E73", fontSize: 13 }}>
+              {filter === "cancelled"
+                ? "As ideias canceladas aparecerão aqui."
+                : "Todas as suas ideias estão canceladas. Selecione “Todas” para consultá-las."}
+            </p>
+          </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {ideas.map((idea) => (
+            {visibleIdeas.map((idea) => (
               <IdeaRow key={idea.id} idea={idea} onClick={() => onOpenIdea(idea)} />
             ))}
           </div>

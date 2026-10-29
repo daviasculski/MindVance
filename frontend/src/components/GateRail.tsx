@@ -22,7 +22,7 @@ const REJECTED_TONE = "#C7C7CC";
 export default function GateRail({ stage, status, size = "sm", showLabels = false }: GateRailProps) {
   const curIdx = stageIndex(stage);
   const height = trackHeight[size];
-  const rejected = status === "Rejeitada";
+  const closed = status === "Rejeitada" || status === "Cancelada";
   const approvedFinal = status === "Aprovada" && curIdx === STAGES.length - 1;
 
   return (
@@ -33,7 +33,7 @@ export default function GateRail({ stage, status, size = "sm", showLabels = fals
           const current = i === curIdx && !approvedFinal;
           let bg = NEUTRAL;
           if (passed) bg = GREEN;
-          else if (current) bg = rejected ? REJECTED_TONE : AMBER;
+          else if (current) bg = closed ? REJECTED_TONE : AMBER;
           return (
             <div
               key={s}

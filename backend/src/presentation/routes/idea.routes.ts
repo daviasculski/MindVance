@@ -3,10 +3,18 @@ import { IdeaController } from "../controllers/IdeaController";
 import { ListIdeasController } from "../controllers/ListIdeasController";
 import { GetIdeaByIdController } from "../controllers/GetIdeaByIdController";
 import { UpdateIdeaController } from "../controllers/UpdateIdeaController";
+<<<<<<< HEAD
+=======
+import { CancelIdeaController } from "../controllers/CancelIdeaController";
+>>>>>>> feature/editar-cancelar-ideia
 import { CreateIdeaUserStorie } from "../../application/userstories/CreateIdeaUserStorie";
 import { ListIdeasUserStory } from "../../application/userstories/ListIdeasUserStory";
 import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdUserStory";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
+<<<<<<< HEAD
+=======
+import { CancelIdeaUserStory } from "../../application/userstories/CancelIdeaUserStory";
+>>>>>>> feature/editar-cancelar-ideia
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
 import { ensureRole } from "../middlewares/ensureRole";
@@ -44,7 +52,14 @@ const listIdeasController = new ListIdeasController(
 const getIdeaByIdController = new GetIdeaByIdController(
   new GetIdeaByIdUserStory(ideaRepository, userRepository, gateReviewRepository),
 );
+<<<<<<< HEAD
 const updateIdeaController = new UpdateIdeaController(new UpdateIdeaUserStory(ideaRepository));
+=======
+const updateIdeaController = new UpdateIdeaController(
+  new UpdateIdeaUserStory(ideaRepository, evaluationRepository),
+);
+const cancelIdeaController = new CancelIdeaController(new CancelIdeaUserStory(ideaRepository));
+>>>>>>> feature/editar-cancelar-ideia
 const getInnovationMetricsController = new GetInnovationMetricsController(
   new GetInnovationMetricsUserStory(ideaRepository, gateRepository, gateDecisionRepository),
 );
@@ -109,6 +124,10 @@ ideaRoutes.get("/:id/gate-reviews", async (req, res) => {
 // Abre uma rodada: Gestor na triagem (G1) ou autor solicitando revisão do gate
 ideaRoutes.post("/:id/gate-reviews", (req, res) => gateReviewController.open(req, res));
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
+<<<<<<< HEAD
 // Sem DELETE: ideias e seu histórico são imutáveis (P3)
+=======
+ideaRoutes.patch("/:id/cancel", (req, res) => cancelIdeaController.handle(req, res));
+>>>>>>> feature/editar-cancelar-ideia
 
 export { ideaRoutes };

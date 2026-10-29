@@ -23,6 +23,11 @@ interface GateEvaluationProps {
   onSessionExpired: () => void;
 }
 
+<<<<<<< HEAD
+=======
+type EvaluationFilter = "pending" | "completed" | "all";
+
+>>>>>>> feature/editar-cancelar-ideia
 /** Critérios do gate da rodada, sem nota: o avaliador precisa pontuar cada um (UC02 FA01). */
 function newCriteria(item: PendingEvaluation | null): CriterionInput[] {
   return (item?.gate.criteria ?? []).map((c) => ({ ...c, score: null, comment: "" }));
@@ -40,6 +45,7 @@ function gateLabel(stage: Stage) {
 
 export default function GateEvaluation({ token, onSessionExpired }: GateEvaluationProps) {
   const [queue, setQueue] = useState<{ pending: PendingEvaluation[]; completed: CompletedEvaluation[] } | null>(null);
+  const [filter, setFilter] = useState<EvaluationFilter>("pending");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [active, setActive] = useState<PendingEvaluation | null>(null);
   const [criteria, setCriteria] = useState<CriterionInput[]>([]);
@@ -94,9 +100,31 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
     setSubmitError(null);
     try {
       await submitEvaluation({ reviewId: active.reviewId, justification, criteria }, token);
+<<<<<<< HEAD
+=======
+      const completedEvaluation: CompletedEvaluation = {
+        id: active.reviewId,
+        ideaId: active.ideaId,
+        ideaTitle: active.title,
+        stage: active.stage,
+        round: active.round,
+        score: weightedScore(criteria.map((criterion) => ({
+          weight: criterion.weight,
+          score: criterion.score ?? 0,
+        }))),
+        createdAt: new Date().toISOString(),
+      };
+      setQueue((current) =>
+        current
+          ? {
+              pending: current.pending.filter((item) => item.reviewId !== active.reviewId),
+              completed: [completedEvaluation, ...current.completed],
+            }
+          : current,
+      );
+>>>>>>> feature/editar-cancelar-ideia
       setSubmittedTitle(active.title);
       setActive(null);
-      await load();
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         sessionExpiredRef.current();
@@ -285,6 +313,9 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
   const pending = queue?.pending ?? [];
   const done = queue?.completed ?? [];
+  const visiblePending = filter !== "completed" ? pending : [];
+  const visibleDone = filter !== "pending" ? done : [];
+  const visibleCount = visiblePending.length + visibleDone.length;
 
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
@@ -295,7 +326,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 4 }}>
             {queue
-              ? `${pending.length} avaliaç${pending.length !== 1 ? "ões" : "ão"} pendente${pending.length !== 1 ? "s" : ""}`
+              ? `${pending.length} pendente${pending.length !== 1 ? "s" : ""} · ${done.length} avaliada${done.length !== 1 ? "s" : ""}`
               : "Ideias aguardando a sua avaliação"}
           </p>
         </div>
@@ -335,6 +366,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </div>
         ) : (
           <>
+<<<<<<< HEAD
             {/* Pending */}
             {pending.length > 0 && (
               <div className="mb-8">
@@ -348,21 +380,69 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 </div>
               </div>
             )}
+=======
+            <div className="flex items-center gap-2 mb-5" role="group" aria-label="Filtrar avaliações">
+              {([
+                ["pending", "Pendentes", pending.length],
+                ["completed", "Avaliadas", done.length],
+                ["all", "Todas", pending.length + done.length],
+              ] as const).map(([value, label, count]) => {
+                const selected = filter === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setFilter(value)}
+                    className="px-3.5 py-2 rounded-xl transition-colors"
+                    style={{
+                      background: selected ? "#1D1D1F" : "#FFFFFF",
+                      color: selected ? "#FFFFFF" : "#6E6E73",
+                      border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                      cursor: "pointer",
+                      fontSize: 12.5,
+                      fontWeight: selected ? 600 : 500,
+                    }}
+                  >
+                    {label} <span style={{ opacity: selected ? 0.75 : 0.65 }}>({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+>>>>>>> feature/editar-cancelar-ideia
 
-            {pending.length === 0 && <EmptyState />}
+            {visibleCount === 0 ? (
+              <EvaluationEmptyState filter={filter} />
+            ) : (
+              <>
+                {/* Pending */}
+                {visiblePending.length > 0 && (
+                  <div className="mb-8">
+                    <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                      PENDENTES
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {visiblePending.map((p) => (
+                        <PendingCard key={p.reviewId} item={p} onClick={() => openEvaluation(p)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            {/* Done */}
-            {done.length > 0 && (
-              <div className={pending.length === 0 ? "mt-8" : ""}>
-                <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
-                  CONCLUÍDAS
-                </div>
-                <div className="flex flex-col gap-3">
-                  {done.map((d) => (
-                    <DoneCard key={d.id} item={d} />
-                  ))}
-                </div>
-              </div>
+                {/* Done */}
+                {visibleDone.length > 0 && (
+                  <div className={visiblePending.length === 0 ? "mt-8" : ""}>
+                    <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                      CONCLUÍDAS
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {visibleDone.map((d) => (
+                        <DoneCard key={d.id} item={d} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
@@ -519,18 +599,34 @@ function DoneCard({ item }: { item: CompletedEvaluation }) {
   );
 }
 
-function EmptyState() {
+function EvaluationEmptyState({ filter }: { filter: EvaluationFilter }) {
+  const messages: Record<EvaluationFilter, { title: string; description: string }> = {
+    pending: {
+      title: "Nenhuma avaliação pendente",
+      description: "Você não possui avaliações pendentes no momento.",
+    },
+    completed: {
+      title: "Nenhuma avaliação enviada",
+      description: "As avaliações que você concluir aparecerão aqui.",
+    },
+    all: {
+      title: "Nenhuma avaliação atribuída",
+      description: "Não há avaliações pendentes nem concluídas para exibir.",
+    },
+  };
+  const message = messages[filter];
+
   return (
     <div
       className="rounded-2xl p-12 text-center card-soft"
       style={{ background: "#FFFFFF" }}
     >
-      <CheckCircle2 size={36} style={{ color: "#34C759", margin: "0 auto 12px" }} />
+      <CheckCircle2 size={36} style={{ color: filter === "pending" ? "#34C759" : "#AEAEB2", margin: "0 auto 12px" }} />
       <div style={{ color: "#1D1D1F", fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
-        Nenhuma avaliação pendente
+        {message.title}
       </div>
       <p style={{ color: "#AEAEB2", fontSize: 13 }}>
-        Você está em dia com todas as suas avaliações de gate.
+        {message.description}
       </p>
     </div>
   );

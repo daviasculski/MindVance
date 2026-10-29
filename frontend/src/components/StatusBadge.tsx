@@ -25,6 +25,11 @@ const config: Record<IdeaStatus, { bg: string; color: string; label: string }> =
     color: "#6E6E73",
     label: "Encerrada nesta etapa",
   },
+  Cancelada: {
+    bg: "#F0F0F2",
+    color: "#6E6E73",
+    label: "Cancelada",
+  },
   "Em revisão": {
     bg: "rgba(245,158,11,0.12)",
     color: "#B6790A",

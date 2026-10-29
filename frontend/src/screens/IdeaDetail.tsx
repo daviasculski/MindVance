@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+<<<<<<< HEAD
 import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen } from "lucide-react";
 import type { Idea, TimelineEntry } from "../types";
+=======
+import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2 } from "lucide-react";
+import type { Idea, Role, TimelineEntry } from "../types";
+>>>>>>> feature/editar-cancelar-ideia
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
 import StatusBadge from "../components/StatusBadge";
@@ -13,6 +18,10 @@ import { ApiError } from "../lib/api";
 import {
   canRequestGateReview,
   editableStatuses,
+<<<<<<< HEAD
+=======
+  cancelIdea,
+>>>>>>> feature/editar-cancelar-ideia
   getIdea,
   listGateDecisions,
   listIdeaGateReviews,
@@ -20,6 +29,10 @@ import {
   nextStep,
   openGateReview,
   updateIdea,
+<<<<<<< HEAD
+=======
+  toIdea,
+>>>>>>> feature/editar-cancelar-ideia
   type NewIdeaInput,
 } from "../lib/ideas";
 import { recommendationLabel } from "../lib/gateReviews";
@@ -28,16 +41,25 @@ interface IdeaDetailProps {
   idea: Idea;
   /** Id do usuário logado: só o autor pode solicitar revisão do gate */
   viewerId: string;
+  viewerRole: Role;
   onBack: () => void;
   /** Presente quando a ideia vem do backend: busca avaliações e decisões para o histórico. */
   live?: { token: string; onSessionExpired: () => void };
 }
 
+<<<<<<< HEAD
 export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }: IdeaDetailProps) {
+=======
+export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, onBack, live }: IdeaDetailProps) {
+>>>>>>> feature/editar-cancelar-ideia
   // A ideia muda aqui mesmo quando o autor edita ou solicita a revisão do gate
   const [baseIdea, setBaseIdea] = useState<Idea>(initialIdea);
   const [historyVersion, setHistoryVersion] = useState(0);
   const [editing, setEditing] = useState(false);
+<<<<<<< HEAD
+=======
+  const [confirmingCancellation, setConfirmingCancellation] = useState(false);
+>>>>>>> feature/editar-cancelar-ideia
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -110,8 +132,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
     setActionError(null);
     setNotice(null);
     try {
+<<<<<<< HEAD
       await updateIdea(baseIdea.id, input, token);
       setBaseIdea(await getIdea(baseIdea.id, token));
+=======
+      const updated = await updateIdea(baseIdea.id, input, token);
+      setBaseIdea(toIdea(updated, baseIdea.author));
+>>>>>>> feature/editar-cancelar-ideia
       setEditing(false);
       setNotice("Alterações salvas. Quando terminar os ajustes, solicite a revisão do gate.");
     } catch (err) {
@@ -120,6 +147,26 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
       setBusy(false);
     }
   }
+<<<<<<< HEAD
+=======
+
+  async function confirmCancellation() {
+    if (!token) return;
+    setBusy(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const cancelled = await cancelIdea(baseIdea.id, token);
+      setBaseIdea(toIdea(cancelled, baseIdea.author));
+      setConfirmingCancellation(false);
+      setNotice("Ideia cancelada. O registro e o histórico foram preservados, mas a proposta saiu do funil ativo.");
+    } catch (err) {
+      await handleError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+>>>>>>> feature/editar-cancelar-ideia
 
   // Histórico = submissão + avaliações + decisões de gate, em ordem cronológica
   const idea: Idea = {
@@ -136,8 +183,24 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
       : undefined;
   const isAuthor = idea.authorId !== undefined && idea.authorId === viewerId;
   // Ações do autor (Colaborador ou Avaliador que submeteu a ideia), só com dados reais
+<<<<<<< HEAD
   const canEdit = Boolean(live) && isAuthor && editableStatuses.includes(idea.status);
   const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
+=======
+  const canEdit =
+    Boolean(live) &&
+    isAuthor &&
+    idea.stage === "Ideação" &&
+    editableStatuses.includes(idea.status) &&
+    evalState === "idle" &&
+    !history.some((entry) => entry.decision === "avaliada");
+  const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
+  const isManager = viewerRole === "gatekeeper" || viewerRole === "administrador";
+  const canCancel =
+    Boolean(live) &&
+    (isAuthor || isManager) &&
+    idea.status !== "Cancelada";
+>>>>>>> feature/editar-cancelar-ideia
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
@@ -176,6 +239,20 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
               Editar ideia
             </button>
           )}
+<<<<<<< HEAD
+=======
+          {canCancel && !editing && (
+            <button
+              onClick={() => setConfirmingCancellation(true)}
+              disabled={busy}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: "#FFFFFF", color: "#B42318", border: "1px solid #F3C7C4", cursor: "pointer", fontWeight: 600, fontSize: 13 }}
+            >
+              <Trash2 size={14} />
+              Cancelar ideia
+            </button>
+          )}
+>>>>>>> feature/editar-cancelar-ideia
           {/* D6: G2–G5 e reenvio após Revisar. Notificar o Gestor entra com as notificações. */}
           {canRequest && !editing && (
             <button
@@ -507,6 +584,55 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }
           </div>
         </div>
       </div>
+      {confirmingCancellation && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center p-4"
+          style={{ background: "rgba(29,29,31,0.45)" }}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !busy) setConfirmingCancellation(false);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-idea-title"
+            className="w-full max-w-md rounded-2xl p-6 card-soft"
+            style={{ background: "#FFFFFF" }}
+          >
+            <h2 id="cancel-idea-title" style={{ color: "#1D1D1F", fontSize: 18, fontWeight: 700 }}>
+              Cancelar esta ideia?
+            </h2>
+            <p className="mt-3" style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
+              A proposta será removida do funil ativo. O registro e o histórico serão mantidos para auditoria.
+            </p>
+            {actionError && (
+              <div className="flex items-center gap-2 rounded-xl p-3 mt-4" style={{ background: "rgba(255,59,48,0.08)", color: "#FF3B30", fontSize: 13 }}>
+                <AlertCircle size={15} />
+                {actionError}
+              </div>
+            )}
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setConfirmingCancellation(false)}
+                disabled={busy}
+                className="px-4 py-2.5 rounded-xl"
+                style={{ background: "#F5F5F7", color: "#6E6E73", border: "none", cursor: "pointer", fontSize: 13 }}
+              >
+                Manter ideia
+              </button>
+              <button
+                onClick={confirmCancellation}
+                disabled={busy}
+                className="px-4 py-2.5 rounded-xl"
+                style={{ background: busy ? "#D98D87" : "#B42318", color: "#FFFFFF", border: "none", cursor: busy ? "not-allowed" : "pointer", fontSize: 13, fontWeight: 600 }}
+              >
+                {busy ? "Cancelando..." : "Confirmar cancelamento"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
