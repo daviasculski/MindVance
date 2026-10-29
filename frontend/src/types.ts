@@ -43,6 +43,7 @@ export type IdeaStatus =
   | "Em andamento"
   | "Aprovada"
   | "Rejeitada"
+  | "Cancelada"
   | "Em revisão";
 
 export type GateDecisionType = "aprovada" | "rejeitada" | "revisão";

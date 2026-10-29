@@ -1,7 +1,8 @@
 import { IdeaStatus } from "../../domain/entities/IdeaStatus";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
+import { IEvaluationRepository } from "../../domain/repositories/IEvaluationRepository";
 
-const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM", "EM_ANDAMENTO", "EM_REVISAO"];
+const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM"];
 import {
   IdeaOutputDTO,
   RequesterDTO,
@@ -10,7 +11,10 @@ import {
 } from "../dtos/IdeaDTO";
 
 export class UpdateIdeaUserStory {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly evaluationRepository: IEvaluationRepository,
+  ) {}
 
   async execute(
     id: string,
@@ -27,11 +31,16 @@ export class UpdateIdeaUserStory {
       throw new Error("Only the author can edit this idea");
     }
 
-    // O autor edita e produz as entregas fora do gate: antes da triagem, no
-    // trabalho do estágio e em Revisar. Dentro do gate o conteúdo fica congelado
-    // para todos os avaliadores avaliarem a mesma versão (P4).
-    if (!editableStatuses.includes(existingIdea.status)) {
-      throw new Error("Idea cannot be edited while in a gate or after it was closed");
+    if (
+      existingIdea.currentStage !== "IDEACAO" ||
+      !editableStatuses.includes(existingIdea.status)
+    ) {
+      throw new Error("Idea can only be edited while awaiting initial triage");
+    }
+
+    const evaluations = await this.evaluationRepository.findByIdeaId(id);
+    if (evaluations.length > 0) {
+      throw new Error("Idea cannot be edited after evaluations have been registered");
     }
 
     if (data.title !== undefined && data.title.trim().length === 0) {

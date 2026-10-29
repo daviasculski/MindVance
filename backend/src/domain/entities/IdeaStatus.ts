@@ -7,6 +7,7 @@ export const ideaStatuses = [
   "EM_REVISAO",
   "APROVADA",
   "REJEITADA",
+  "CANCELLED",
 ] as const;
 
 export type IdeaStatus = (typeof ideaStatuses)[number];

@@ -27,7 +27,8 @@ export type ApiStatus =
   | "EM_ANDAMENTO"
   | "EM_REVISAO"
   | "APROVADA"
-  | "REJEITADA";
+  | "REJEITADA"
+  | "CANCELLED";
 
 export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
   AGUARDANDO_TRIAGEM: "Aguardando triagem",
@@ -38,10 +39,11 @@ export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
   EM_REVISAO: "Em revisão",
   APROVADA: "Aprovada",
   REJEITADA: "Rejeitada",
+  CANCELLED: "Cancelada",
 };
 
-/** Status em que o autor pode editar e anexar entregas (fora do gate). */
-export const editableStatuses: IdeaStatus[] = ["Aguardando triagem", "Em andamento", "Em revisão"];
+/** A edição só é permitida antes da triagem da Ideação. */
+export const editableStatuses: IdeaStatus[] = ["Aguardando triagem"];
 
 /**
  * O autor solicita a revisão do gate nos G2–G5 (D6) ou o reenvio depois de
@@ -71,6 +73,8 @@ export function nextStep(idea: Idea): string {
       return "A ideia passou por todos os gates e está aprovada para lançamento.";
     case "Rejeitada":
       return "A ideia foi encerrada nesta etapa. O histórico e a justificativa ficam preservados.";
+    case "Cancelada":
+      return "A proposta foi removida do funil ativo. O registro e seu histórico foram preservados.";
   }
 }
 
@@ -243,6 +247,14 @@ export function updateIdea(id: string, input: NewIdeaInput, token: string): Prom
     method: "PUT",
     token,
     body: { title: input.title.trim(), description: input.solution.trim(), extraFields: toExtraFields(input) },
+  });
+}
+
+/** Cancela a proposta sem apagar o registro nem seu histórico de auditoria. */
+export function cancelIdea(id: string, token: string): Promise<ApiIdea> {
+  return apiRequest<ApiIdea>(`/ideas/${encodeURIComponent(id)}/cancel`, {
+    method: "PATCH",
+    token,
   });
 }
 
