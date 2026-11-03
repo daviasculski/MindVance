@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
 import type { AuthSession, Role } from "../types";
 import { departments } from "../data";
-import { login, register } from "../lib/auth";
+import { login, register, requestPasswordReset } from "../lib/auth";
 
 interface LoginProps {
   onLogin: (session: AuthSession) => void;
@@ -19,6 +19,11 @@ export default function Login({ onLogin }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
+  const [forgotError, setForgotError] = useState("");
 
   function validate() {
     const e: Record<string, string> = {};
@@ -55,6 +60,21 @@ export default function Login({ onLogin }: LoginProps) {
     } catch (err) {
       setErrors({ form: err instanceof Error ? err.message : "Erro inesperado" });
       setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotMessage("");
+    setForgotError("");
+    try {
+      const result = await requestPasswordReset(forgotEmail.trim());
+      setForgotMessage(result.message);
+    } catch (err) {
+      setForgotError(err instanceof Error ? err.message : "Não foi possível solicitar a redefinição.");
+    } finally {
+      setForgotLoading(false);
     }
   }
 
@@ -158,6 +178,22 @@ export default function Login({ onLogin }: LoginProps) {
               </div>
             </Field>
 
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setForgotMessage("");
+                  setForgotError("");
+                  setForgotOpen(true);
+                }}
+                className="self-end"
+                style={{ color: "#B6790A", background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}
+              >
+                Esqueci minha senha
+              </button>
+            )}
+
             {/* O perfil público permite solicitar apenas papéis não administrativos. */}
             {mode === "register" && (
               <Field label="Perfil de acesso">
@@ -243,6 +279,71 @@ export default function Login({ onLogin }: LoginProps) {
           Acesso restrito a colaboradores autorizados
         </p>
       </div>
+      {forgotOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(29,29,31,0.45)" }}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !forgotLoading) setForgotOpen(false);
+          }}
+        >
+          <div
+            className="relative w-full max-w-md rounded-2xl p-6 card-elevated"
+            style={{ background: "#FFFFFF" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="forgot-password-title"
+          >
+            <button
+              type="button"
+              onClick={() => setForgotOpen(false)}
+              className="absolute right-4 top-4"
+              style={{ color: "#8E8E93", background: "none", border: "none", cursor: "pointer" }}
+              aria-label="Fechar"
+            >
+              <X size={18} />
+            </button>
+            <h2 id="forgot-password-title" style={{ color: "#1D1D1F", fontSize: 19, fontWeight: 700 }}>
+              Recuperar senha
+            </h2>
+            <p className="mt-2 mb-5" style={{ color: "#6E6E73", fontSize: 13, lineHeight: 1.5 }}>
+              Informe seu e-mail e enviaremos um link para redefinir sua senha.
+            </p>
+            <form onSubmit={handleForgotPassword} className="flex flex-col gap-4">
+              <Field label="E-mail corporativo">
+                <input
+                  type="email"
+                  required
+                  value={forgotEmail}
+                  onChange={(event) => setForgotEmail(event.target.value)}
+                  autoComplete="email"
+                  style={inputStyle(false)}
+                />
+              </Field>
+              {forgotError && (
+                <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
+                  <AlertCircle size={13} />
+                  {forgotError}
+                </div>
+              )}
+              {forgotMessage && (
+                <p role="status" className="rounded-xl px-3 py-2.5" style={{ color: "#1F8A3B", fontSize: 12.5, background: "rgba(52,199,89,0.1)" }}>
+                  {forgotMessage}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full py-3 rounded-xl font-semibold"
+                style={{ background: forgotLoading ? "#FBD9AE" : "#F59E0B", color: "#FFFFFF", border: "none", cursor: forgotLoading ? "wait" : "pointer", fontSize: 14 }}
+              >
+                {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

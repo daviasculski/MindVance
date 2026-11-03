@@ -49,7 +49,9 @@ const getIdeaByIdController = new GetIdeaByIdController(
 const updateIdeaController = new UpdateIdeaController(
   new UpdateIdeaUserStory(ideaRepository),
 );
-const cancelIdeaController = new CancelIdeaController(new CancelIdeaUserStory(ideaRepository));
+const cancelIdeaController = new CancelIdeaController(
+  new CancelIdeaUserStory(ideaRepository, notifier),
+);
 const getInnovationMetricsController = new GetInnovationMetricsController(
   new GetInnovationMetricsUserStory(ideaRepository, gateRepository, gateDecisionRepository),
 );

@@ -1,8 +1,12 @@
 import { IdeaOutputDTO, RequesterDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
+import { Notifier } from "../services/Notifier";
 
 export class CancelIdeaUserStory {
-  constructor(private readonly ideaRepository: IIdeaRepository) {}
+  constructor(
+    private readonly ideaRepository: IIdeaRepository,
+    private readonly notifier?: Notifier,
+  ) {}
 
   async execute(id: string, requester: RequesterDTO): Promise<IdeaOutputDTO> {
     const idea = await this.ideaRepository.findById(id);
@@ -24,6 +28,7 @@ export class CancelIdeaUserStory {
     const cancelledIdea = await this.ideaRepository.updateProgress(id, {
       status: "CANCELLED",
     });
+    this.notifier?.ideaCancelled(cancelledIdea);
 
     return toIdeaOutputDTO(cancelledIdea);
   }

@@ -9,12 +9,13 @@ import { UserApprovalController } from "../controllers/UserApprovalController";
 import { ManageUsersUserStory } from "../../application/userstories/ManageUsersUserStory";
 import { ManageUsersController } from "../controllers/ManageUsersController";
 import { ensureRole } from "../middlewares/ensureRole";
+import { notifier } from "../dependencies";
 
 const userRoutes = Router();
 
 // Injeção de dependências
 const userRepository = new PrismaUserRepository();
-const createUserUserStory = new CreateUserUserStory(userRepository);
+const createUserUserStory = new CreateUserUserStory(userRepository, notifier);
 const createUserController = new CreateUserController(createUserUserStory);
 const createAdminUserController = new CreateUserController(
   createUserUserStory,

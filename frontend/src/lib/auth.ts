@@ -81,6 +81,20 @@ export async function register(input: {
   }
 }
 
+export function requestPasswordReset(email: string): Promise<{ message: string }> {
+  return apiRequest("/auth/forgot-password", {
+    method: "POST",
+    body: { email },
+  });
+}
+
+export function resetPassword(token: string, password: string): Promise<void> {
+  return apiRequest("/auth/reset-password", {
+    method: "POST",
+    body: { token, password },
+  });
+}
+
 export interface PendingApproval {
   id: string;
   name: string;

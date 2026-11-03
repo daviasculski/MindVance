@@ -5,9 +5,13 @@ import {
   CreateUserOutputDTO,
 } from "../dtos/CreateUserDTO";
 import { isUserRole } from "../../domain/entities/UserRole";
+import { Notifier } from "../services/Notifier";
 
 export class CreateUserUserStory {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly notifier?: Notifier,
+  ) {}
 
   async execute(
     input: CreateUserInputDTO,
@@ -45,6 +49,12 @@ export class CreateUserUserStory {
     const password = await bcrypt.hash(input.password, 8);
     // Passa o role para o repositório criar a entidade com o perfil correto
     const user = await this.userRepository.create({ name, email, password, role });
+    if (role === "EVALUATOR" || role === "GATEKEEPER") {
+      this.notifier?.accountApprovalRequested(
+        name,
+        role === "EVALUATOR" ? "Avaliador" : "Gestor de Inovação",
+      );
+    }
 
     return {
       id: user.id,

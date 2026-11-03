@@ -16,8 +16,10 @@ import ApprovalRequests from "./screens/ApprovalRequests";
 import GateTriage from "./screens/GateTriage";
 import UsersAdmin from "./screens/UsersAdmin";
 import Sidebar from "./components/Sidebar";
+import ResetPassword from "./screens/ResetPassword";
 
 export default function App() {
+  const [isResetRoute, setIsResetRoute] = useState(() => window.location.pathname === "/reset-password");
   const [session, setSession] = useState<AuthSession | null>(loadSession);
   const [screen, setScreen] = useState<Screen>(() =>
     session ? defaultScreen(session.user.role) : "new-idea",
@@ -43,6 +45,11 @@ export default function App() {
   function handleLogout() {
     clearSession();
     setSession(null);
+  }
+
+  function handleBackToLogin() {
+    window.history.replaceState(null, "", "/");
+    setIsResetRoute(false);
   }
 
   function openDetail(idea: Idea, from: Screen, fromApi: boolean) {
@@ -74,6 +81,10 @@ export default function App() {
     }
     const target: Record<string, Screen> = { evaluate: "evaluate", triage: "triage", decision: "gate-decision" };
     if (target[link]) handleNavigate(target[link]);
+  }
+
+  if (isResetRoute) {
+    return <ResetPassword onBackToLogin={handleBackToLogin} />;
   }
 
   if (!session) {

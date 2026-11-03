@@ -48,7 +48,15 @@ Crie o arquivo `backend/.env` copiando o `backend/.env.example` e preencha assim
 PORT=3333
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mindvance?schema=public"
 JWT_SECRET=coloque_aqui_um_texto_longo_e_aleatorio
+SMTP_HOST=sandbox.smtp.mailtrap.io
+SMTP_PORT=2525
+SMTP_USER=seu_usuario_mailtrap
+SMTP_PASS=sua_senha_mailtrap
+SMTP_FROM="MindVance <no-reply@example.com>"
+FRONTEND_URL=http://localhost:8443
 ```
+
+Preencha os campos `SMTP_*` com as credenciais de uma caixa de testes do Mailtrap e `SMTP_FROM` com um remetente permitido pelo provedor (em produção, use um endereço do seu domínio). `FRONTEND_URL` deve ser a URL pública do frontend; ela é usada para montar o link de redefinição de senha. Os envios de e-mail são assíncronos e falhas são registradas no log da API.
 
 Crie as tabelas no banco (rode de novo sempre que alguém adicionar uma migration nova):
 

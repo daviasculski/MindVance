@@ -5,6 +5,7 @@ import { IdeaStage } from "../../domain/entities/IdeaStage";
 import { NewNotification } from "../../domain/entities/Notification";
 import { INotificationRepository } from "../../domain/repositories/INotificationRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { IEmailService } from "./IEmailService";
 
 const stageLabel: Record<IdeaStage, string> = {
   IDEACAO: "Ideação",
@@ -32,10 +33,15 @@ export class Notifier {
   constructor(
     private readonly notificationRepository: INotificationRepository,
     private readonly userRepository: IUserRepository,
+    private readonly emailService: IEmailService,
   ) {}
 
   /** Ideia nova → Gestores (triagem) */
   ideaSubmitted(idea: Idea) {
+    this.sendToUser(idea.authorId, (to) => this.emailService.sendIdeaSubmittedEmail(to, idea.title));
+    this.sendToGatekeepers((to) =>
+      this.emailService.sendNewIdeaToManagerEmail(to, idea.title, "Triagem"),
+    );
     return this.toGatekeepers({
       type: "IDEA_SUBMITTED",
       title: "Nova ideia para triagem",
@@ -58,6 +64,9 @@ export class Notifier {
 
   /** Autor solicitou revisão (G2–G5 ou nova rodada após Revisar) → Gestores */
   reviewRequested(idea: Idea, gate: Gate, round: number) {
+    this.sendToGatekeepers((to) =>
+      this.emailService.sendNewIdeaToManagerEmail(to, idea.title, stageLabel[gate.fromStage]),
+    );
     return this.toGatekeepers({
       type: "GATE_REVIEW_REQUESTED",
       title: round > 1 ? `Reenvio para o ${gate.name} (rodada ${round})` : `Solicitação de revisão do ${gate.name}`,
@@ -73,6 +82,9 @@ export class Notifier {
   /** Designação → avaliadores designados e autor */
   async evaluatorsAssigned(idea: Idea, gate: Gate, round: number, evaluatorIds: string[], deadlineAt: Date) {
     const deadline = deadlineAt.toLocaleDateString("pt-BR");
+    this.sendToUsers(evaluatorIds, (to) =>
+      this.emailService.sendIdeaAssignedToEvaluatorEmail(to, idea.title),
+    );
     await this.toUsers(evaluatorIds, {
       type: "EVALUATOR_ASSIGNED",
       title: `Nova avaliação: ${gate.name}`,
@@ -92,6 +104,12 @@ export class Notifier {
   /** Todos os pareceres enviados → Gestores e autor */
   async readyForDecision(idea: Idea, gate: Gate, score: number, recommendation: GateDecisionType) {
     const formatted = score.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+    this.sendToGatekeepers((to) =>
+      this.emailService.sendAllEvaluationsCompletedEmail(to, idea.title),
+    );
+    this.sendToUser(idea.authorId, (to) =>
+      this.emailService.sendIdeaEvaluatedToManagerEmail(to, idea.title),
+    );
     await this.toGatekeepers({
       type: "GATE_READY_FOR_DECISION",
       title: `${gate.name} pronto para decisão`,
@@ -122,6 +140,14 @@ export class Notifier {
       REVISAO: "Ajuste a ideia e solicite uma nova revisão do gate.",
       REJEITADA: "O histórico e a justificativa ficam preservados.",
     };
+    const decisionStatus: Record<GateDecisionType, string> = {
+      APROVADA: finalStage ? "Aprovada para lançamento" : `Aprovada no ${gate.name}`,
+      REVISAO: `Em revisão no ${gate.name}`,
+      REJEITADA: "Rejeitada",
+    };
+    this.sendToUser(idea.authorId, (to) =>
+      this.emailService.sendIdeaFinalDecisionEmail(to, idea.title, decisionStatus[decision], feedback),
+    );
     return this.toUsers([idea.authorId], {
       type: "GATE_DECIDED",
       title: titles[decision],
@@ -129,6 +155,18 @@ export class Notifier {
       ideaId: idea.id,
       link: ideaLink(idea),
     });
+  }
+
+  ideaCancelled(idea: Idea) {
+    this.sendToUser(idea.authorId, (to) =>
+      this.emailService.sendIdeaFinalDecisionEmail(to, idea.title, "Cancelada"),
+    );
+  }
+
+  accountApprovalRequested(userName: string, requestedRole: string) {
+    this.sendToAdmins((to) =>
+      this.emailService.sendAccountApprovalRequestToAdminEmail(to, userName, requestedRole),
+    );
   }
 
   /** Prazo vencido com pareceres faltando → avaliadores atrasados e Gestores (UC02 FA02) */
@@ -167,6 +205,46 @@ export class Notifier {
       await this.notificationRepository.createForUsers(userIds, notification);
     } catch (error) {
       console.error("Notification failed:", error);
+    }
+  }
+
+  private sendToUser(userId: string, send: (email: string) => Promise<void>) {
+    this.sendToUsers([userId], send);
+  }
+
+  private sendToUsers(userIds: string[], send: (email: string) => Promise<void>) {
+    void this.userRepository
+      .findByIds(userIds)
+      .then((users) => Promise.all(users.map((user) => this.sendEmail(user.email, send))))
+      .catch((error: unknown) => console.error("Finding email recipients failed:", error));
+  }
+
+  private sendToGatekeepers(send: (email: string) => Promise<void>) {
+    this.sendToRole("GATEKEEPER", send);
+  }
+
+  private sendToAdmins(send: (email: string) => Promise<void>) {
+    this.sendToRole("ADMIN", send);
+  }
+
+  private sendToRole(role: "GATEKEEPER" | "ADMIN", send: (email: string) => Promise<void>) {
+    void this.userRepository
+      .findAll()
+      .then((users) =>
+        Promise.all(
+          users
+            .filter((user) => user.effectiveRole === role)
+            .map((user) => this.sendEmail(user.email, send)),
+        ),
+      )
+      .catch((error: unknown) => console.error(`Finding ${role} email recipients failed:`, error));
+  }
+
+  private async sendEmail(email: string, send: (email: string) => Promise<void>) {
+    try {
+      await send(email);
+    } catch (error) {
+      console.error(`Email delivery to ${email} failed:`, error);
     }
   }
 }

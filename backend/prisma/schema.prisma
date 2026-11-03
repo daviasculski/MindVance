@@ -179,16 +179,29 @@ model GateDecision {
 }
 
 model User {
-  id             String             @id @default(uuid())
-  name           String             @db.VarChar(255)
-  email          String             @unique @db.VarChar(255)
-  password       String             @db.Text
-  role           UserRole           @default(COLLABORATOR)
-  approvalStatus UserApprovalStatus @default(PENDING)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  id                  String               @id @default(uuid())
+  name                String               @db.VarChar(255)
+  email               String               @unique @db.VarChar(255)
+  password            String               @db.Text
+  role                UserRole             @default(COLLABORATOR)
+  approvalStatus      UserApprovalStatus   @default(PENDING)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  passwordResetTokens PasswordResetToken[]
 
   @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
 
 model Evaluation {
