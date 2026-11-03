@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
+import iconImg from "../../public/assets/logo-light.png";
+import logoTextImg from "../../public/assets/mindvance_logo2.png";
 import type { AuthSession, Role } from "../types";
 import { departments } from "../data";
 import { login, register, requestPasswordReset } from "../lib/auth";
@@ -112,24 +114,24 @@ export default function Login({ onLogin }: LoginProps) {
       <div className="absolute inset-0 pointer-events-none blueprint-grid" />
 
       <div className="relative w-full max-w-sm px-4">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <img src="/assets/logo-dark.svg" alt="" width={40} height={40} style={{ marginBottom: 16 }} />
-          <h1
-            style={{
-              fontWeight: 700,
-              fontSize: 28,
-              color: "#1D1D1F",
-              letterSpacing: "-0.03em",
-              margin: 0,
-            }}
-          >
-            MindVance
-          </h1>
-          <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 6 }}>
-            Gestão da inovação com Stage-Gate
-          </p>
+      {/* Logo */}
+      <div className="flex flex-col items-center mb-8">
+        <div className="flex items-center justify-center gap-3 mb-2">
+          <img
+            src={iconImg}
+            alt="MindVance Ícone"
+            className="h-28 w-auto object-contain"
+          />
+          <img
+            src={logoTextImg}
+            alt="MindVance"
+            className="h-28-auto object-contain"
+          />
         </div>
+        <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 6 }}>
+          Gestão da inovação com Stage-Gate
+        </p>
+      </div>
 
         {/* Card */}
         <div

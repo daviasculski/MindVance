@@ -44,8 +44,12 @@ export default function ResetPassword({ onBackToLogin }: ResetPasswordProps) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "#F5F5F7" }}>
       <div className="w-full max-w-md rounded-2xl p-7 card-elevated" style={{ background: "#FFFFFF" }}>
-        <div className="flex flex-col items-center mb-7">
-          <img src="/assets/logo-dark.svg" alt="" width={40} height={40} style={{ marginBottom: 14 }} />
+        <div className="flex items-center justify-center gap-3 mb-7">
+          <img
+            src="/assets/aa.svg"
+            alt=""
+            className="h-10 w-auto object-contain"
+          />
           <h1 style={{ color: "#1D1D1F", fontSize: 24, fontWeight: 700 }}>MindVance</h1>
         </div>
 

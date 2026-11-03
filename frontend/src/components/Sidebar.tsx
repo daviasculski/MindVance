@@ -10,6 +10,8 @@ import {
   Inbox,
   Users,
 } from "lucide-react";
+import iconImg from "../../public/assets/logo-light.png";
+import logoTextImg from "../../public/assets/mindvance_logo2.png";
 import type { AuthUser, Role, Screen } from "../types";
 import { navByRole } from "../lib/navigation";
 import NotificationBell from "./NotificationBell";
@@ -64,19 +66,19 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 pl-5 pr-3 py-5">
-        <img src="/assets/logo-dark.svg" alt="" width={24} height={24} style={{ flexShrink: 0 }} />
-        <span
-          style={{
-            fontWeight: 700,
-            fontSize: 17,
-            color: "#1D1D1F",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          MindVance
-        </span>
-        <span style={{ fontSize: 11, color: "#AEAEB2", marginLeft: 2 }}>Stage-Gate</span>
+      <div className="flex items-center gap-2 pl-5 pr-3 py-5">
+        <div className="flex min-w-0 items-center gap-2">
+          <img
+            src={iconImg}
+            alt="MindVance Ícone"
+            className="h-14 w-auto shrink-0 object-contain"
+          />
+          <img
+            src={logoTextImg}
+            alt="MindVance"
+            className="h-14 w-auto min-w-0 object-contain"
+          />
+        </div>
         <div className="ml-auto">
           <NotificationBell token={token} onOpen={onOpenNotification} onSessionExpired={onLogout} />
         </div>
