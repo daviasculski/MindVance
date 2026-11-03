@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
-<<<<<<< HEAD
 
 const forbiddenMessages = [
   "Only the author can edit this idea",
   "Idea cannot be edited while in a gate or after it was closed",
 ];
-=======
 import { sendError } from "../http";
->>>>>>> feature/editar-cancelar-ideia
 
 export class UpdateIdeaController {
   constructor(private readonly updateIdeaUserStory: UpdateIdeaUserStory) {}

@@ -23,11 +23,8 @@ interface GateEvaluationProps {
   onSessionExpired: () => void;
 }
 
-<<<<<<< HEAD
-=======
 type EvaluationFilter = "pending" | "completed" | "all";
 
->>>>>>> feature/editar-cancelar-ideia
 /** Critérios do gate da rodada, sem nota: o avaliador precisa pontuar cada um (UC02 FA01). */
 function newCriteria(item: PendingEvaluation | null): CriterionInput[] {
   return (item?.gate.criteria ?? []).map((c) => ({ ...c, score: null, comment: "" }));
@@ -100,8 +97,6 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
     setSubmitError(null);
     try {
       await submitEvaluation({ reviewId: active.reviewId, justification, criteria }, token);
-<<<<<<< HEAD
-=======
       const completedEvaluation: CompletedEvaluation = {
         id: active.reviewId,
         ideaId: active.ideaId,
@@ -122,7 +117,6 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
             }
           : current,
       );
->>>>>>> feature/editar-cancelar-ideia
       setSubmittedTitle(active.title);
       setActive(null);
     } catch (err) {
@@ -366,7 +360,6 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </div>
         ) : (
           <>
-<<<<<<< HEAD
             {/* Pending */}
             {pending.length > 0 && (
               <div className="mb-8">
@@ -380,7 +373,6 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 </div>
               </div>
             )}
-=======
             <div className="flex items-center gap-2 mb-5" role="group" aria-label="Filtrar avaliações">
               {([
                 ["pending", "Pendentes", pending.length],
@@ -409,7 +401,6 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 );
               })}
             </div>
->>>>>>> feature/editar-cancelar-ideia
 
             {visibleCount === 0 ? (
               <EvaluationEmptyState filter={filter} />

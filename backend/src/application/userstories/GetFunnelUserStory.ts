@@ -36,38 +36,36 @@ export class GetFunnelUserStory {
       this.gateReviewRepository.findAll(),
       this.gateDecisionRepository.findAll(),
     ]);
-<<<<<<< HEAD
-    const authors = await this.userRepository.findByIds([...new Set(ideas.map((i) => i.authorId))]);
-    const nameById = new Map(authors.map((u) => [u.id, u.name]));
 
-    return {
-      ideas: ideas.map((idea) => {
-=======
+    // Filtra para remover ideias canceladas do funil ativo
     const activeIdeas = ideas.filter((idea) => idea.status !== "CANCELLED");
-    const authors = await this.userRepository.findByIds([...new Set(activeIdeas.map((i) => i.authorId))]);
+
+    const authors = await this.userRepository.findByIds([
+      ...new Set(activeIdeas.map((i) => i.authorId)),
+    ]);
     const nameById = new Map(authors.map((u) => [u.id, u.name]));
 
     return {
       ideas: activeIdeas.map((idea) => {
->>>>>>> feature/editar-cancelar-ideia
         const ideaReviews = reviews.filter((r) => r.ideaId === idea.id);
         const rejection = [...decisions]
           .reverse()
           .find((d) => d.ideaId === idea.id && d.decision === "REJEITADA");
+
         return {
           ...toIdeaOutputDTO(idea, nameById.get(idea.authorId) ?? "Colaborador"),
           lastMovementAt: lastMovementAt(idea, decisions, reviews),
-          currentRound: ideaReviews.length > 0 ? ideaReviews[ideaReviews.length - 1].round : null,
-          rejectionFeedback: idea.status === "REJEITADA" ? rejection?.feedback ?? null : null,
+          currentRound:
+            ideaReviews.length > 0
+              ? ideaReviews[ideaReviews.length - 1].round
+              : null,
+          rejectionFeedback:
+            idea.status === "REJEITADA" ? rejection?.feedback ?? null : null,
         };
       }),
       reachedByStage: ideaStages.map((stage, i) => ({
         stage,
-<<<<<<< HEAD
-        count: ideas.filter((idea) => furthestStageIndex(idea) >= i).length,
-=======
         count: activeIdeas.filter((idea) => furthestStageIndex(idea) >= i).length,
->>>>>>> feature/editar-cancelar-ideia
       })),
     };
   }

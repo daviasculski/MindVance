@@ -1,4 +1,4 @@
-import type { GateDecisionType, Idea, IdeaStatus, Stage, TimelineEntry } from "../types";
+import type { GateDecisionType, Idea, Stage, TimelineEntry } from "../types";
 import { apiRequest } from "./api";
 
 /** Estágios como o backend os representa (enum IdeaStage do Prisma). */
@@ -19,6 +19,17 @@ export const stageFromApi: Record<ApiStage, Stage> = {
   LANCAMENTO: "Lançamento",
 };
 
+export type IdeaStatus =
+  | "Aguardando triagem"
+  | "Aguardando designação"
+  | "Em avaliação"
+  | "Aguardando decisão"
+  | "Em andamento"
+  | "Em revisão"
+  | "Aprovada"
+  | "Rejeitada"
+  | "Cancelada";
+
 export type ApiStatus =
   | "AGUARDANDO_TRIAGEM"
   | "AGUARDANDO_DESIGNACAO"
@@ -27,12 +38,8 @@ export type ApiStatus =
   | "EM_ANDAMENTO"
   | "EM_REVISAO"
   | "APROVADA"
-<<<<<<< HEAD
-  | "REJEITADA";
-=======
   | "REJEITADA"
   | "CANCELLED";
->>>>>>> feature/editar-cancelar-ideia
 
 export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
   AGUARDANDO_TRIAGEM: "Aguardando triagem",
@@ -46,14 +53,8 @@ export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
   CANCELLED: "Cancelada",
 };
 
-<<<<<<< HEAD
-/** Status em que o autor pode editar e anexar entregas (fora do gate). */
-export const editableStatuses: IdeaStatus[] = ["Aguardando triagem", "Em andamento", "Em revisão"];
-=======
 /** A edição só é permitida antes da triagem da Ideação. */
 export const editableStatuses: IdeaStatus[] = ["Aguardando triagem"];
->>>>>>> feature/editar-cancelar-ideia
-
 /**
  * O autor solicita a revisão do gate nos G2–G5 (D6) ou o reenvio depois de
  * Revisar. O G1 é aberto pelo Gestor na triagem; o Lançamento não tem gate.
@@ -82,11 +83,8 @@ export function nextStep(idea: Idea): string {
       return "A ideia passou por todos os gates e está aprovada para lançamento.";
     case "Rejeitada":
       return "A ideia foi encerrada nesta etapa. O histórico e a justificativa ficam preservados.";
-<<<<<<< HEAD
-=======
     case "Cancelada":
       return "A proposta foi removida do funil ativo. O registro e seu histórico foram preservados.";
->>>>>>> feature/editar-cancelar-ideia
   }
 }
 
@@ -262,8 +260,6 @@ export function updateIdea(id: string, input: NewIdeaInput, token: string): Prom
   });
 }
 
-<<<<<<< HEAD
-=======
 /** Cancela a proposta sem apagar o registro nem seu histórico de auditoria. */
 export function cancelIdea(id: string, token: string): Promise<ApiIdea> {
   return apiRequest<ApiIdea>(`/ideas/${encodeURIComponent(id)}/cancel`, {
@@ -272,7 +268,6 @@ export function cancelIdea(id: string, token: string): Promise<ApiIdea> {
   });
 }
 
->>>>>>> feature/editar-cancelar-ideia
 /** Abre uma rodada: o Gestor abre o G1 na triagem; o autor solicita G2–G5 ou o reenvio após Revisar. */
 export function openGateReview(
   ideaId: string,

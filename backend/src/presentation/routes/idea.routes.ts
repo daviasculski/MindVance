@@ -46,7 +46,6 @@ const listIdeasController = new ListIdeasController(
 const getIdeaByIdController = new GetIdeaByIdController(
   new GetIdeaByIdUserStory(ideaRepository, userRepository, gateReviewRepository),
 );
-const updateIdeaController = new UpdateIdeaController(new UpdateIdeaUserStory(ideaRepository));
 const updateIdeaController = new UpdateIdeaController(
   new UpdateIdeaUserStory(ideaRepository, evaluationRepository),
 );

@@ -1,11 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-<<<<<<< HEAD
-import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen } from "lucide-react";
-import type { Idea, TimelineEntry } from "../types";
-=======
 import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2 } from "lucide-react";
 import type { Idea, Role, TimelineEntry } from "../types";
->>>>>>> feature/editar-cancelar-ideia
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
 import StatusBadge from "../components/StatusBadge";
@@ -18,10 +13,7 @@ import { ApiError } from "../lib/api";
 import {
   canRequestGateReview,
   editableStatuses,
-<<<<<<< HEAD
-=======
   cancelIdea,
->>>>>>> feature/editar-cancelar-ideia
   getIdea,
   listGateDecisions,
   listIdeaGateReviews,
@@ -29,10 +21,7 @@ import {
   nextStep,
   openGateReview,
   updateIdea,
-<<<<<<< HEAD
-=======
   toIdea,
->>>>>>> feature/editar-cancelar-ideia
   type NewIdeaInput,
 } from "../lib/ideas";
 import { recommendationLabel } from "../lib/gateReviews";
@@ -47,19 +36,12 @@ interface IdeaDetailProps {
   live?: { token: string; onSessionExpired: () => void };
 }
 
-<<<<<<< HEAD
-export default function IdeaDetail({ idea: initialIdea, viewerId, onBack, live }: IdeaDetailProps) {
-=======
 export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, onBack, live }: IdeaDetailProps) {
->>>>>>> feature/editar-cancelar-ideia
   // A ideia muda aqui mesmo quando o autor edita ou solicita a revisão do gate
   const [baseIdea, setBaseIdea] = useState<Idea>(initialIdea);
   const [historyVersion, setHistoryVersion] = useState(0);
   const [editing, setEditing] = useState(false);
-<<<<<<< HEAD
-=======
   const [confirmingCancellation, setConfirmingCancellation] = useState(false);
->>>>>>> feature/editar-cancelar-ideia
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -132,13 +114,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     setActionError(null);
     setNotice(null);
     try {
-<<<<<<< HEAD
-      await updateIdea(baseIdea.id, input, token);
-      setBaseIdea(await getIdea(baseIdea.id, token));
-=======
       const updated = await updateIdea(baseIdea.id, input, token);
       setBaseIdea(toIdea(updated, baseIdea.author));
->>>>>>> feature/editar-cancelar-ideia
       setEditing(false);
       setNotice("Alterações salvas. Quando terminar os ajustes, solicite a revisão do gate.");
     } catch (err) {
@@ -147,8 +124,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
       setBusy(false);
     }
   }
-<<<<<<< HEAD
-=======
 
   async function confirmCancellation() {
     if (!token) return;
@@ -166,7 +141,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
       setBusy(false);
     }
   }
->>>>>>> feature/editar-cancelar-ideia
 
   // Histórico = submissão + avaliações + decisões de gate, em ordem cronológica
   const idea: Idea = {
@@ -183,10 +157,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
       : undefined;
   const isAuthor = idea.authorId !== undefined && idea.authorId === viewerId;
   // Ações do autor (Colaborador ou Avaliador que submeteu a ideia), só com dados reais
-<<<<<<< HEAD
-  const canEdit = Boolean(live) && isAuthor && editableStatuses.includes(idea.status);
-  const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
-=======
   const canEdit =
     Boolean(live) &&
     isAuthor &&
@@ -200,7 +170,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     Boolean(live) &&
     (isAuthor || isManager) &&
     idea.status !== "Cancelada";
->>>>>>> feature/editar-cancelar-ideia
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
@@ -239,8 +208,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               Editar ideia
             </button>
           )}
-<<<<<<< HEAD
-=======
           {canCancel && !editing && (
             <button
               onClick={() => setConfirmingCancellation(true)}
@@ -252,7 +219,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               Cancelar ideia
             </button>
           )}
->>>>>>> feature/editar-cancelar-ideia
           {/* D6: G2–G5 e reenvio após Revisar. Notificar o Gestor entra com as notificações. */}
           {canRequest && !editing && (
             <button
