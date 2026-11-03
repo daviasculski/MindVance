@@ -3,18 +3,12 @@ import { IdeaController } from "../controllers/IdeaController";
 import { ListIdeasController } from "../controllers/ListIdeasController";
 import { GetIdeaByIdController } from "../controllers/GetIdeaByIdController";
 import { UpdateIdeaController } from "../controllers/UpdateIdeaController";
-<<<<<<< HEAD
-=======
 import { CancelIdeaController } from "../controllers/CancelIdeaController";
->>>>>>> feature/editar-cancelar-ideia
 import { CreateIdeaUserStorie } from "../../application/userstories/CreateIdeaUserStorie";
 import { ListIdeasUserStory } from "../../application/userstories/ListIdeasUserStory";
 import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdUserStory";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
-<<<<<<< HEAD
-=======
 import { CancelIdeaUserStory } from "../../application/userstories/CancelIdeaUserStory";
->>>>>>> feature/editar-cancelar-ideia
 import { PrismaIdeaRepository } from "../../infrastructure/repositories/PrismaIdeaRepository";
 import { PrismaEvaluationRepository } from "../../infrastructure/repositories/PrismaEvaluationRepository";
 import { ensureRole } from "../middlewares/ensureRole";
