@@ -1,6 +1,5 @@
 import { IdeaStatus } from "../../domain/entities/IdeaStatus";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
-import { IEvaluationRepository } from "../../domain/repositories/IEvaluationRepository";
 import {
   IdeaOutputDTO,
   RequesterDTO,
@@ -8,13 +7,10 @@ import {
   toIdeaOutputDTO,
 } from "../dtos/IdeaDTO";
 
-const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM"];
+const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM", "EM_ANDAMENTO", "EM_REVISAO"];
 
 export class UpdateIdeaUserStory {
-  constructor(
-    private readonly ideaRepository: IIdeaRepository,
-    private readonly evaluationRepository: IEvaluationRepository,
-  ) {}
+  constructor(private readonly ideaRepository: IIdeaRepository) {}
 
   async execute(
     id: string,
@@ -32,15 +28,10 @@ export class UpdateIdeaUserStory {
     }
 
     if (
-      existingIdea.currentStage !== "IDEACAO" ||
+      existingIdea.currentStage === "LANCAMENTO" ||
       !editableStatuses.includes(existingIdea.status)
     ) {
-      throw new Error("Idea can only be edited while awaiting initial triage");
-    }
-
-    const evaluations = await this.evaluationRepository.findByIdeaId(id);
-    if (evaluations.length > 0) {
-      throw new Error("Idea cannot be edited after evaluations have been registered");
+      throw new Error("Idea can only be edited before triage, between gates or after revision");
     }
 
     if (data.title !== undefined && data.title.trim().length === 0) {

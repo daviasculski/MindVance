@@ -160,10 +160,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
   const canEdit =
     Boolean(live) &&
     isAuthor &&
-    idea.stage === "Ideação" &&
-    editableStatuses.includes(idea.status) &&
-    evalState === "idle" &&
-    !history.some((entry) => entry.decision === "avaliada");
+    editableStatuses.includes(idea.status);
   const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
   const isManager = viewerRole === "gatekeeper" || viewerRole === "administrador";
   const canCancel =

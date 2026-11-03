@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
 
-const forbiddenMessages = [
-  "Only the author can edit this idea",
-  "Idea cannot be edited while in a gate or after it was closed",
-];
 import { sendError } from "../http";
 
 export class UpdateIdeaController {
@@ -34,8 +30,7 @@ export class UpdateIdeaController {
         {
           "Ideia não encontrada": 404,
           "Only the author can edit this idea": 403,
-          "Idea can only be edited while awaiting initial triage": 403,
-          "Idea cannot be edited after evaluations have been registered": 403,
+          "Idea can only be edited before triage, between gates or after revision": 403,
           "Idea title is required": 400,
         },
         "Unable to update idea",

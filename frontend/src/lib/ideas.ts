@@ -53,8 +53,8 @@ export const statusFromApi: Record<ApiStatus, IdeaStatus> = {
   CANCELLED: "Cancelada",
 };
 
-/** A edição só é permitida antes da triagem da Ideação. */
-export const editableStatuses: IdeaStatus[] = ["Aguardando triagem"];
+/** O autor pode editar antes da triagem, entre gates ou após receber Revisar. */
+export const editableStatuses: IdeaStatus[] = ["Aguardando triagem", "Em andamento", "Em revisão"];
 /**
  * O autor solicita a revisão do gate nos G2–G5 (D6) ou o reenvio depois de
  * Revisar. O G1 é aberto pelo Gestor na triagem; o Lançamento não tem gate.
