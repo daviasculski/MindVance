@@ -82,6 +82,53 @@ export class EmailService implements IEmailService {
     );
   }
 
+  async sendWelcomeEmail(to: string, name: string): Promise<void> {
+    await this.send(
+      to,
+      "Bem-vindo ao MindVance",
+      `<h1 style="font-size:22px">Bem-vindo(a), ${escapeHtml(name)}!</h1>
+       <p>Sua conta de colaborador foi criada com sucesso. Você já pode entrar no MindVance e compartilhar suas ideias.</p>`,
+    );
+  }
+
+  async sendAccountPendingApprovalEmail(to: string, name: string, requestedRole: string): Promise<void> {
+    if (typeof name !== "string" || name.trim().length === 0) {
+      throw new Error("A name is required to send the account approval email");
+    }
+    if (typeof requestedRole !== "string" || requestedRole.trim().length === 0) {
+      throw new Error("A requested role is required to send the account approval email");
+    }
+
+    await this.send(
+      to,
+      "MindVance — Solicitação de cadastro em análise",
+      `<h1 style="font-size:22px">Solicitação recebida</h1>
+       <p>Olá, ${escapeHtml(name.trim())}. Recebemos sua solicitação para acessar o MindVance como <strong>${escapeHtml(requestedRole.trim())}</strong>.</p>
+       <p>Os administradores analisarão seu perfil e você receberá outra mensagem quando houver uma decisão.</p>`,
+    );
+  }
+
+  async sendAccountDecisionEmail(
+    to: string,
+    name: string,
+    status: "APPROVED" | "REJECTED",
+    feedback?: string,
+  ): Promise<void> {
+    const approved = status === "APPROVED";
+    const decision = approved ? "aprovada" : "recusada";
+    const feedbackHtml = feedback?.trim()
+      ? `<p><strong>Observação:</strong><br>${escapeHtml(feedback.trim())}</p>`
+      : "";
+    await this.send(
+      to,
+      `Solicitação de acesso ${decision} | MindVance`,
+      `<h1 style="font-size:22px">Solicitação ${decision}</h1>
+       <p>Olá, ${escapeHtml(name)}. Sua solicitação de acesso foi ${decision} pelo administrador.</p>
+       ${approved ? "<p>Você já pode entrar no MindVance com o perfil aprovado.</p>" : ""}
+       ${feedbackHtml}`,
+    );
+  }
+
   private async sendIdeaStatus(to: string, subject: string, ideaTitle: string, message: string): Promise<void> {
     await this.send(
       to,

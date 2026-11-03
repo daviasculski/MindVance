@@ -15,7 +15,11 @@ export class LoginController {
         return res.status(401).json({ error: error.message });
       }
 
-      if (error instanceof Error && error.message === "Account is not approved") {
+      if (
+        error instanceof Error &&
+        (error.message === "Sua conta ainda está aguardando aprovação de um administrador." ||
+          error.message === "Sua solicitação de cadastro foi recusada pelo administrador.")
+      ) {
         return res.status(403).json({ error: error.message });
       }
 

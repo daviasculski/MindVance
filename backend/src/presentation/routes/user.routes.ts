@@ -9,22 +9,24 @@ import { UserApprovalController } from "../controllers/UserApprovalController";
 import { ManageUsersUserStory } from "../../application/userstories/ManageUsersUserStory";
 import { ManageUsersController } from "../controllers/ManageUsersController";
 import { ensureRole } from "../middlewares/ensureRole";
-import { notifier } from "../dependencies";
+import { emailService, notifier } from "../dependencies";
 
 const userRoutes = Router();
 
 // Injeção de dependências
 const userRepository = new PrismaUserRepository();
-const createUserUserStory = new CreateUserUserStory(userRepository, notifier);
+const createUserUserStory = new CreateUserUserStory(userRepository, notifier, emailService);
 const createUserController = new CreateUserController(createUserUserStory);
 const createAdminUserController = new CreateUserController(
   createUserUserStory,
   true,
 );
 const userApprovalController = new UserApprovalController(
-  new ManageUserApprovalsUserStory(userRepository),
+  new ManageUserApprovalsUserStory(userRepository, notifier),
 );
-const manageUsersController = new ManageUsersController(new ManageUsersUserStory(userRepository));
+const manageUsersController = new ManageUsersController(
+  new ManageUsersUserStory(userRepository, notifier),
+);
 
 userRoutes.post("/", (req, res) => createUserController.handle(req, res));
 userRoutes.post(

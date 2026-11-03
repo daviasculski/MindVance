@@ -1,6 +1,7 @@
 import { User, UserApprovalStatus } from "../../domain/entities/User";
 import { UserRole } from "../../domain/entities/UserRole";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
+import { Notifier } from "../services/Notifier";
 
 interface UserApprovalSummary {
   id: string;
@@ -13,7 +14,10 @@ interface UserApprovalSummary {
 }
 
 export class ManageUserApprovalsUserStory {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly notifier?: Notifier,
+  ) {}
 
   async listPending(): Promise<UserApprovalSummary[]> {
     const users = await this.userRepository.findPendingApprovals();
@@ -39,6 +43,11 @@ export class ManageUserApprovalsUserStory {
     const updatedUser = await this.userRepository.updateApprovalStatus(
       userId,
       status,
+    );
+    this.notifier?.accountApprovalDecided(
+      updatedUser.id,
+      updatedUser.name,
+      updatedUser.approvalStatus as "APPROVED" | "REJECTED",
     );
     const { createdAt: _createdAt, updatedAt: _updatedAt, ...summary } =
       this.toSummary(updatedUser);

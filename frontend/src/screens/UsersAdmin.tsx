@@ -11,6 +11,14 @@ interface UsersAdminProps {
 }
 
 const roles: ApiRole[] = ["COLLABORATOR", "EVALUATOR", "GATEKEEPER", "ADMIN"];
+type RoleFilter = "ALL" | ApiRole;
+
+const roleFilters: { value: RoleFilter; label: string }[] = [
+  { value: "ALL", label: "Todos" },
+  { value: "COLLABORATOR", label: "Colaborador" },
+  { value: "EVALUATOR", label: "Avaliador" },
+  { value: "GATEKEEPER", label: "Gestor de Inovação" },
+];
 
 const statusLabel: Record<ManagedUser["approvalStatus"], { text: string; color: string; bg: string }> = {
   PENDING: { text: "pedido pendente", color: "#8A5A00", bg: "rgba(245,158,11,0.12)" },
@@ -21,6 +29,7 @@ const statusLabel: Record<ManagedUser["approvalStatus"], { text: string; color: 
 /** Administrador: lista de usuários e atribuição de papel (P1). Os pedidos pendentes ficam em Solicitações. */
 export default function UsersAdmin({ token, currentUserId, onSessionExpired }: UsersAdminProps) {
   const [users, setUsers] = useState<ManagedUser[] | null>(null);
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>("ALL");
   const [error, setError] = useState<string | null>(null);
   const [rowError, setRowError] = useState<{ id: string; message: string } | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
@@ -43,6 +52,10 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
   useEffect(() => {
     load();
   }, [load]);
+
+  const visibleUsers = users?.filter((user) =>
+    roleFilter === "ALL" ? true : user.role === roleFilter,
+  );
 
   async function handleChange(user: ManagedUser, role: ApiRole) {
     setSaving(user.id);
@@ -98,15 +111,45 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
               <p style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600 }}>Nenhum usuário cadastrado</p>
             </div>
           ) : (
+            <>
+              <div className="flex flex-wrap gap-2 p-4" role="group" aria-label="Filtrar usuários por perfil">
+                {roleFilters.map(({ value, label }) => {
+                  const selected = roleFilter === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setRoleFilter(value)}
+                      className="rounded-xl px-3.5 py-2 transition-colors"
+                      style={{
+                        background: selected ? "#1D1D1F" : "#FFFFFF",
+                        color: selected ? "#FFFFFF" : "#6E6E73",
+                        border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                        cursor: "pointer",
+                        fontSize: 12.5,
+                        fontWeight: selected ? 600 : 500,
+                      }}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+              {visibleUsers?.length === 0 ? (
+                <p className="px-5 pb-5" style={{ color: "#6E6E73", fontSize: 13 }}>
+                  Nenhum usuário encontrado para este perfil.
+                </p>
+              ) : (
             <ul>
-              {users.map((user, index) => {
+              {visibleUsers?.map((user, index) => {
                 const status = statusLabel[user.approvalStatus];
                 const isSelf = user.id === currentUserId;
                 return (
                   <li
                     key={user.id}
                     className="flex flex-wrap items-center justify-between gap-4 p-5"
-                    style={{ borderBottom: index < users.length - 1 ? "1px solid #F0F0F2" : "none" }}
+                    style={{ borderBottom: index < (visibleUsers?.length ?? 0) - 1 ? "1px solid #F0F0F2" : "none" }}
                   >
                     <div className="min-w-0">
                       <p className="truncate" style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 600 }}>
@@ -153,6 +196,8 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                 );
               })}
             </ul>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -67,9 +67,9 @@ export async function register(input: {
   email: string;
   password: string;
   role: Role;
-}): Promise<{ approvalStatus: "PENDING" | "APPROVED" | "REJECTED" }> {
+}): Promise<{ pendingApproval: boolean; message: string }> {
   try {
-    return await apiRequest<{ approvalStatus: "PENDING" | "APPROVED" | "REJECTED" }>("/users", {
+    return await apiRequest<{ pendingApproval: boolean; message: string }>("/auth/register", {
       method: "POST",
       body: { ...input, role: roleToApi[input.role] },
     });

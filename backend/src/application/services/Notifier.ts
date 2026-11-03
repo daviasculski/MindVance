@@ -169,6 +169,12 @@ export class Notifier {
     );
   }
 
+  accountApprovalDecided(userId: string, name: string, status: "APPROVED" | "REJECTED") {
+    this.sendToUser(userId, (to) =>
+      this.emailService.sendAccountDecisionEmail(to, name, status),
+    );
+  }
+
   /** Prazo vencido com pareceres faltando → avaliadores atrasados e Gestores (UC02 FA02) */
   async evaluationOverdue(idea: Idea, gate: Gate, round: number, pendingEvaluatorIds: string[]) {
     await this.toUsers(pendingEvaluatorIds, {

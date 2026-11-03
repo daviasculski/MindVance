@@ -3,6 +3,7 @@ import { Eye, EyeOff, AlertCircle, X } from "lucide-react";
 import type { AuthSession, Role } from "../types";
 import { departments } from "../data";
 import { login, register, requestPasswordReset } from "../lib/auth";
+import { ApiError } from "../lib/api";
 
 interface LoginProps {
   onLogin: (session: AuthSession) => void;
@@ -19,6 +20,7 @@ export default function Login({ onLogin }: LoginProps) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
+  const [registrationSuccess, setRegistrationSuccess] = useState<{ pendingApproval: boolean; message: string } | null>(null);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
@@ -47,20 +49,40 @@ export default function Login({ onLogin }: LoginProps) {
     setNotice("");
     try {
       if (mode === "register") {
-        // Pedido de Avaliador/Gestor fica pendente, mas a pessoa já entra como
-        // Colaborador; o menu mostra o andamento do pedido (P1)
-        await register({
+        const result = await register({
           name: name.trim(),
           email: email.trim(),
           password,
           role,
         });
+        setRegistrationSuccess(result);
+        setMode("login");
+        setPassword("");
+        window.history.replaceState(null, "", "/login");
+        setLoading(false);
+        return;
       }
       onLogin(await login(email.trim(), password));
     } catch (err) {
-      setErrors({ form: err instanceof Error ? err.message : "Erro inesperado" });
+      if (
+        err instanceof ApiError &&
+        err.status === 403 &&
+        (err.message === "Sua conta ainda está aguardando aprovação de um administrador." ||
+          err.message === "Sua solicitação de cadastro foi recusada pelo administrador.")
+      ) {
+        setErrors({ form: err.message });
+      } else {
+        setErrors({ form: err instanceof Error ? err.message : "Erro inesperado" });
+      }
       setLoading(false);
     }
+  }
+
+  function closeRegistrationSuccess() {
+    setRegistrationSuccess(null);
+    setMode("login");
+    setPassword("");
+    setErrors({});
   }
 
   async function handleForgotPassword(e: React.FormEvent) {
@@ -72,7 +94,11 @@ export default function Login({ onLogin }: LoginProps) {
       const result = await requestPasswordReset(forgotEmail.trim());
       setForgotMessage(result.message);
     } catch (err) {
-      setForgotError(err instanceof Error ? err.message : "Não foi possível solicitar a redefinição.");
+      if (err instanceof ApiError && err.status === 404) {
+        setForgotError("E-mail não cadastrado no sistema.");
+      } else {
+        setForgotError(err instanceof Error ? err.message : "Não foi possível solicitar a redefinição.");
+      }
     } finally {
       setForgotLoading(false);
     }
@@ -341,6 +367,41 @@ export default function Login({ onLogin }: LoginProps) {
                 {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {registrationSuccess && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(29,29,31,0.45)" }}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeRegistrationSuccess();
+          }}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl p-6 card-elevated"
+            style={{ background: "#FFFFFF" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="registration-success-title"
+          >
+            <h2 id="registration-success-title" style={{ color: "#1D1D1F", fontSize: 19, fontWeight: 700 }}>
+              {registrationSuccess.pendingApproval ? "Solicitação enviada" : "Conta criada"}
+            </h2>
+            <p className="mt-3 mb-6" style={{ color: "#6E6E73", fontSize: 13, lineHeight: 1.55 }}>
+              {registrationSuccess.pendingApproval
+                ? "Solicitação de cadastro enviada com sucesso! Um administrador analisará seu perfil antes da liberação do acesso."
+                : "Conta criada com sucesso! Você já pode fazer login."}
+            </p>
+            <button
+              type="button"
+              onClick={closeRegistrationSuccess}
+              className="w-full py-3 rounded-xl font-semibold"
+              style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14 }}
+            >
+              Ir para o login
+            </button>
           </div>
         </div>
       )}

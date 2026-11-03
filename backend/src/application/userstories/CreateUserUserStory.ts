@@ -6,11 +6,13 @@ import {
 } from "../dtos/CreateUserDTO";
 import { isUserRole } from "../../domain/entities/UserRole";
 import { Notifier } from "../services/Notifier";
+import { IEmailService } from "../services/IEmailService";
 
 export class CreateUserUserStory {
   constructor(
     private readonly userRepository: IUserRepository,
-    private readonly notifier?: Notifier,
+    private readonly notifier: Notifier,
+    private readonly emailService: IEmailService,
   ) {}
 
   async execute(
@@ -50,10 +52,29 @@ export class CreateUserUserStory {
     // Passa o role para o repositório criar a entidade com o perfil correto
     const user = await this.userRepository.create({ name, email, password, role });
     if (role === "EVALUATOR" || role === "GATEKEEPER") {
-      this.notifier?.accountApprovalRequested(
-        name,
-        role === "EVALUATOR" ? "Avaliador" : "Gestor de Inovação",
+      const requestedRole =
+        role === "EVALUATOR" ? "Avaliador" : "Gestor de Inovação";
+      this.notifier.accountApprovalRequested(name, requestedRole);
+      console.log(
+        `[CreateUser] Tentando enviar e-mail de conta em análise para: ${user.email}`,
       );
+      void this.emailService
+        .sendAccountPendingApprovalEmail(user.email, user.name, requestedRole)
+        .then(() =>
+          console.log(
+            `[CreateUser] E-mail de conta em análise enviado com SUCESSO para: ${user.email}`,
+          ),
+        )
+        .catch((error: unknown) =>
+          console.error(
+            `[CreateUser] ERRO ao enviar e-mail para ${user.email}:`,
+            error,
+          ),
+        );
+    } else {
+      void this.emailService
+        .sendWelcomeEmail(user.email, user.name)
+        .catch((error: unknown) => console.error("Welcome email delivery failed:", error));
     }
 
     return {

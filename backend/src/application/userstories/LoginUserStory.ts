@@ -29,7 +29,14 @@ export class LoginUserStory {
       throw new Error("Invalid credentials");
     }
 
-    // Pedido de Avaliador/Gestor pendente ou recusado: entra como Colaborador (P1)
+    if (user.approvalStatus === "PENDING") {
+      throw new Error("Sua conta ainda está aguardando aprovação de um administrador.");
+    }
+
+    if (user.approvalStatus === "REJECTED") {
+      throw new Error("Sua solicitação de cadastro foi recusada pelo administrador.");
+    }
+
     const secret = process.env.JWT_SECRET;
 
     if (!secret) {

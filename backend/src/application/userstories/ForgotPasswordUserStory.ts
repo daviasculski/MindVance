@@ -4,7 +4,7 @@ import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IPasswordResetTokenRepository } from "../../domain/repositories/IPasswordResetTokenRepository";
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
-const GENERIC_MESSAGE = "Se o e-mail estiver cadastrado, enviaremos instruções para redefinir a senha.";
+const SUCCESS_MESSAGE = "Instruções para redefinição de senha enviadas com sucesso para o seu e-mail!";
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -23,7 +23,7 @@ export class ForgotPasswordUserStory {
     }
 
     const user = await this.userRepository.findByEmail(emailInput.trim().toLowerCase());
-    if (!user) return { message: GENERIC_MESSAGE };
+    if (!user) throw new Error("E-mail não cadastrado no sistema.");
 
     const resetToken = randomBytes(32).toString("hex");
     await this.resetTokenRepository.createForUser(
@@ -35,6 +35,6 @@ export class ForgotPasswordUserStory {
       .sendPasswordResetEmail(user.email, resetToken)
       .catch((error: unknown) => console.error("Password reset email delivery failed:", error));
 
-    return { message: GENERIC_MESSAGE };
+    return { message: SUCCESS_MESSAGE };
   }
 }

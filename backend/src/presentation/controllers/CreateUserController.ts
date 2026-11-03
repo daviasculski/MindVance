@@ -15,7 +15,13 @@ export class CreateUserController {
         this.allowAdminCreation,
       );
 
-      return res.status(201).json(user);
+      const pendingApproval = user.approvalStatus === "PENDING";
+      return res.status(201).json({
+        pendingApproval,
+        message: pendingApproval
+          ? "Solicitação enviada! Aguarde a aprovação de um administrador."
+          : "Conta criada com sucesso! Faça login para continuar.",
+      });
     } catch (error: unknown) {
       if (
         error instanceof Error &&

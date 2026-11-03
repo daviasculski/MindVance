@@ -2,6 +2,7 @@ import { User } from "../../domain/entities/User";
 import { isUserRole } from "../../domain/entities/UserRole";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { RequesterDTO } from "../dtos/IdeaDTO";
+import { Notifier } from "../services/Notifier";
 
 export interface UserSummaryDTO {
   id: string;
@@ -29,7 +30,10 @@ function toSummary(user: User): UserSummaryDTO {
 
 /** Gestão de usuários pelo Administrador (ADM-01/02) e lista de avaliadores para o Gestor. */
 export class ManageUsersUserStory {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly notifier?: Notifier,
+  ) {}
 
   async listAll(): Promise<UserSummaryDTO[]> {
     return (await this.userRepository.findAll()).map(toSummary);
@@ -46,7 +50,11 @@ export class ManageUsersUserStory {
     if (!user) {
       throw new Error("User not found");
     }
-    return toSummary(await this.userRepository.updateRole(userId, role));
+    const updatedUser = await this.userRepository.updateRole(userId, role);
+    if (user.approvalStatus === "PENDING") {
+      this.notifier?.accountApprovalDecided(updatedUser.id, updatedUser.name, "APPROVED");
+    }
+    return toSummary(updatedUser);
   }
 
   /** Avaliadores aprovados, para a designação de um gate */

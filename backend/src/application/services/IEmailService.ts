@@ -7,4 +7,7 @@ export interface IEmailService {
   sendAllEvaluationsCompletedEmail(to: string, ideaTitle: string): Promise<void>;
   sendNewIdeaToManagerEmail(to: string, ideaTitle: string, stage: string): Promise<void>;
   sendAccountApprovalRequestToAdminEmail(to: string, newUserName: string, requestedRole: string): Promise<void>;
+  sendWelcomeEmail(to: string, name: string): Promise<void>;
+  sendAccountPendingApprovalEmail(to: string, name: string, requestedRole: string): Promise<void>;
+  sendAccountDecisionEmail(to: string, name: string, status: "APPROVED" | "REJECTED", feedback?: string): Promise<void>;
 }

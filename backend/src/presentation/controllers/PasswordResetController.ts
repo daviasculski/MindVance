@@ -15,6 +15,9 @@ export class PasswordResetController {
       if (error instanceof Error && error.message === "A valid email is required") {
         return res.status(400).json({ error: error.message });
       }
+      if (error instanceof Error && error.message === "E-mail não cadastrado no sistema.") {
+        return res.status(404).json({ error: error.message });
+      }
       console.error("Password recovery request failed:", error);
       return res.status(500).json({ error: "Unable to process password recovery" });
     }

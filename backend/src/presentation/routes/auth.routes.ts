@@ -6,7 +6,9 @@ import { ForgotPasswordUserStory } from "../../application/userstories/ForgotPas
 import { ResetPasswordUserStory } from "../../application/userstories/ResetPasswordUserStory";
 import { PrismaPasswordResetTokenRepository } from "../../infrastructure/repositories/PrismaPasswordResetTokenRepository";
 import { PasswordResetController } from "../controllers/PasswordResetController";
-import { emailService } from "../dependencies";
+import { emailService, notifier } from "../dependencies";
+import { CreateUserUserStory } from "../../application/userstories/CreateUserUserStory";
+import { CreateUserController } from "../controllers/CreateUserController";
 
 const authRoutes = Router();
 
@@ -14,6 +16,9 @@ const authRoutes = Router();
 const userRepository = new PrismaUserRepository();
 const loginUserStory = new LoginUserStory(userRepository);
 const loginController = new LoginController(loginUserStory);
+const registerController = new CreateUserController(
+  new CreateUserUserStory(userRepository, notifier, emailService),
+);
 const resetTokenRepository = new PrismaPasswordResetTokenRepository();
 const passwordResetController = new PasswordResetController(
   new ForgotPasswordUserStory(userRepository, resetTokenRepository, emailService),
@@ -21,6 +26,7 @@ const passwordResetController = new PasswordResetController(
 );
 
 authRoutes.post("/login", (req, res) => loginController.handle(req, res));
+authRoutes.post("/register", (req, res) => registerController.handle(req, res));
 authRoutes.post("/forgot-password", (req, res) => passwordResetController.forgot(req, res));
 authRoutes.post("/reset-password", (req, res) => passwordResetController.reset(req, res));
 
