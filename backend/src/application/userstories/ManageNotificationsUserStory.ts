@@ -24,4 +24,8 @@ export class ManageNotificationsUserStory {
   markAllRead(userId: string): Promise<void> {
     return this.notificationRepository.markAllRead(userId);
   }
+
+  clear(userId: string): Promise<void> {
+    return this.notificationRepository.deleteAllForUser(userId);
+  }
 }

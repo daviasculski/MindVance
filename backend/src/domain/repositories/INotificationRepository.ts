@@ -8,4 +8,5 @@ export interface INotificationRepository {
   /** Marca como lida só se a notificação for do usuário; retorna false se não encontrou */
   markRead(id: string, userId: string): Promise<boolean>;
   markAllRead(userId: string): Promise<void>;
+  deleteAllForUser(userId: string): Promise<void>;
 }

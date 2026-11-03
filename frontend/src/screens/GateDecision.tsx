@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronRight, RotateCcw, RotateCw, User, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, Clock, RotateCcw, RotateCw, User, XCircle } from "lucide-react";
 import type { GateDecisionType, Idea } from "../types";
 import GateBadge from "../components/GateBadge";
 import GateRail from "../components/GateRail";
@@ -22,6 +22,8 @@ interface GateDecisionProps {
   onSessionExpired: () => void;
 }
 
+type DecisionFilter = "pending" | "evaluated" | "all";
+
 const options: { type: GateDecisionType; api: ApiDecision; label: string; icon: React.ReactNode; color: string; bg: string }[] = [
   { type: "aprovada", api: "APROVADA", label: "Aprovar", icon: <CheckCircle2 size={18} />, color: "#1F8A3B", bg: "rgba(52,199,89,0.1)" },
   { type: "revisão", api: "REVISAO", label: "Revisar", icon: <RotateCcw size={18} />, color: "#B6790A", bg: "rgba(245,158,11,0.1)" },
@@ -40,7 +42,8 @@ function formatScore(n: number) {
 
 /** Gestor de Inovação: decide os gates cujos pareceres já foram todos enviados (D4, D5, D7). */
 export default function GateDecision({ token, onOpenIdea, onSessionExpired }: GateDecisionProps) {
-  const [queue, setQueue] = useState<GateReviewSummary[] | null>(null);
+  const [queue, setQueue] = useState<{ pending: GateReviewSummary[]; evaluated: GateReviewSummary[] } | null>(null);
+  const [filter, setFilter] = useState<DecisionFilter>("evaluated");
   const [loadError, setLoadError] = useState<string | null>(null);
   const [active, setActive] = useState<GateReviewDetail | null>(null);
   const [opening, setOpening] = useState<string | null>(null);
@@ -65,7 +68,11 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
   const load = useCallback(async () => {
     setLoadError(null);
     try {
-      setQueue(await listGateReviews("AGUARDANDO_DECISAO", token));
+      const [pending, evaluated] = await Promise.all([
+        listGateReviews("EM_AVALIACAO", token),
+        listGateReviews("AGUARDANDO_DECISAO", token),
+      ]);
+      setQueue({ pending, evaluated });
     } catch (err) {
       handleError(err, setLoadError);
     }
@@ -376,6 +383,10 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
     );
   }
 
+  const visiblePending = queue && (filter === "pending" || filter === "all") ? queue.pending : [];
+  const visibleEvaluated = queue && (filter === "evaluated" || filter === "all") ? queue.evaluated : [];
+  const visibleCount = visiblePending.length + visibleEvaluated.length;
+
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
       <div className="max-w-3xl mx-auto">
@@ -383,8 +394,8 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
           <h1 style={{ fontWeight: 700, fontSize: 24, color: "#1D1D1F", letterSpacing: "-0.02em" }}>Decisão de Gate</h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 4 }}>
             {queue
-              ? `${queue.length} gate${queue.length !== 1 ? "s" : ""} com todos os pareceres, aguardando a sua decisão`
-              : "Gates com todos os pareceres enviados"}
+              ? `${queue.pending.length} pendente${queue.pending.length !== 1 ? "s" : ""} · ${queue.evaluated.length} avaliada${queue.evaluated.length !== 1 ? "s" : ""}`
+              : "Acompanhe os pareceres dos gates"}
           </p>
         </div>
 
@@ -418,52 +429,137 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
               <div key={i} className="rounded-2xl animate-pulse" style={{ background: "#FFFFFF", height: 100 }} />
             ))}
           </div>
-        ) : queue.length === 0 ? (
-          <div className="rounded-2xl p-12 text-center card-soft" style={{ background: "#FFFFFF" }}>
-            <CheckCircle2 size={36} style={{ color: "#34C759", margin: "0 auto 12px" }} />
-            <div style={{ color: "#1D1D1F", fontSize: 16, fontWeight: 600, marginBottom: 6 }}>Nenhuma decisão pendente</div>
-            <p style={{ color: "#AEAEB2", fontSize: 13 }}>
-              Os gates aparecem aqui quando todos os avaliadores designados enviam o parecer.
-            </p>
-          </div>
         ) : (
-          <div className="flex flex-col gap-3">
-            {queue.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => open(r)}
-                disabled={opening !== null}
-                className="w-full text-left rounded-2xl p-5 card-soft"
-                style={{ background: "#FFFFFF", border: "none", cursor: "pointer" }}
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <GateBadge label={`${r.gate.name} · rodada ${r.round}`} size="sm" />
-                      {r.recommendation && (
-                        <span style={{ color: recommendationTone[r.recommendation].color, fontSize: 11.5, fontWeight: 600 }}>
-                          Recomenda: {recommendationLabel[r.recommendation]}
-                        </span>
-                      )}
-                    </div>
-                    <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>{r.idea.title}</div>
-                    <div style={{ color: "#AEAEB2", fontSize: 12 }}>
-                      por {r.idea.author} · {r.evaluators.length} parecer{r.evaluators.length !== 1 ? "es" : ""}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    {r.consolidatedScore !== null && (
-                      <span style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F" }}>
-                        {formatScore(r.consolidatedScore)}
-                        <span style={{ fontSize: 12, color: "#AEAEB2" }}>/10</span>
-                      </span>
-                    )}
-                    <ChevronRight size={18} style={{ color: "#D2D2D7" }} />
-                  </div>
+          <>
+            {queue && (
+              <div className="flex items-center gap-2 mb-5" role="group" aria-label="Filtrar gates">
+                {([
+                  ["pending", "Pendentes", queue.pending.length],
+                  ["evaluated", "Avaliadas", queue.evaluated.length],
+                  ["all", "Todas", queue.pending.length + queue.evaluated.length],
+                ] as const).map(([value, label, count]) => {
+                  const selected = filter === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setFilter(value)}
+                      className="px-3.5 py-2 rounded-xl transition-colors"
+                      style={{
+                        background: selected ? "#1D1D1F" : "#FFFFFF",
+                        color: selected ? "#FFFFFF" : "#6E6E73",
+                        border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                        cursor: "pointer",
+                        fontSize: 12.5,
+                        fontWeight: selected ? 600 : 500,
+                      }}
+                    >
+                      {label} <span style={{ opacity: selected ? 0.75 : 0.65 }}>({count})</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {visibleCount === 0 ? (
+              <div className="rounded-2xl p-12 text-center card-soft" style={{ background: "#FFFFFF" }}>
+                <CheckCircle2 size={36} style={{ color: "#34C759", margin: "0 auto 12px" }} />
+                <div style={{ color: "#1D1D1F", fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
+                  {filter === "pending" ? "Nenhum gate pendente" : filter === "evaluated" ? "Nenhum parecer aguardando decisão" : "Nenhum gate em andamento"}
                 </div>
-              </button>
-            ))}
-          </div>
+                <p style={{ color: "#AEAEB2", fontSize: 13 }}>
+                  {filter === "pending"
+                    ? "Os gates aguardando pareceres dos avaliadores aparecerão aqui."
+                    : filter === "evaluated"
+                      ? "Os gates com todos os pareceres enviados aparecerão aqui."
+                      : "Não há gates pendentes ou aguardando decisão no momento."}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-8">
+                {visiblePending.length > 0 && (
+                  <section>
+                    <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                      PENDENTES — AGUARDANDO PARECERES
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      {visiblePending.map((r) => {
+                        const submittedCount = r.evaluators.filter((e) => e.submitted).length;
+                        return (
+                          <div key={r.id} className="w-full rounded-2xl p-5 card-soft" style={{ background: "#FFFFFF" }}>
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <GateBadge label={`${r.gate.name} · rodada ${r.round}`} size="sm" />
+                                  {r.overdue && (
+                                    <span className="inline-flex items-center gap-1" style={{ color: "#9A5B0A", fontSize: 11.5, fontWeight: 600 }}>
+                                      <Clock size={12} /> Prazo vencido
+                                    </span>
+                                  )}
+                                </div>
+                                <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>{r.idea.title}</div>
+                                <div style={{ color: "#AEAEB2", fontSize: 12 }}>
+                                  por {r.idea.author} · {submittedCount} de {r.evaluators.length} pareceres enviados
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {visibleEvaluated.length > 0 && (
+                  <section>
+                    {visiblePending.length > 0 && (
+                      <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                        PARECERES CONCLUÍDOS — AGUARDANDO SUA DECISÃO
+                      </div>
+                    )}
+                    <div className="flex flex-col gap-3">
+                      {visibleEvaluated.map((r) => (
+                        <button
+                          key={r.id}
+                          onClick={() => open(r)}
+                          disabled={opening !== null}
+                          className="w-full text-left rounded-2xl p-5 card-soft"
+                          style={{ background: "#FFFFFF", border: "none", cursor: "pointer" }}
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <GateBadge label={`${r.gate.name} · rodada ${r.round}`} size="sm" />
+                                {r.recommendation && (
+                                  <span style={{ color: recommendationTone[r.recommendation].color, fontSize: 11.5, fontWeight: 600 }}>
+                                    Recomenda: {recommendationLabel[r.recommendation]}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>{r.idea.title}</div>
+                              <div style={{ color: "#AEAEB2", fontSize: 12 }}>
+                                por {r.idea.author} · {r.evaluators.length} parecer{r.evaluators.length !== 1 ? "es" : ""}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 flex-shrink-0">
+                              {r.consolidatedScore !== null && (
+                                <span style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F" }}>
+                                  {formatScore(r.consolidatedScore)}
+                                  <span style={{ fontSize: 12, color: "#AEAEB2" }}>/10</span>
+                                </span>
+                              )}
+                              <ChevronRight size={18} style={{ color: "#D2D2D7" }} />
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
