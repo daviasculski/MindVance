@@ -24,6 +24,10 @@ export function markAllNotificationsRead(token: string): Promise<unknown> {
   return apiRequest("/notifications/read-all", { method: "PATCH", token });
 }
 
+export function clearNotifications(token: string): Promise<unknown> {
+  return apiRequest("/notifications", { method: "DELETE", token });
+}
+
 /** "há 5 min", "há 2 h", "há 3 dias" */
 export function timeAgo(date: string): string {
   const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));

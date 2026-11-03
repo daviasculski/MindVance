@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell, CheckCheck, Trash2 } from "lucide-react";
 import { ApiError } from "../lib/api";
 import {
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  clearNotifications,
   timeAgo,
   type AppNotification,
 } from "../lib/notifications";
@@ -23,7 +24,8 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[]>([]);
   const [unread, setUnread] = useState(0);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const sessionExpiredRef = useRef(onSessionExpired);
   sessionExpiredRef.current = onSessionExpired;
@@ -33,13 +35,13 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
       const data = await listNotifications(token);
       setItems(data.items);
       setUnread(data.unreadCount);
-      setError(false);
+      setError(null);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         sessionExpiredRef.current();
         return;
       }
-      setError(true);
+      setError("Não foi possível carregar as notificações.");
     }
   }, [token]);
 
@@ -85,6 +87,25 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
     markAllNotificationsRead(token).catch(() => load());
   }
 
+  async function handleClear() {
+    if (!window.confirm("Deseja excluir todas as suas notificações? Esta ação não pode ser desfeita.")) return;
+    setClearing(true);
+    setError(null);
+    try {
+      await clearNotifications(token);
+      setItems([]);
+      setUnread(0);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        sessionExpiredRef.current();
+        return;
+      }
+      setError(err instanceof Error ? err.message : "Não foi possível limpar as notificações.");
+    } finally {
+      setClearing(false);
+    }
+  }
+
   return (
     <div className="relative" ref={panelRef}>
       <button
@@ -126,24 +147,42 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
           role="dialog"
           aria-label="Notificações"
         >
-          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid #F0F0F2" }}>
+          <div className="flex items-center justify-between px-4 py-3 gap-3" style={{ borderBottom: "1px solid #F0F0F2" }}>
             <span style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 700 }}>Notificações</span>
-            {unread > 0 && (
-              <button
-                onClick={handleReadAll}
-                className="flex items-center gap-1.5"
-                style={{ color: "#B6790A", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}
-              >
-                <CheckCheck size={13} />
-                Marcar todas como lidas
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unread > 0 && (
+                <button
+                  onClick={handleReadAll}
+                  className="flex items-center gap-1.5"
+                  style={{ color: "#B6790A", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}
+                >
+                  <CheckCheck size={13} />
+                  Marcar todas como lidas
+                </button>
+              )}
+              {items.length > 0 && (
+                <button
+                  onClick={handleClear}
+                  disabled={clearing}
+                  className="flex items-center gap-1.5"
+                  style={{ color: "#FF3B30", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: clearing ? "wait" : "pointer", whiteSpace: "nowrap" }}
+                >
+                  <Trash2 size={13} />
+                  {clearing ? "Limpando..." : "Limpar"}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="overflow-y-auto">
+            {error && (
+              <p className="px-4 py-3 text-center" style={{ color: "#FF3B30", fontSize: 12 }}>
+                {error}
+              </p>
+            )}
             {error && items.length === 0 ? (
               <p className="p-6 text-center" style={{ color: "#AEAEB2", fontSize: 13 }}>
-                Não foi possível carregar as notificações.
+                As notificações não foram alteradas.
               </p>
             ) : items.length === 0 ? (
               <p className="p-6 text-center" style={{ color: "#AEAEB2", fontSize: 13 }}>

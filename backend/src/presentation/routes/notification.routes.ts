@@ -25,6 +25,15 @@ notificationRoutes.patch("/read-all", async (req, res) => {
   }
 });
 
+notificationRoutes.delete("/", async (req, res) => {
+  try {
+    await notifications.clear(req.user!.id);
+    return res.status(204).send();
+  } catch (error) {
+    return sendError(res, error, statusByMessage, "Unable to clear notifications");
+  }
+});
+
 notificationRoutes.patch("/:id/read", async (req, res) => {
   try {
     await notifications.markRead(req.params.id, req.user!.id);
