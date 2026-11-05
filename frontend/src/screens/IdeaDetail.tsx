@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2, Ban } from "lucide-react";
 import type { Idea, Role, TimelineEntry } from "../types";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
@@ -14,6 +14,7 @@ import {
   canRequestGateReview,
   editableStatuses,
   cancelIdea,
+  canBeCancelled,
   getIdea,
   listGateDecisions,
   listIdeaGateReviews,
@@ -42,6 +43,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
   const [historyVersion, setHistoryVersion] = useState(0);
   const [editing, setEditing] = useState(false);
   const [confirmingCancellation, setConfirmingCancellation] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelReasonError, setCancelReasonError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -127,13 +130,19 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
 
   async function confirmCancellation() {
     if (!token) return;
+    // CAN-03: a justificativa é obrigatória e fica registrada no histórico
+    if (!cancelReason.trim()) {
+      setCancelReasonError(true);
+      return;
+    }
     setBusy(true);
     setActionError(null);
     setNotice(null);
     try {
-      const cancelled = await cancelIdea(baseIdea.id, token);
+      const cancelled = await cancelIdea(baseIdea.id, cancelReason, token);
       setBaseIdea(toIdea(cancelled, baseIdea.author));
       setConfirmingCancellation(false);
+      setCancelReason("");
       setNotice("Ideia cancelada. O registro e o histórico foram preservados, mas a proposta saiu do funil ativo.");
     } catch (err) {
       await handleError(err);
@@ -163,10 +172,11 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     editableStatuses.includes(idea.status);
   const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
   const isManager = viewerRole === "gatekeeper" || viewerRole === "administrador";
-  const canCancel =
-    Boolean(live) &&
-    (isAuthor || isManager) &&
-    idea.status !== "Cancelada";
+  // Só ideias ativas no funil podem ser canceladas (não aprovadas, rejeitadas nem já canceladas)
+  const canCancel = Boolean(live) && (isAuthor || isManager) && canBeCancelled(idea);
+  const cancellation = idea.status === "Cancelada"
+    ? [...idea.timeline].reverse().find((t) => t.decision === "cancelada")
+    : undefined;
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ background: "#F5F5F7" }}>
@@ -308,6 +318,19 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               </div>
             )}
 
+            {cancellation && (
+              <div className="p-5 mb-8 rounded-2xl" style={{ background: "#FAFAFA" }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Ban size={14} style={{ color: "#8E8E93" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>
+                    IDEIA CANCELADA POR {cancellation.responsible.toUpperCase()} EM{" "}
+                    {new Date(cancellation.date).toLocaleDateString("pt-BR")} — JUSTIFICATIVA
+                  </span>
+                </div>
+                <p style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>{cancellation.feedback}</p>
+              </div>
+            )}
+
             {revisionRequest && (
               <div
                 className="p-5 mb-8 rounded-2xl"
@@ -438,6 +461,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                                   ? "rgba(139,124,246,0.12)"
                                   : entry.decision === "atraso"
                                   ? "#FEF3E2"
+                                  : entry.decision === "cancelada"
+                                  ? "#F0F0F2"
                                   : "rgba(59,130,246,0.12)",
                             }}
                           >
@@ -445,6 +470,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               <DoorOpen size={13} style={{ color: "#3B82F6" }} />
                             ) : entry.decision === "atraso" ? (
                               <Clock size={13} style={{ color: "#B6790A" }} />
+                            ) : entry.decision === "cancelada" ? (
+                              <Ban size={13} style={{ color: "#8E8E93" }} />
                             ) : entry.decision === "avaliada" ? (
                               <Star size={13} style={{ color: "#8B7CF6" }} />
                             ) : entry.decision === "aprovada" ? (
@@ -487,6 +514,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                                 : "Gate aberto"
                               : entry.decision === "atraso"
                               ? "Prazo de avaliação vencido"
+                              : entry.decision === "cancelada"
+                              ? "Ideia cancelada"
                               : entry.decision === "submetida"
                               ? "Submetida"
                               : entry.decision === "aprovada"
@@ -567,8 +596,40 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               Cancelar esta ideia?
             </h2>
             <p className="mt-3" style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
-              A proposta será removida do funil ativo. O registro e o histórico serão mantidos para auditoria.
+              A proposta será removida do funil ativo e de qualquer avaliação em andamento. O registro e o histórico
+              serão mantidos, com o seu nome e a justificativa.
             </p>
+            <label className="block mt-4" style={{ color: "#1D1D1F", fontSize: 13, fontWeight: 600 }}>
+              Justificativa <span style={{ color: "#FF3B30" }}>*</span>
+            </label>
+            <textarea
+              value={cancelReason}
+              onChange={(e) => {
+                setCancelReason(e.target.value);
+                setCancelReasonError(false);
+              }}
+              placeholder="Por que esta ideia está sendo cancelada?"
+              rows={3}
+              autoFocus
+              style={{
+                width: "100%",
+                marginTop: 6,
+                background: "#F5F5F7",
+                border: `1.5px solid ${cancelReasonError ? "#FF3B30" : "transparent"}`,
+                borderRadius: 12,
+                color: "#1D1D1F",
+                fontSize: 13.5,
+                padding: "10px 12px",
+                outline: "none",
+                resize: "vertical",
+              }}
+            />
+            {cancelReasonError && (
+              <div className="flex items-center gap-1.5 mt-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+                <AlertCircle size={12} />
+                Informe a justificativa do cancelamento
+              </div>
+            )}
             {actionError && (
               <div className="flex items-center gap-2 rounded-xl p-3 mt-4" style={{ background: "rgba(255,59,48,0.08)", color: "#FF3B30", fontSize: 13 }}>
                 <AlertCircle size={15} />

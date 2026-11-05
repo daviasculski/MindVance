@@ -113,6 +113,8 @@ export interface ApiIdea {
   extraFields: Partial<IdeaExtraFields> | null;
   currentStage: ApiStage;
   status: ApiStatus;
+  /** Quem cancelou, quando e por quê; null se não foi cancelada */
+  cancellation?: { at: string; byId: string; byName: string; reason: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -260,11 +262,17 @@ export function updateIdea(id: string, input: NewIdeaInput, token: string): Prom
   });
 }
 
-/** Cancela a proposta sem apagar o registro nem seu histórico de auditoria. */
-export function cancelIdea(id: string, token: string): Promise<ApiIdea> {
+/** Status em que a ideia ainda está ativa no funil e pode ser cancelada. */
+export function canBeCancelled(idea: Idea): boolean {
+  return idea.status !== "Aprovada" && idea.status !== "Rejeitada" && idea.status !== "Cancelada";
+}
+
+/** Cancela a proposta sem apagar o registro nem seu histórico (justificativa obrigatória). */
+export function cancelIdea(id: string, justification: string, token: string): Promise<ApiIdea> {
   return apiRequest<ApiIdea>(`/ideas/${encodeURIComponent(id)}/cancel`, {
     method: "PATCH",
     token,
+    body: { justification: justification.trim() },
   });
 }
 
@@ -310,6 +318,19 @@ export function toIdea(api: ApiIdea, fallbackAuthorName = "Colaborador"): Idea {
         responsible: authorName,
         feedback: "Ideia submetida ao funil de inovação.",
       },
+      // CAN-03: o cancelamento entra no histórico com quem cancelou e a justificativa
+      ...(api.cancellation
+        ? [
+            {
+              id: `${api.id}-cancelada`,
+              date: api.cancellation.at,
+              stage,
+              decision: "cancelada" as const,
+              responsible: api.cancellation.byName,
+              feedback: api.cancellation.reason,
+            },
+          ]
+        : []),
     ],
   };
 }

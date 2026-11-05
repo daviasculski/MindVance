@@ -66,7 +66,7 @@ export interface TimelineEntry {
   id: string;
   date: string;
   stage?: Stage;
-  decision: GateDecisionType | "submetida" | "avaliada" | "gate-aberto" | "atraso";
+  decision: GateDecisionType | "submetida" | "avaliada" | "gate-aberto" | "atraso" | "cancelada";
   responsible: string;
   feedback: string;
   reviewPoints?: string[];
