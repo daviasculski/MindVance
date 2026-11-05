@@ -17,6 +17,7 @@ export interface LoginOutputDTO {
     /** Papel pedido no cadastro ou atribuído pelo Administrador */
     requestedRole: UserRole;
     approvalStatus: UserApprovalStatus;
+    department: string | null;
     createdAt: Date;
     updatedAt: Date;
   };

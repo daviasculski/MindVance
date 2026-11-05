@@ -6,6 +6,7 @@ export interface CreateUserData {
   email: string;
   password: string;
   role?: UserRole; // <-- Adicionado aqui
+  department?: string | null;
 }
 
 export interface IUserRepository {

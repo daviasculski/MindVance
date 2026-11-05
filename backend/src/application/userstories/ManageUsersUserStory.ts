@@ -11,6 +11,7 @@ export interface UserSummaryDTO {
   /** Papel pedido ou atribuído */
   role: string;
   approvalStatus: string;
+  department: string | null;
   /** Papel com que o usuário opera hoje */
   effectiveRole: string;
   createdAt: Date;
@@ -23,6 +24,7 @@ function toSummary(user: User): UserSummaryDTO {
     email: user.email,
     role: user.role,
     approvalStatus: user.approvalStatus,
+    department: user.department,
     effectiveRole: user.effectiveRole,
     createdAt: user.createdAt,
   };

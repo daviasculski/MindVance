@@ -57,6 +57,7 @@ export class LoginUserStory {
         role: user.effectiveRole,
         requestedRole: user.role,
         approvalStatus: user.approvalStatus,
+        department: user.department,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

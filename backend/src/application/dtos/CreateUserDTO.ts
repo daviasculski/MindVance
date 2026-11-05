@@ -3,6 +3,8 @@ export interface CreateUserInputDTO {
   email: string;
   password: string;
   role?: "COLLABORATOR" | "EVALUATOR" | "GATEKEEPER" | "ADMIN";
+  /** Obrigatório para Colaborador; ignorado nos demais papéis */
+  department?: string;
 }
 
 export interface CreateUserOutputDTO {
@@ -11,6 +13,7 @@ export interface CreateUserOutputDTO {
   email: string;
   role: string; // Adicionado para retornar o papel criado
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  department: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

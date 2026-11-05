@@ -191,6 +191,8 @@ model User {
   password            String               @db.Text
   role                UserRole             @default(COLLABORATOR)
   approvalStatus      UserApprovalStatus   @default(PENDING)
+  /// Só colaboradores pertencem a um departamento
+  department          String?              @db.VarChar(120)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   passwordResetTokens PasswordResetToken[]

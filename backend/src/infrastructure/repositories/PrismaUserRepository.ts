@@ -5,7 +5,21 @@ import {
   IUserRepository,
 } from "../../domain/repositories/IUserRepository";
 import prisma from "../database/prisma/client";
-import { Prisma } from "@prisma/client";
+import { Prisma, User as PrismaUser } from "@prisma/client";
+
+function toUser(raw: PrismaUser): User {
+  return new User({
+    id: raw.id,
+    name: raw.name,
+    email: raw.email,
+    password: raw.password,
+    role: raw.role as UserRole,
+    approvalStatus: raw.approvalStatus as UserApprovalStatus,
+    department: raw.department,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  });
+}
 
 export class PrismaUserRepository implements IUserRepository {
   async create(data: CreateUserData): Promise<User> {
@@ -15,7 +29,8 @@ export class PrismaUserRepository implements IUserRepository {
           name: data.name,
           email: data.email,
           password: data.password,
-          role: data.role, // <-- Adicionado aqui para salvar no banco!
+          role: data.role,
+          department: data.department ?? null,
           approvalStatus:
             data.role === "EVALUATOR" || data.role === "GATEKEEPER"
               ? "PENDING"
@@ -23,16 +38,7 @@ export class PrismaUserRepository implements IUserRepository {
         },
       });
 
-      return new User({
-        id: raw.id,
-        name: raw.name,
-        email: raw.email,
-        password: raw.password,
-        role: raw.role as UserRole,
-        approvalStatus: raw.approvalStatus as UserApprovalStatus,
-        createdAt: raw.createdAt,
-        updatedAt: raw.updatedAt,
-      });
+      return toUser(raw);
     } catch (error: unknown) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -54,19 +60,7 @@ export class PrismaUserRepository implements IUserRepository {
       where: { id: { in: ids } },
     });
 
-    return list.map(
-      (raw) =>
-        new User({
-          id: raw.id,
-          name: raw.name,
-          email: raw.email,
-          password: raw.password,
-          role: raw.role as UserRole,
-          approvalStatus: raw.approvalStatus as UserApprovalStatus,
-          createdAt: raw.createdAt,
-          updatedAt: raw.updatedAt,
-        }),
-    );
+    return list.map(toUser);
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -74,52 +68,17 @@ export class PrismaUserRepository implements IUserRepository {
       where: { email },
     });
 
-    if (!raw) {
-      return null;
-    }
-
-    return new User({
-      id: raw.id,
-      name: raw.name,
-      email: raw.email,
-      password: raw.password,
-      role: raw.role as UserRole,
-      approvalStatus: raw.approvalStatus as UserApprovalStatus,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-    });
+    return raw ? toUser(raw) : null;
   }
 
   async findById(id: string): Promise<User | null> {
     const raw = await prisma.user.findUnique({ where: { id } });
-    if (!raw) return null;
-    return new User({
-      id: raw.id,
-      name: raw.name,
-      email: raw.email,
-      password: raw.password,
-      role: raw.role as UserRole,
-      approvalStatus: raw.approvalStatus as UserApprovalStatus,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-    });
+    return raw ? toUser(raw) : null;
   }
 
   async findAll(): Promise<User[]> {
     const users = await prisma.user.findMany({ orderBy: { name: "asc" } });
-    return users.map(
-      (raw) =>
-        new User({
-          id: raw.id,
-          name: raw.name,
-          email: raw.email,
-          password: raw.password,
-          role: raw.role as UserRole,
-          approvalStatus: raw.approvalStatus as UserApprovalStatus,
-          createdAt: raw.createdAt,
-          updatedAt: raw.updatedAt,
-        }),
-    );
+    return users.map(toUser);
   }
 
   async updateRole(id: string, role: UserRole): Promise<User> {
@@ -127,16 +86,7 @@ export class PrismaUserRepository implements IUserRepository {
       where: { id },
       data: { role, approvalStatus: "APPROVED" },
     });
-    return new User({
-      id: raw.id,
-      name: raw.name,
-      email: raw.email,
-      password: raw.password,
-      role: raw.role as UserRole,
-      approvalStatus: raw.approvalStatus as UserApprovalStatus,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-    });
+    return toUser(raw);
   }
 
   async findPendingApprovals(): Promise<User[]> {
@@ -144,19 +94,7 @@ export class PrismaUserRepository implements IUserRepository {
       where: { approvalStatus: "PENDING" },
       orderBy: { createdAt: "asc" },
     });
-    return users.map(
-      (raw) =>
-        new User({
-          id: raw.id,
-          name: raw.name,
-          email: raw.email,
-          password: raw.password,
-          role: raw.role as UserRole,
-          approvalStatus: raw.approvalStatus as UserApprovalStatus,
-          createdAt: raw.createdAt,
-          updatedAt: raw.updatedAt,
-        }),
-    );
+    return users.map(toUser);
   }
 
   async updateApprovalStatus(
@@ -176,15 +114,6 @@ export class PrismaUserRepository implements IUserRepository {
       );
     }
     const raw = await prisma.user.findUniqueOrThrow({ where: { id } });
-    return new User({
-      id: raw.id,
-      name: raw.name,
-      email: raw.email,
-      password: raw.password,
-      role: raw.role as UserRole,
-      approvalStatus: raw.approvalStatus as UserApprovalStatus,
-      createdAt: raw.createdAt,
-      updatedAt: raw.updatedAt,
-    });
+    return toUser(raw);
   }
 }

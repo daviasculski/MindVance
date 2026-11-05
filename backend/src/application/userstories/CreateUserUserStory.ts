@@ -44,13 +44,28 @@ export class CreateUserUserStory {
       );
     }
 
+    // Só colaboradores pertencem a um departamento (AUT-01)
+    const department =
+      role === "COLLABORATOR" && typeof input.department === "string"
+        ? input.department.trim()
+        : "";
+    if (role === "COLLABORATOR" && department.length === 0) {
+      throw new Error("User department is required");
+    }
+
     if (await this.userRepository.findByEmail(email)) {
       throw new Error("Email is already registered");
     }
 
     const password = await bcrypt.hash(input.password, 8);
     // Passa o role para o repositório criar a entidade com o perfil correto
-    const user = await this.userRepository.create({ name, email, password, role });
+    const user = await this.userRepository.create({
+      name,
+      email,
+      password,
+      role,
+      department: department || null,
+    });
     if (role === "EVALUATOR" || role === "GATEKEEPER") {
       const requestedRole =
         role === "EVALUATOR" ? "Avaliador" : "Gestor de Inovação";
@@ -83,6 +98,7 @@ export class CreateUserUserStory {
       email: user.email,
       role: user.role, // <-- Opcional, mas útil para retornar no output DTO
       approvalStatus: user.approvalStatus,
+      department: user.department,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

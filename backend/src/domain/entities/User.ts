@@ -9,6 +9,8 @@ export interface UserProps {
   password: string;
   role?: UserRole;
   approvalStatus?: UserApprovalStatus;
+  /** Só colaboradores pertencem a um departamento */
+  department?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +48,10 @@ export class User {
 
   get approvalStatus(): UserApprovalStatus {
     return this.props.approvalStatus ?? "APPROVED";
+  }
+
+  get department(): string | null {
+    return this.props.department ?? null;
   }
 
   /**

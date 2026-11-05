@@ -9,9 +9,9 @@ export class CreateUserController {
 
   async handle(req: Request, res: Response): Promise<Response> {
     try {
-      const { name, email, password, role } = req.body;
+      const { name, email, password, role, department } = req.body;
       const user = await this.createUserUserStory.execute(
-        { name, email, password, role },
+        { name, email, password, role, department },
         this.allowAdminCreation,
       );
 
@@ -43,7 +43,8 @@ export class CreateUserController {
 
       if (
         error instanceof Error &&
-        error.message === "Name, email, and password are required"
+        (error.message === "Name, email, and password are required" ||
+          error.message === "User department is required")
       ) {
         return res.status(400).json({ error: error.message });
       }
