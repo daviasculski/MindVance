@@ -10,9 +10,11 @@ interface NewIdeaProps {
   token: string;
   onSessionExpired: () => void;
   onViewMyIdeas: () => void;
+  /** Departamento do cadastro, sugerido como área de origem */
+  defaultDepartment?: string;
 }
 
-export default function NewIdea({ token, onSessionExpired, onViewMyIdeas }: NewIdeaProps) {
+export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaultDepartment = "" }: NewIdeaProps) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState<ApiIdea | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,7 +24,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas }: NewI
     title: "",
     problem: "",
     solution: "",
-    department: "",
+    department: defaultDepartment,
     impact: "",
     resources: "",
   });
@@ -111,7 +113,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas }: NewI
               Ver minhas ideias
             </button>
             <button
-              onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: "", impact: "", resources: "" }); }}
+              onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: defaultDepartment, impact: "", resources: "" }); }}
               className="px-6 py-2.5 rounded-xl font-medium"
               style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
             >

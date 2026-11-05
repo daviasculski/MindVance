@@ -20,6 +20,8 @@ export interface AuthUser {
   /** Papel pedido no cadastro; difere de `role` enquanto o pedido está pendente ou recusado */
   requestedRole?: Role;
   approvalStatus?: "PENDING" | "APPROVED" | "REJECTED";
+  /** Departamento informado no cadastro (só colaboradores) */
+  department?: string;
 }
 
 export interface AuthSession {

@@ -108,6 +108,7 @@ export default function App() {
             token={session.token}
             onSessionExpired={handleLogout}
             onViewMyIdeas={() => setScreen("my-ideas")}
+            defaultDepartment={session.user.department}
           />
         )}
         {screen === "my-ideas" && (

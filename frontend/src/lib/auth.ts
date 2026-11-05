@@ -32,6 +32,7 @@ interface ApiUser {
   role: ApiRole;
   requestedRole?: ApiRole;
   approvalStatus?: "PENDING" | "APPROVED" | "REJECTED";
+  department?: string | null;
 }
 
 function toAuthUser(user: ApiUser): AuthUser {
@@ -42,6 +43,7 @@ function toAuthUser(user: ApiUser): AuthUser {
     role: roleFromApi[user.role] ?? "colaborador",
     ...(user.requestedRole ? { requestedRole: roleFromApi[user.requestedRole] } : {}),
     ...(user.approvalStatus ? { approvalStatus: user.approvalStatus } : {}),
+    ...(user.department ? { department: user.department } : {}),
   };
 }
 
@@ -67,6 +69,8 @@ export async function register(input: {
   email: string;
   password: string;
   role: Role;
+  /** Só para Colaborador */
+  department?: string;
 }): Promise<{ pendingApproval: boolean; message: string }> {
   try {
     return await apiRequest<{ pendingApproval: boolean; message: string }>("/auth/register", {
@@ -117,6 +121,7 @@ export interface ManagedUser {
   /** Papel pedido ou atribuído */
   role: ApiRole;
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  department: string | null;
   /** Papel com que opera hoje (Colaborador enquanto o pedido não é aprovado) */
   effectiveRole: ApiRole;
   createdAt: string;

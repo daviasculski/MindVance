@@ -56,6 +56,7 @@ export default function Login({ onLogin }: LoginProps) {
           email: email.trim(),
           password,
           role,
+          ...(role === "colaborador" ? { department: dept } : {}),
         });
         setRegistrationSuccess(result);
         setMode("login");
@@ -239,7 +240,7 @@ export default function Login({ onLogin }: LoginProps) {
                 </select>
                 {role !== "colaborador" && (
                   <p style={{ color: "#AEAEB2", fontSize: 11.5, lineHeight: 1.5 }}>
-                    Este perfil depende da aprovação de um Administrador. Até lá, você entra como Colaborador.
+                    Este perfil depende da aprovação de um Administrador. Você poderá entrar assim que ela for aprovada.
                   </p>
                 )}
               </Field>

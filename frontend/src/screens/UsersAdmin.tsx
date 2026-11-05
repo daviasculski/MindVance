@@ -156,7 +156,10 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                         {user.name}
                         {isSelf && <span style={{ color: "#AEAEB2", fontWeight: 400 }}> (você)</span>}
                       </p>
-                      <p className="truncate" style={{ color: "#6E6E73", fontSize: 12.5, marginTop: 3 }}>{user.email}</p>
+                      <p className="truncate" style={{ color: "#6E6E73", fontSize: 12.5, marginTop: 3 }}>
+                        {user.email}
+                        {user.department && <span style={{ color: "#AEAEB2" }}> · {user.department}</span>}
+                      </p>
                       {user.approvalStatus !== "APPROVED" && (
                         <span
                           className="mt-2 inline-flex rounded-full px-2.5 py-1"
