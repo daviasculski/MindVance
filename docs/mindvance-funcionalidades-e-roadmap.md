@@ -2,7 +2,7 @@
 
 Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da Ideia ao Lançamento"), BPMN revisado do MindVance e decisões dos autores.
 
-**Situação em 26/10/2026**, branch `feat-avanco-da-integracao`. O fluxo de gates do BPMN (triagem → designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta e foi validado pela API com 70 cenários. Funil e indicadores usam dados reais; nenhuma tela usa mais dados de exemplo. As notificações cobrem todos os gatilhos do BPMN, incluindo o prazo vencido. O que falta está na seção 5.
+**Situação em 05/11/2026**, branch `feat-go-boys` (a partir da `dev`). O fluxo de gates do BPMN (triagem e designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta. Funil e indicadores usam dados reais. As notificações (internas e por e-mail) cobrem todos os gatilhos do BPMN, incluindo o prazo vencido. O cancelamento de ideias encerra as rodadas abertas e fica registrado no histórico com o responsável e a justificativa. Engajamento e ranking saíram do escopo. O que falta está na seção 5.
 
 ---
 
@@ -17,11 +17,11 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 | ❓ **A DECIDIR** | Depende de decisão dos autores |
 | ⏸️ **FORA DO ESCOPO** | Decidido que não entra nesta entrega |
 
-**Resumo dos 105 itens com ID** (sem contar DOC, que é do documento do TCC):
+**Resumo dos 110 itens com ID** (sem contar DOC, que é do documento do TCC):
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 69 | 15 | 13 | 0 | 7 | 1 |
+| 75 | 14 | 10 | 0 | 6 | 5 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -51,13 +51,23 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 
 | # | Decisão | Como ficou no código |
 |---|---|---|
-| **D10 · Papel no cadastro** (substitui AUT-01 e ADM-02) | No cadastro o usuário escolhe Colaborador, Avaliador ou Gestor (Administrador não aparece). Avaliador e Gestor ficam pendentes até o Admin aprovar; **enquanto isso o usuário opera como Colaborador**. O Admin aprova, recusa e pode trocar o papel de qualquer usuário depois. | Papel efetivo calculado no backend (`User.effectiveRole`); login, JWT e middleware usam o papel efetivo; telas **Usuários** e **Solicitações** do Admin |
+| **D10 · Papel no cadastro** (substitui AUT-01 e ADM-02; revisada em 05/11) | No cadastro o usuário escolhe Colaborador, Avaliador ou Gestor (Administrador não aparece). Avaliador e Gestor ficam pendentes até o Admin aprovar. **Conta pendente ou recusada não faz login** (revisão de 05/11; antes operava como Colaborador). O Admin aprova, recusa e pode trocar o papel de qualquer usuário depois. | Login bloqueia contas pendentes e recusadas; papel efetivo no backend (`User.effectiveRole`); telas **Usuários** e **Solicitações** do Admin |
 | **D11 · Fim do fluxo** | O G5 é o último gate. **Aprovar no G5 leva ao Lançamento com status "Aprovada para lançamento" e encerra o ciclo.** Sem 6ª decisão; no Lançamento não há solicitar revisão, designação, avaliação nem decisão. O fim é identificado pelo estágio sem gate de saída, não por número fixo. Revisão pós-lançamento fora do escopo. | `DecideGateUserStory` (aprovar → estágio seguinte; se não tem gate de saída, status `APROVADA`); `leadsToFinalStage` informado ao front |
 | **D12 · Exclusão e Administrador** | **Ninguém exclui ideias**, avaliações nem transições: o histórico é imutável. O Administrador fica com usuários/papéis e **KPIs só leitura**; sem funil, triagem, designação, avaliação ou decisão. **Parâmetros dos gates (critérios, pesos, faixas, prazos) ficam fora da interface** nesta entrega e vêm do banco. | Rota de exclusão removida; chaves estrangeiras `RESTRICT`; `/ideas/metrics` para Gestor e Admin; gates e critérios inseridos pela migration |
 | **D13 · Revisar = Recycle** | A edição **não** reenvia a ideia. O autor edita e anexa entregas livremente em Revisar; o reenvio é só pelo botão **"Solicitar revisão"**, que cria uma **nova rodada no mesmo gate** (rodada + 1), muda o status para "Aguardando designação" e notifica o Gestor. A designação da nova rodada pode vir preenchida com os avaliadores anteriores. **Em avaliação, a edição fica bloqueada.** Rodadas anteriores ficam preservadas no detalhe; consolidação e decisão usam só a rodada atual. | Tabelas `gate_reviews` (rodadas) e `gate_review_evaluators`; edição só em "Aguardando triagem", "Em andamento" e "Em revisão"; designação sugerida pela rodada anterior. Notificação: pendente (fase de notificações) |
 | **D14 · Nota e recomendação** | Média de cada critério entre os avaliadores da rodada; **score = Σ(média × peso / 100)**, de 0 a 10. **≥ 7,0 Aprovar; ≥ 4,0 e < 7,0 Revisar; < 4,0 Rejeitar** (limites inclusivos). Valores no banco, iguais para todos os gates. O anel do frontend usa a mesma regra, inclusive no empate. A recomendação é sugestão; a transição registra recomendação e decisão. | `domain/entities/Gate.ts` (`consolidatedScore`, `recommendation`); `frontend/src/lib/gateReviews.ts` (`recommend`) com a mesma regra; testado: 7,0 → Aprovar, 4,0 → Revisar |
 
-### 1.3 Ainda a decidir
+### 1.3 Decisões tomadas em 05/11/2026
+
+| # | Decisão | Como ficou no código |
+|---|---|---|
+| **D15 · Cancelamento** | Autor, Gestor e Administrador podem cancelar, **só ideias ativas** (não aprovadas, rejeitadas ou já canceladas), com **justificativa obrigatória**. O cancelamento entra no histórico com quem cancelou, quando e o motivo. Rodadas abertas são encerradas: a ideia sai das filas e não pode mais ser designada, avaliada ou decidida. Exceção à D2/D12: o Admin cancela, mas segue sem decidir gates. | `CancelIdeaUserStory.ts`; colunas `cancelled_at`, `cancelled_by_id`, `cancellation_reason`; rodada `CANCELADA`; 409 em designar/avaliar/decidir |
+| **D16 · Engajamento fora do escopo** | Pontos, ranking e total no perfil saem desta entrega. | ENG-01 a 04 fora do escopo; GAT-24 fica só com a notificação |
+| **D17 · Recuperação de senha** | A tela informa se o e-mail não existe. **Risco de enumeração de contas aceito** para esta entrega. | `ResetPassword.tsx`, `password_reset_tokens` (Davi) |
+| **D18 · BPMN é o caminho feliz** | O BPMN novo mostra o caminho feliz. Ficam valendo o laço Revisar → nova rodada (D13) e o alerta de prazo vencido (GAT-11), mesmo que não apareçam no diagrama. | Sem mudança |
+| **D19 · Termos em pt-BR** | Termos do BPMN e da interface em português (ex.: "limite" em vez de *threshold*, "nova rodada" em vez de *Recycle*). O diagrama em si é imagem e é ajustado pelos autores. | Documento e interface |
+
+### 1.4 Ainda a decidir
 
 | # | Pergunta | Como está hoje |
 |---|---|---|
@@ -65,12 +75,11 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 | GAT-01 | E se o Gestor não abrir o G1? | A ideia fica em "Aguardando triagem", com o contador de dias parado |
 | SUB-07 | Gestor e Admin submetem ideias? | Avaliador sim (D1). Gestor e Admin não têm a tela |
 | ACO-06 | "Aprovada" no Mural é passar em qualquer gate ou chegar ao Lançamento? | Chegar ao Lançamento (coerente com D11) |
-| ADM-06 | Log das alterações de backoffice? | Não existe |
+| ADM-06 | Log das alterações de backoffice? (resposta "pode manter" em 05/11, a confirmar se é manter no escopo) | Não existe |
 | ADM-07 | Departamentos pela interface? | Fixos no frontend; o backend não guarda departamento |
-| ENG-02 | Pontos por colaboração em ideias alheias? | Não existe nada de colaboração |
 | Estágio 3 | Rótulo "Plano de Negócios" ou "Construção do Plano de Negócios"? | "Plano de Negócios" na interface |
 
-### 1.4 Divergências corrigidas
+### 1.5 Divergências corrigidas
 
 | # | Divergência | Critério de aceite | Situação |
 |---|---|---|---|
@@ -83,10 +92,14 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 | DIV-7 | Fila do Avaliador mostrava todas as ideias | Fila só com rodadas em que ele foi designado, com prazo | ✅ testado |
 | DIV-8 | "Solicitar revisão" aparecia no G1 e não fazia nada | Só para o autor, só G2–G5 ou após Revisar, fora de avaliação; abre a rodada | ✅ testado |
 | DIV-9 | Qualquer usuário listava e abria todas as ideias | Só o Gestor lista todas; demais veem as próprias e as do Mural; abrir uma ideia exige ser autor, Gestor ou avaliador designado | ✅ testado |
+| DIV-10 | Login de conta pendente contrariava a D10 | D10 revisada: pendente e recusada não fazem login | ✅ por decisão |
+| DIV-11 | Ideia cancelada voltava ao fluxo pelas rodadas abertas | Cancelar encerra as rodadas; designar, avaliar e decidir respondem 409; a ideia sai das filas | ✅ testado (22 cenários) |
 
 ---
 
 ## 2. Fluxo ponta a ponta (BPMN) e situação atual
+
+**O que mudou no BPMN de 05/11:** triagem e designação viraram uma tarefa só do Gestor (como já é a tela **Triagem e designação**); os avisos aparecem explicitamente como e-mail (o sistema envia e-mail e notificação interna); há um gateway de papel (RBAC) logo após o login; o Administrador monitora os painéis (KPIs só leitura). O diagrama mostra o caminho feliz (D18).
 
 ### 2.1 Pool "Avaliação de Ideias no Gate"
 
@@ -94,25 +107,26 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 |---|---|---|---|---|
 | 1 | Colaborador | Cria e submete a ideia (formulário + anexos) | ✅ Formulário com validação no front e na API · ⬜ anexos | — |
 | 2 | Sistema | Registra em Ideação e notifica o Gestor | ✅ | Aguardando triagem |
-| 3 | Gestor | Triagem e abertura do G1 | ✅ Tela **Triagem e designação** | Aguardando designação |
-| 4 | Gestor | Designa avaliadores (autor bloqueado) | ✅ Só avaliadores aprovados; autor recusado no backend; prazo começa a contar | Em avaliação |
-| 5 | Sistema | Notifica os designados | ✅ | — |
+| 3–4 | Gestor | Triagem, abertura do G1 e designação de avaliadores (autor bloqueado) | ✅ Tela **Triagem e designação**; só avaliadores aprovados; autor recusado no backend; prazo começa a contar | Aguardando designação → Em avaliação |
+| 5 | Sistema | Notifica os designados (e-mail) | ✅ Notificação interna e e-mail | — |
 | 6 | Avaliadores | Nota 0–10 e comentário por critério + justificativa | ✅ Só designados; critérios do gate; todas as notas obrigatórias; um parecer por rodada | Em avaliação |
 | 6a | Sistema | Prazo vencido → alerta e registra atraso | ✅ Rotina periódica registra o atraso no histórico e notifica; a avaliação continua aberta | — |
-| 7 | Sistema | Consolida, compara ao threshold, recomenda, notifica o Gestor | ✅ | Aguardando decisão |
+| 7 | Sistema | Consolida, compara ao limite, recomenda, notifica o Gestor | ✅ | Aguardando decisão |
 | 8 | Gestor | Analisa recomendação e pareceres, decide com justificativa | ✅ Tela **Decisão de Gate** | — |
-| 9 | Sistema | Registra a transição, atualiza estágio/status, notifica o autor, pontua | ✅ Transição imutável e notificação com feedback · ⬜ pontos | — |
+| 9 | Sistema | Registra a transição, atualiza estágio/status, notifica o autor (e-mail) | ✅ Transição imutável; notificação e e-mail com o feedback | — |
 | 10a | — | Rejeitar: arquiva, fim | ✅ | Encerrada |
 | 10b | Colaborador | Revisar: ajusta e solicita nova revisão (mesmo gate) | ✅ Edição livre; "Solicitar revisão" abre nova rodada | Em revisão → Aguardando designação |
 | 10c | Colaborador | Aprovar antes do G5: produz entregas e solicita o próximo gate | ✅ Avança; autor edita e solicita · ⬜ anexar entregas | Em andamento → Aguardando designação |
 | 10d | — | Aprovar no G5: Lançamento, fim | ✅ | Aprovada para lançamento |
+| — | Autor, Gestor ou Admin | Cancelar ideia ativa (fora do caminho feliz, D15) | ✅ Justificativa obrigatória; encerra rodadas; registra no histórico; avisa autor e avaliadores | Cancelada |
 
 ### 2.2 Pool "Backoffice"
 
 | Passo | Ator | O que o BPMN prevê | Situação |
 |---|---|---|---|
 | 11 | Administrador | Gerencia usuários e atribui papéis | ✅ Telas **Usuários** (troca de papel) e **Solicitações** (aprovar/recusar) |
-| 11 | Administrador | Mantém critérios, pesos, threshold e prazos | ⏸️ Fora da interface nesta entrega (D12); valores no banco |
+| 11 | Administrador | Monitora os painéis | ✅ **Indicadores** somente leitura |
+| 11 | Administrador | Mantém critérios, pesos, limites e prazos | ⏸️ Fora da interface nesta entrega (D12); valores no banco |
 | 12 | Sistema | Persiste e registra log | ✅ Persiste · ❓ log (ADM-06) |
 
 ### 2.3 Estágios, gates e critérios (no banco)
@@ -141,6 +155,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Enviar parecer | `POST /api/evaluations` | Avaliador designado |
 | Gates, critérios e limites | `GET /api/gates` | Qualquer usuário logado |
 | Histórico da ideia | `GET /api/ideas/:id/evaluations` · `GET /api/ideas/:id/gate-decisions` | Autor, Gestor, avaliadores designados |
+| Cancelar ideia (com justificativa) | `PATCH /api/ideas/:id/cancel` | Autor, Gestor, Administrador |
 | Usuários e papéis | `GET /api/users` · `PATCH /api/users/:id/role` | Administrador |
 | KPIs | `GET /api/ideas/metrics` | Gestor e Administrador |
 
@@ -192,6 +207,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | AUT-04 | RBAC com a matriz | ✅ FEITO | `ensureRole.ts`, `policies/ideaHistoryAccess.ts`, UserStories | Matriz da seção 3.12 aplicada e testada; Gestor/Admin submeterem ideias segue a decidir (SUB-07) |
 | AUT-05 | Rotas e menus por perfil no front | ✅ FEITO | `frontend/src/lib/navigation.ts` | Fonte única para menu e guarda de tela |
 | AUT-06 | Logout e token expirado | ✅ FEITO | `lib/auth.ts` | — |
+| AUT-07 | Recuperação de senha por e-mail | ✅ FEITO | `password_reset_tokens`, `EmailService` | Feito pelo Davi; enumeração de e-mail aceita (D17) |
 
 ### 3.5 Submissão de ideias
 
@@ -216,6 +232,14 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ACO-05 | "Solicitar revisão do gate" | ✅ FEITO | `IdeaDetail.tsx`, `OpenGateReviewUserStory.ts` | Notificar o Gestor entra com as notificações |
 | ACO-06 | Vitrine de aprovadas para todos | ❓ A DECIDIR | `ApprovedBoard.tsx` | Integrado e no menu dos 4 perfis; mostra quem chegou ao Lançamento |
 | ACO-07 | Próximo passo esperado | ✅ FEITO | `lib/ideas.ts` (`nextStep`), `IdeaDetail.tsx` | — |
+
+### 3.6.1 Cancelamento (D15)
+
+| ID | Item | Status | Evidência | Observação |
+|---|---|---|---|---|
+| CAN-01 | Autor, Gestor e Admin cancelam ideia ativa, com justificativa | ✅ FEITO | `CancelIdeaUserStory.ts`, `IdeaDetail.tsx` | 400 sem justificativa; 403 para outros; 409 para encerradas |
+| CAN-02 | Cancelar encerra as rodadas abertas | ✅ FEITO | `PrismaGateReviewRepository.cancelOpenForIdea`, Assign/Submit/Decide | Sai das filas; designar, avaliar e decidir respondem 409; migração encerrou rodadas de ideias já canceladas |
+| CAN-03 | Histórico com quem cancelou, quando e por quê | ✅ FEITO | `ideas.cancelled_*`, `toIdea` (timeline) | Banner no detalhe; avisa autor (se foi outra pessoa) e avaliadores designados |
 
 ### 3.7 Funil (Gestor)
 
@@ -254,7 +278,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | GAT-21 | Aprovar avança; G5 → Lançamento | ✅ FEITO | `DecideGateUserStory.ts` | D11 |
 | GAT-22 | Revisar | ✅ FEITO | `DecideGateUserStory.ts` | — |
 | GAT-23 | Rejeitar arquiva e preserva histórico | ✅ FEITO | `DecideGateUserStory.ts` | Sem exclusão (D12) |
-| GAT-24 | Notificar o autor e lançar pontos | 🟡 PARCIAL | `services/Notifier.ts` | Notificação com o feedback pronta; faltam os pontos (engajamento) |
+| GAT-24 | Notificar o autor | ✅ FEITO | `services/Notifier.ts` | Notificação e e-mail com o feedback; pontos fora do escopo (D16) |
 | GAT-25 | Ciclo nos 5 gates com nova rodada | ✅ FEITO | roteiro de teste pela API | G1→G5 com Revisar e Rejeitar |
 
 ### 3.9 Notificações
@@ -266,15 +290,16 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | NOT-03 | Gestor: ideia nova, solicitação, gate pronto, atraso | ✅ FEITO |
 | NOT-04 | Avaliador: designação, prazo vencido | ✅ FEITO |
 | NOT-05 | Link para o item | ✅ FEITO |
+| NOT-06 | E-mail nos mesmos gatilhos (BPMN de 05/11) | ✅ FEITO (Davi: `EmailService`, nodemailer) |
 
-### 3.10 Engajamento
+### 3.10 Engajamento (fora do escopo — D16)
 
-| ID | Item | Status | Observação |
-|---|---|---|---|
-| ENG-01 | Pontos por submissão e aprovação | ⬜ PENDENTE | — |
-| ENG-02 | Pontos por colaboração | ❓ A DECIDIR | Nada no código |
-| ENG-03 | Ranking interno | ⬜ PENDENTE | — |
-| ENG-04 | Total de pontos no perfil | ⬜ PENDENTE | — |
+| ID | Item | Status |
+|---|---|---|
+| ENG-01 | Pontos por submissão e aprovação | ⏸️ FORA DO ESCOPO |
+| ENG-02 | Pontos por colaboração | ⏸️ FORA DO ESCOPO |
+| ENG-03 | Ranking interno | ⏸️ FORA DO ESCOPO |
+| ENG-04 | Total de pontos no perfil | ⏸️ FORA DO ESCOPO |
 
 ### 3.11 KPIs (Gestor; Admin só leitura — D12)
 
@@ -315,6 +340,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Histórico detalhado de uma ideia | autor | designado | ✅ | — |
 | KPIs | — | — | ✅ | ✅ (leitura) |
 | Usuários e papéis | — | — | — | ✅ |
+| Cancelar ideia ativa, com justificativa (D15) | autor | autor | ✅ | ✅ |
 | Excluir ideias | — | — | — | — (ninguém) |
 
 ### 3.13 Frontend
@@ -322,7 +348,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | FRO-01 | Inventário das telas | ✅ FEITO | seção 3.13.1 | — |
-| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam ranking e anexos |
+| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam anexos |
 | FRO-03 | Cliente da API | 🟡 PARCIAL | `lib/api.ts` | URL por env, JWT, 401 → login; sem 403 central nem erros por campo |
 | FRO-04 | Mocks substituídos | ✅ FEITO | `frontend/src/data.ts` | Nenhuma tela usa dados de exemplo; `data.ts` ficou só com os departamentos |
 | FRO-05 | Assinaturas visuais | 🟡 PARCIAL | `components/` | Real Funnel, Verdict Ring, Weighted Sliders, Stage Weight e Gate Aging com dados reais; faltam os marcadores de gate no Gate Rail |
@@ -346,8 +372,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Indicadores | `screens/KPIDashboard.tsx` | Gestor, Admin (leitura) | ✅ API |
 | Usuários | `screens/UsersAdmin.tsx` | Admin | ✅ API |
 | Solicitações de acesso | `screens/ApprovalRequests.tsx` | Admin | ✅ API |
-| Notificações (sino) | `components/NotificationBell.tsx` | Todos | ✅ API |
-| Ranking | — | — | ⬜ Não existe |
+| Notificações (sino, limpar) | `components/NotificationBell.tsx` | Todos | ✅ API |
+| Recuperar senha (pedido no login, nova senha) | `screens/Login.tsx`, `screens/ResetPassword.tsx` | — | ✅ API |
 
 ### 3.14 Testes (só se houver tempo)
 
@@ -387,6 +413,10 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Nota do parecer calculada no backend | `SubmitEvaluationUserStory.ts` | O front não consegue enviar uma nota diferente da ponderada |
 | Visibilidade de ideias (só Gestor lista todas) | `ListIdeasUserStory.ts`, `GetIdeaByIdUserStory.ts` | DIV-9 |
 | `authorId` imutável e autor vindo do token | `IdeaController.ts`, `UpdateIdeaController.ts` | — |
+| E-mails transacionais (nodemailer) | `EmailService` | Davi; agora explícito no BPMN (NOT-06) |
+| Recuperação de senha | `password_reset_tokens` | Davi (AUT-07) |
+| Filtros e "limpar notificações" | `KanbanFunnel.tsx`, `NotificationBell.tsx` | Davi |
+| Nova identidade visual (logo) | `Login.tsx`, `Sidebar.tsx` | Davi |
 
 ---
 
@@ -395,12 +425,11 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Bloco | Itens | Depende de |
 |---|---|---|
 | **C · Anexos e entregas** | SUB-02, 04 · ACO-02, 04 · INF-04 · DER-01 (`attachments`) | Nada |
-| **D · Engajamento** | ENG-01, 03, 04 · GAT-24 (pontos) | Notificações (prontas): mesmos gatilhos |
-| **E · Departamento** | AUT-01 · ADM-01 · DER-05 · FUN-03 · SEED-01 | Decidir ADM-07 |
-| **F · Acabamento** | GAT-07 · SUB-05 · FRO-02, 03, 05, 07 · INF-05 | — |
-| **G · Documento do TCC** | DOC-01 a 10 | Blocos A–F |
+| **E · Departamento** | AUT-01 · ADM-01 · DER-05 · SEED-01 | Decidir ADM-07 |
+| **F · Acabamento** | GAT-07 · SUB-05 · FRO-02, 03, 05 · INF-05 | — |
+| **G · Documento do TCC** | DOC-01 a 10 (incluir D15–D19 e o BPMN de 05/11) | Blocos C–F |
 | *Se houver tempo* | SEED-02, 05 · TST-01 a 06 | — |
-| *A decidir* | GAT-12 · SUB-07 · ACO-06 · ADM-06, 07 · ENG-02 · FRO-08 · rótulo do estágio 3 | Autores |
+| *A decidir* | GAT-12 · SUB-07 · ACO-06 · ADM-06, 07 · FRO-08 · rótulo do estágio 3 | Autores |
 
 ---
 
@@ -412,10 +441,11 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 |---|---|---|---|---|
 | 1 | 27/10 – 02/11 | ✅ Funil real e painel de KPIs com dados reais e filtro de período (entregue em 26/10) | Bloco A | Gestor vê o funil e os KPIs reais |
 | 2 | 03/11 – 09/11 | ✅ Notificações (tabela, sino, gatilhos do BPMN) e alerta de prazo registrado no histórico (entregue em 26/10) | Bloco B | Cada perfil recebe as suas notificações |
-| 3 | 10/11 – 16/11 | Anexos e entregas; pontos e ranking; departamento no cadastro | Blocos C, D, E | **Levantamento intermediário** |
-| 4 | 17/11 – 23/11 | Acabamento visual; alinhamento do TCC; seed e testes se houver tempo | Blocos F, G | **Levantamento final** |
+| 2b | 03/11 – 09/11 | ✅ Cancelamento com registro e encerramento das rodadas (05/11); departamento no cadastro e anexos | CAN, Blocos E, C | **Levantamento intermediário** |
+| 3 | 10/11 – 16/11 | Acabamento; alinhamento do TCC | Blocos F, G | **Levantamento final** |
+| 4 | 17/11 – 23/11 | Folga; seed e testes se houver tempo | — | — |
 
-**Premissas:** semanas começando em 27/10/2026; a branch `feat-avanco-da-integracao` é mergeada na `dev` ao fim de cada semana. Se faltar tempo, a ordem de corte é: anexos (C) → engajamento (D) → acabamento (F); notificações e KPIs ficam, porque estão no BPMN e no Módulo 6.
+**Premissas:** a branch `feat-go-boys` é mergeada na `dev` só após validação dos autores. Com o engajamento fora do escopo (D16), o cronograma encolhe uma semana. Se faltar tempo, a ordem de corte é: acabamento (F) → anexos (C).
 
 ---
 
@@ -434,3 +464,6 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | 26/10/2026 | Telas: Triagem e designação, Decisão de Gate integrada, Usuários, edição da ideia, próximo passo | GAT-01, 03, 16, ACO-04, 07, ADM-02 |
 | 26/10/2026 | Bloco A: funil e indicadores com dados reais, filtro de período, Gate Aging pela última movimentação; dados de exemplo removidos | FUN-01, 02, 03, 05, KPI-01 a 06, FRO-04, FRO-07 |
 | 26/10/2026 | Bloco B: notificações (sino, gatilhos do BPMN, links) e rotina de prazo vencido com registro no histórico | NOT-01 a 05, GAT-05, 11, 15, SUB-06 |
+| até 04/11/2026 | Davi (outras branches): e-mails, recuperação de senha, filtros, limpar notificações, logo, cancelamento inicial, login bloqueia pendentes | NOT-06, AUT-07, D10 |
+| 05/11/2026 | Decisões D15–D19; BPMN de 05/11 conferido; engajamento fora do escopo | ENG-01 a 04, GAT-24 |
+| 05/11/2026 | Cancelamento: justificativa, registro no histórico, rodadas encerradas, guardas no fluxo (22 cenários pela API) | CAN-01 a 03, DIV-11 |
