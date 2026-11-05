@@ -21,7 +21,7 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 77 | 12 | 10 | 0 | 6 | 5 |
+| 83 | 8 | 8 | 0 | 6 | 5 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -105,7 +105,7 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 
 | Passo | Ator | O que o BPMN prevê | Situação | Status da ideia |
 |---|---|---|---|---|
-| 1 | Colaborador | Cria e submete a ideia (formulário + anexos) | ✅ Formulário com validação no front e na API · ⬜ anexos | — |
+| 1 | Colaborador | Cria e submete a ideia (formulário + anexos) | ✅ Formulário e anexos, com validação no front e na API | — |
 | 2 | Sistema | Registra em Ideação e notifica o Gestor | ✅ | Aguardando triagem |
 | 3–4 | Gestor | Triagem, abertura do G1 e designação de avaliadores (autor bloqueado) | ✅ Tela **Triagem e designação**; só avaliadores aprovados; autor recusado no backend; prazo começa a contar | Aguardando designação → Em avaliação |
 | 5 | Sistema | Notifica os designados (e-mail) | ✅ Notificação interna e e-mail | — |
@@ -116,7 +116,7 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
 | 9 | Sistema | Registra a transição, atualiza estágio/status, notifica o autor (e-mail) | ✅ Transição imutável; notificação e e-mail com o feedback | — |
 | 10a | — | Rejeitar: arquiva, fim | ✅ | Encerrada |
 | 10b | Colaborador | Revisar: ajusta e solicita nova revisão (mesmo gate) | ✅ Edição livre; "Solicitar revisão" abre nova rodada | Em revisão → Aguardando designação |
-| 10c | Colaborador | Aprovar antes do G5: produz entregas e solicita o próximo gate | ✅ Avança; autor edita e solicita · ⬜ anexar entregas | Em andamento → Aguardando designação |
+| 10c | Colaborador | Aprovar antes do G5: produz entregas e solicita o próximo gate | ✅ Avança; autor edita, anexa entregas e solicita | Em andamento → Aguardando designação |
 | 10d | — | Aprovar no G5: Lançamento, fim | ✅ | Aprovada para lançamento |
 | — | Autor, Gestor ou Admin | Cancelar ideia ativa (fora do caminho feliz, D15) | ✅ Justificativa obrigatória; encerra rodadas; registra no histórico; avisa autor e avaliadores | Cancelada |
 
@@ -156,6 +156,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Gates, critérios e limites | `GET /api/gates` | Qualquer usuário logado |
 | Histórico da ideia | `GET /api/ideas/:id/evaluations` · `GET /api/ideas/:id/gate-decisions` | Autor, Gestor, avaliadores designados |
 | Cancelar ideia (com justificativa) | `PATCH /api/ideas/:id/cancel` | Autor, Gestor, Administrador |
+| Anexos: enviar · listar · baixar | `POST /api/ideas/:id/attachments` (multipart `files`) · `GET /api/ideas/:id/attachments` · `GET /api/ideas/:id/attachments/:attachmentId/download` | Autor envia (fora de avaliação) · quem vê a ideia lista e baixa |
 | Usuários e papéis | `GET /api/users` · `PATCH /api/users/:id/role` | Administrador |
 | KPIs | `GET /api/ideas/metrics` | Gestor e Administrador |
 
@@ -170,14 +171,14 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | INF-01 | `docker-compose.yml` sobe o PostgreSQL; projeto roda pelo README | ✅ FEITO | `docker-compose.yml`, `README.md` | Banco `mindvance`, porta configurável |
 | INF-02 | Nenhuma referência a nuvem | ✅ FEITO | busca no repositório | — |
 | INF-03 | Nome MindVance visível | ✅ FEITO | `Login.tsx`, `Sidebar.tsx`, `site.json`, `package.json`, README | Sobra só o prompt histórico em `frontend/src/imports/` |
-| INF-04 | `.env.example` com banco, JWT e limite de upload | 🟡 PARCIAL | `backend/.env.example` | Falta o limite de upload (entra com anexos) |
+| INF-04 | `.env.example` com banco, JWT e limite de upload | ✅ FEITO | `backend/.env.example` | `UPLOAD_DIR` e `UPLOAD_MAX_MB` (10 MB) |
 | INF-05 | Erros padronizados, mensagens por campo | 🟡 PARCIAL | `backend/src/presentation/http.ts` (`sendError`) | Formato `{ error }` e status por mensagem nas rotas novas; sem erro por campo; mensagens em inglês |
 
 ### 3.2 Modelo de dados
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| DER-01 | Entidades do DER | 🟡 PARCIAL | `backend/prisma/schema.prisma` | Existem `users`, `ideas`, `gates`, `gate_criteria`, `gate_reviews` (rodadas), `gate_review_evaluators` (designação), `evaluations` (≈ `gate_evaluations`), `gate_decisions` (≈ `stage_transitions`) e `notifications`. Faltam `departments`, `stages` (enum), `attachments`, `engagement_points`; notas por critério em JSON, não em tabela |
+| DER-01 | Entidades do DER | 🟡 PARCIAL | `backend/prisma/schema.prisma` | Existem `users`, `ideas`, `gates`, `gate_criteria`, `gate_reviews` (rodadas), `gate_review_evaluators` (designação), `evaluations` (≈ `gate_evaluations`), `gate_decisions` (≈ `stage_transitions`) e `notifications`. `attachments` criada em 05/11. Faltam `departments` e `stages` (enum); `engagement_points` fora do escopo (D16); notas por critério em JSON, não em tabela |
 | DER-02 | Quatro papéis | ✅ FEITO | enum `UserRole` | — |
 | DER-03 | `gates` com prazo e threshold | ✅ FEITO | modelo `Gate` | `deadlineDays`, `approveThreshold`, `reviseThreshold` |
 | DER-04 | `gate_criteria` por gate, pesos somando 100 | ✅ FEITO | modelo `GateCriterion`, migration `20261026232000` | Sem validação de soma porque não há edição pela interface (D12) |
@@ -214,9 +215,9 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | SUB-01 | Formulário completo | ✅ FEITO | `NewIdea.tsx` | — |
-| SUB-02 | Anexos em `attachments` | ⬜ PENDENTE | — | — |
+| SUB-02 | Anexos em `attachments` | ✅ FEITO | `IdeaAttachmentsUserStory.ts`, `NewIdea.tsx` | Arquivo em disco; até 5 por envio, 10 MB cada; imagens, PDF, Office, texto, zip |
 | SUB-03 | UC01 FA01: obrigatórios por campo | ✅ FEITO | `NewIdea.tsx`, `CreateIdeaUserStorie.ts` | Front e API validam |
-| SUB-04 | UC01 FA02: anexo inválido sem perder campos | ⬜ PENDENTE | — | Depende de SUB-02 |
+| SUB-04 | UC01 FA02: anexo inválido sem perder campos | ✅ FEITO | `lib/attachments.ts` (`validateFiles`), `uploadAttachments.ts` | Recusado na escolha (front) e no envio (400); campos e demais arquivos preservados |
 | SUB-05 | Redireciona para "Minhas ideias" | 🟡 PARCIAL | `NewIdea.tsx` | Tela de sucesso com botão "Ver minhas ideias" |
 | SUB-06 | Registra em Ideação e notifica o Gestor | ✅ FEITO | `CreateIdeaUserStorie.ts`, `Notifier.ideaSubmitted` | — |
 | SUB-07 | Avaliador submete; Gestor/Admin a decidir | ❓ A DECIDIR | `lib/navigation.ts` | Avaliador sim |
@@ -226,9 +227,9 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | ACO-01 | "Minhas ideias" com estágio e status | ✅ FEITO | `MyIdeas.tsx` | — |
-| ACO-02 | Detalhe com conteúdo, anexos e timeline | 🟡 PARCIAL | `IdeaDetail.tsx` | Timeline com submissão, abertura de cada gate, pareceres, prazo vencido e decisões, por gate e rodada; faltam anexos |
+| ACO-02 | Detalhe com conteúdo, anexos e timeline | ✅ FEITO | `IdeaDetail.tsx`, `AttachmentsPanel.tsx` | Timeline por gate e rodada; anexos agrupados por estágio, com download |
 | ACO-03 | Pontos a ajustar em destaque em Revisar | ✅ FEITO | `IdeaDetail.tsx` | — |
-| ACO-04 | Editar a ideia e anexar entregas | 🟡 PARCIAL | `IdeaDetail.tsx` (`EditIdeaForm`), `UpdateIdeaUserStory.ts` | Edição pronta (D13); falta anexar entregas |
+| ACO-04 | Editar a ideia e anexar entregas | ✅ FEITO | `IdeaDetail.tsx`, `AttachmentsPanel.tsx` | Autor anexa nos mesmos status em que edita (fora de avaliação); a entrega fica marcada com o estágio |
 | ACO-05 | "Solicitar revisão do gate" | ✅ FEITO | `IdeaDetail.tsx`, `OpenGateReviewUserStory.ts` | Notificar o Gestor entra com as notificações |
 | ACO-06 | Vitrine de aprovadas para todos | ❓ A DECIDIR | `ApprovedBoard.tsx` | Integrado e no menu dos 4 perfis; mostra quem chegou ao Lançamento |
 | ACO-07 | Próximo passo esperado | ✅ FEITO | `lib/ideas.ts` (`nextStep`), `IdeaDetail.tsx` | — |
@@ -261,7 +262,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | GAT-04 | Autor não pode ser designado (backend) | ✅ FEITO | `AssignEvaluatorsUserStory.ts` | Testado |
 | GAT-05 | Notificar os designados | ✅ FEITO | `services/Notifier.ts` | Com o prazo na mensagem |
 | GAT-06 | Fila só dos designados, com prazo | ✅ FEITO | `GetEvaluationQueueUserStory.ts`, `GateEvaluation.tsx` | — |
-| GAT-07 | Tela de avaliação com conteúdo e histórico ao lado | 🟡 PARCIAL | `GateEvaluation.tsx` | Conteúdo, critérios com descrição, peso, comentário e justificativa; falta o histórico ao lado |
+| GAT-07 | Tela de avaliação com conteúdo e histórico ao lado | 🟡 PARCIAL | `GateEvaluation.tsx` | Conteúdo, anexos, critérios com descrição, peso, comentário e justificativa; falta o histórico ao lado |
 | GAT-08 | UC02 FA01: bloquear sem nota ou sem justificativa | ✅ FEITO | `GateEvaluation.tsx`, `SubmitEvaluationUserStory.ts` | Notas começam vazias |
 | GAT-09 | Um parecer por rodada; só designados | ✅ FEITO | `SubmitEvaluationUserStory.ts` | Parecer não é editável |
 | GAT-10 | Verdict Ring com a regra do backend | ✅ FEITO | `VerdictRing.tsx`, `lib/gateReviews.ts` | Empate correto; mostra até 2 casas |
@@ -348,7 +349,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
 | FRO-01 | Inventário das telas | ✅ FEITO | seção 3.13.1 | — |
-| FRO-02 | Telas por perfil | 🟡 PARCIAL | seção 3.13.1 | Faltam anexos |
+| FRO-02 | Telas por perfil | ✅ FEITO | seção 3.13.1 | — |
 | FRO-03 | Cliente da API | 🟡 PARCIAL | `lib/api.ts` | URL por env, JWT, 401 → login; sem 403 central nem erros por campo |
 | FRO-04 | Mocks substituídos | ✅ FEITO | `frontend/src/data.ts` | Nenhuma tela usa dados de exemplo; `data.ts` ficou só com os departamentos |
 | FRO-05 | Assinaturas visuais | 🟡 PARCIAL | `components/` | Real Funnel, Verdict Ring, Weighted Sliders, Stage Weight e Gate Aging com dados reais; faltam os marcadores de gate no Gate Rail |
@@ -424,10 +425,9 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | Bloco | Itens | Depende de |
 |---|---|---|
-| **C · Anexos e entregas** | SUB-02, 04 · ACO-02, 04 · INF-04 · DER-01 (`attachments`) | Nada |
 | **E · Departamento** | ✅ AUT-01, ADM-01 (05/11) · resta DER-05 (área da ideia em JSONB) e SEED-01 | Decidir ADM-07 |
-| **F · Acabamento** | GAT-07 · SUB-05 · FRO-02, 03, 05 · INF-05 | — |
-| **G · Documento do TCC** | DOC-01 a 10 (incluir D15–D19 e o BPMN de 05/11) | Blocos C–F |
+| **F · Acabamento** | GAT-07 · SUB-05 · FRO-03, 05 · INF-05 | — |
+| **G · Documento do TCC** | DOC-01 a 10 (incluir D15–D19, o BPMN de 05/11 e a tabela `attachments` no DER) | Bloco F |
 | *Se houver tempo* | SEED-02, 05 · TST-01 a 06 | — |
 | *A decidir* | GAT-12 · SUB-07 · ACO-06 · ADM-06, 07 · FRO-08 · rótulo do estágio 3 | Autores |
 
@@ -441,7 +441,7 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 |---|---|---|---|---|
 | 1 | 27/10 – 02/11 | ✅ Funil real e painel de KPIs com dados reais e filtro de período (entregue em 26/10) | Bloco A | Gestor vê o funil e os KPIs reais |
 | 2 | 03/11 – 09/11 | ✅ Notificações (tabela, sino, gatilhos do BPMN) e alerta de prazo registrado no histórico (entregue em 26/10) | Bloco B | Cada perfil recebe as suas notificações |
-| 2b | 03/11 – 09/11 | ✅ Cancelamento com registro e encerramento das rodadas (05/11); departamento no cadastro e anexos | CAN, Blocos E, C | **Levantamento intermediário** |
+| 2b | 03/11 – 09/11 | ✅ Cancelamento, departamento no cadastro e anexos (05/11) | CAN, Blocos E, C | **Levantamento intermediário** |
 | 3 | 10/11 – 16/11 | Acabamento; alinhamento do TCC | Blocos F, G | **Levantamento final** |
 | 4 | 17/11 – 23/11 | Folga; seed e testes se houver tempo | — | — |
 
@@ -468,3 +468,4 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | 05/11/2026 | Decisões D15–D19; BPMN de 05/11 conferido; engajamento fora do escopo | ENG-01 a 04, GAT-24 |
 | 05/11/2026 | Cancelamento: justificativa, registro no histórico, rodadas encerradas, guardas no fluxo (22 cenários pela API) | CAN-01 a 03, DIV-11 |
 | 05/11/2026 | Departamento do colaborador salvo no cadastro, exibido ao Admin e sugerido na nova ideia | AUT-01, ADM-01 |
+| 05/11/2026 | Bloco C: anexos na submissão, entregas por estágio, download, limites e FA02 (17 cenários pela API) | SUB-02, 04, ACO-02, 04, INF-04, FRO-02 |
