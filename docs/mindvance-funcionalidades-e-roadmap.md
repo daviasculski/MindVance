@@ -21,7 +21,7 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 75 | 14 | 10 | 0 | 6 | 5 |
+| 77 | 12 | 10 | 0 | 6 | 5 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -201,7 +201,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| AUT-01 | Cadastro (substituído por D10) | 🟡 PARCIAL | `CreateUserUserStory.ts`, `User.effectiveRole`, `Login.tsx` | Conforme D10, mas o departamento ainda não é salvo |
+| AUT-01 | Cadastro (substituído por D10) | ✅ FEITO | `CreateUserUserStory.ts`, `User.effectiveRole`, `Login.tsx` | Conforme D10; departamento salvo em `users.department`, obrigatório só para Colaborador |
 | AUT-02 | Login bcrypt + JWT com id e papel | ✅ FEITO | `LoginUserStory.ts` | JWT com o papel efetivo |
 | AUT-03 | Middleware JWT | ✅ FEITO | `ensureAuthenticated.ts` | Relê o papel no banco a cada requisição |
 | AUT-04 | RBAC com a matriz | ✅ FEITO | `ensureRole.ts`, `policies/ideaHistoryAccess.ts`, UserStories | Matriz da seção 3.12 aplicada e testada; Gestor/Admin submeterem ideias segue a decidir (SUB-07) |
@@ -316,7 +316,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Evidência | Observação |
 |---|---|---|---|---|
-| ADM-01 | Lista de usuários | 🟡 PARCIAL | `UsersAdmin.tsx`, `GET /users` | Nome, e-mail, papel e pedido; falta departamento |
+| ADM-01 | Lista de usuários | ✅ FEITO | `UsersAdmin.tsx`, `GET /users` | Nome, e-mail, departamento, papel e pedido |
 | ADM-02 | Atribuição de papel (substituído por D10) | ✅ FEITO | `UsersAdmin.tsx`, `ApprovalRequests.tsx` | Aprovar/recusar pedido e trocar papel de qualquer usuário |
 | ADM-03 | Configurar critérios, pesos, threshold e prazo | ⏸️ FORA DO ESCOPO | migration `20261026232000` | D12: valores no banco, sem interface |
 | ADM-04 | Mudança de critérios não altera avaliações | ✅ FEITO | `evaluations.criteria` | Nome e peso copiados no envio |
@@ -425,7 +425,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Bloco | Itens | Depende de |
 |---|---|---|
 | **C · Anexos e entregas** | SUB-02, 04 · ACO-02, 04 · INF-04 · DER-01 (`attachments`) | Nada |
-| **E · Departamento** | AUT-01 · ADM-01 · DER-05 · SEED-01 | Decidir ADM-07 |
+| **E · Departamento** | ✅ AUT-01, ADM-01 (05/11) · resta DER-05 (área da ideia em JSONB) e SEED-01 | Decidir ADM-07 |
 | **F · Acabamento** | GAT-07 · SUB-05 · FRO-02, 03, 05 · INF-05 | — |
 | **G · Documento do TCC** | DOC-01 a 10 (incluir D15–D19 e o BPMN de 05/11) | Blocos C–F |
 | *Se houver tempo* | SEED-02, 05 · TST-01 a 06 | — |
@@ -467,3 +467,4 @@ O núcleo do fluxo, que era a maior parte do cronograma anterior (fundação, ba
 | até 04/11/2026 | Davi (outras branches): e-mails, recuperação de senha, filtros, limpar notificações, logo, cancelamento inicial, login bloqueia pendentes | NOT-06, AUT-07, D10 |
 | 05/11/2026 | Decisões D15–D19; BPMN de 05/11 conferido; engajamento fora do escopo | ENG-01 a 04, GAT-24 |
 | 05/11/2026 | Cancelamento: justificativa, registro no histórico, rodadas encerradas, guardas no fluxo (22 cenários pela API) | CAN-01 a 03, DIV-11 |
+| 05/11/2026 | Departamento do colaborador salvo no cadastro, exibido ao Admin e sugerido na nova ideia | AUT-01, ADM-01 |
