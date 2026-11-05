@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Image, Layers, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2, Ban } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2, Ban } from "lucide-react";
 import type { Idea, Role, TimelineEntry } from "../types";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
@@ -7,6 +7,7 @@ import StatusBadge from "../components/StatusBadge";
 import DeptTag from "../components/DeptTag";
 import GateRail from "../components/GateRail";
 import GateAgingBadge from "../components/GateAgingBadge";
+import AttachmentsPanel from "../components/AttachmentsPanel";
 import { rejectionFeedback } from "../lib/ideaVisuals";
 import { gateForStage } from "../lib/gates";
 import { ApiError } from "../lib/api";
@@ -378,45 +379,15 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               </>
             )}
 
-            {/* Attachments */}
-            {idea.attachments.length > 0 && (
-              <div className="mt-6">
-                <div
-                  style={{
-                    color: "#6E6E73",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    marginBottom: 10,
-                  }}
-                >
-                  Anexos ({idea.attachments.length})
-                </div>
-                <div className="flex flex-col gap-2">
-                  {idea.attachments.map((att) => (
-                    <div
-                      key={att.id}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 card-soft"
-                      style={{ background: "#FFFFFF" }}
-                    >
-                      {att.type === "image" ? (
-                        <Image size={16} style={{ color: "#3B82F6" }} />
-                      ) : att.type === "prototype" ? (
-                        <Layers size={16} style={{ color: "#8B7CF6" }} />
-                      ) : (
-                        <FileText size={16} style={{ color: "#2DD4BF" }} />
-                      )}
-                      <div>
-                        <div style={{ color: "#1D1D1F", fontSize: 13 }}>
-                          {att.name}
-                        </div>
-                        <div style={{ color: "#AEAEB2", fontSize: 11 }}>{att.size}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+            {live && (
+              <AttachmentsPanel
+                ideaId={idea.id}
+                token={live.token}
+                onSessionExpired={live.onSessionExpired}
+                canAttach={canEdit}
+                stage={idea.stage}
+              />
+            )}          </div>
 
           {/* Timeline */}
           <div>

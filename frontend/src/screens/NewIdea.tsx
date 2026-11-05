@@ -1,10 +1,18 @@
 import { useState } from "react";
-import { Upload, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Upload, AlertCircle, CheckCircle2, X, Paperclip } from "lucide-react";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
 import GateRail from "../components/GateRail";
 import { ApiError } from "../lib/api";
 import { createIdea, stageFromApi, type ApiIdea } from "../lib/ideas";
+import {
+  ALLOWED_EXTENSIONS,
+  MAX_FILE_MB,
+  MAX_FILES_PER_UPLOAD,
+  formatSize,
+  uploadAttachments,
+  validateFiles,
+} from "../lib/attachments";
 
 interface NewIdeaProps {
   token: string;
@@ -19,6 +27,10 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
   const [submitted, setSubmitted] = useState<ApiIdea | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [files, setFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string | null>(null);
+  /** A ideia foi criada, mas o envio dos anexos falhou */
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     title: "",
@@ -53,15 +65,43 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
     setErrors({});
   }
 
+  // UC01 FA02: arquivo inválido é recusado aqui, sem perder os campos nem os outros arquivos
+  function addFiles(list: FileList | null) {
+    const picked = Array.from(list ?? []);
+    if (picked.length === 0) return;
+    const next = [...files, ...picked];
+    const invalid = validateFiles(next);
+    if (invalid) {
+      setFileError(invalid);
+      return;
+    }
+    setFileError(null);
+    setFiles(next);
+  }
+
   async function handleSubmit() {
     // Garante a validação mesmo se o usuário voltou ao passo 1 e apagou algo
     const e = validateStep1();
     if (Object.keys(e).length > 0) { setErrors(e); setStep(1); return; }
 
+    if (validateFiles(files)) return;
+
     setLoading(true);
     setErrors({});
+    setUploadWarning(null);
     try {
-      setSubmitted(await createIdea(form, token));
+      const created = await createIdea(form, token);
+      if (files.length > 0) {
+        try {
+          await uploadAttachments(created.id, files, token);
+        } catch (err) {
+          setUploadWarning(
+            `A ideia foi submetida, mas os anexos não foram enviados (${err instanceof Error ? err.message : "erro inesperado"}). Anexe-os pelo detalhe da ideia.`,
+          );
+        }
+      }
+      setSubmitted(created);
+      setFiles([]);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
         onSessionExpired();
@@ -90,6 +130,16 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
           <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
             Sua ideia entrou no estágio <span style={{ color: "#B6790A", fontWeight: 600 }}>{stage}</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
           </p>
+          {uploadWarning && (
+            <div
+              className="mt-4 flex items-start gap-1.5 rounded-xl px-3 py-2.5 text-left"
+              style={{ color: "#8A5A00", fontSize: 12.5, background: "rgba(245,158,11,0.12)" }}
+              role="alert"
+            >
+              <AlertCircle size={13} style={{ marginTop: 2, flexShrink: 0 }} />
+              {uploadWarning}
+            </div>
+          )}
           <div
             className="mt-6 p-4 text-left rounded-2xl card-soft"
             style={{ background: "#FFFFFF" }}
@@ -285,24 +335,52 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                 <label style={{ color: "#6E6E73", fontSize: 12.5, fontWeight: 500, marginBottom: 8, display: "block" }}>
                   Anexos (opcional)
                 </label>
-                {/* O backend ainda não recebe arquivos: área desabilitada até existir upload */}
-                <div
+                <label
                   className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 py-8"
-                  style={{
-                    background: "#F5F5F7",
-                    border: "1.5px dashed #D2D2D7",
-                    color: "#AEAEB2",
-                    opacity: 0.7,
-                  }}
+                  style={{ background: "#F5F5F7", border: "1.5px dashed #D2D2D7", color: "#AEAEB2", cursor: "pointer" }}
                 >
-                  <Upload size={22} style={{ color: "#D2D2D7" }} />
-                  <span style={{ fontSize: 13, color: "#6E6E73" }}>
-                    Envio de anexos em breve
-                  </span>
+                  <input
+                    type="file"
+                    multiple
+                    accept={ALLOWED_EXTENSIONS.join(",")}
+                    className="hidden"
+                    onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
+                  />
+                  <Upload size={22} style={{ color: "#B6790A" }} />
+                  <span style={{ fontSize: 13, color: "#6E6E73" }}>Clique para escolher arquivos</span>
                   <span style={{ fontSize: 11, color: "#AEAEB2" }}>
-                    Imagens, PDFs, Figma, protótipos
+                    Imagens, PDF, Office, texto ou .zip · até {MAX_FILES_PER_UPLOAD} arquivos de {MAX_FILE_MB} MB
                   </span>
-                </div>
+                </label>
+                {fileError && (
+                  <div className="mt-2 flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }} role="alert">
+                    <AlertCircle size={12} />
+                    {fileError}
+                  </div>
+                )}
+                {files.length > 0 && (
+                  <div className="mt-3 flex flex-col gap-2">
+                    {files.map((file, i) => (
+                      <div
+                        key={`${file.name}-${i}`}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2"
+                        style={{ background: "#FFFFFF", border: "1px solid #E5E5EA" }}
+                      >
+                        <Paperclip size={13} style={{ color: "#AEAEB2" }} />
+                        <span className="truncate flex-1" style={{ fontSize: 12.5, color: "#1D1D1F" }}>{file.name}</span>
+                        <span style={{ fontSize: 11, color: "#AEAEB2" }}>{formatSize(file.size)}</span>
+                        <button
+                          type="button"
+                          aria-label={`Remover ${file.name}`}
+                          onClick={() => { setFiles((list) => list.filter((_, j) => j !== i)); setFileError(null); }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#AEAEB2", padding: 2 }}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Summary */}

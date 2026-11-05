@@ -5,6 +5,7 @@ import GateRail from "../components/GateRail";
 import DeptTag from "../components/DeptTag";
 import VerdictRing from "../components/VerdictRing";
 import WeightedSlider from "../components/WeightedSlider";
+import AttachmentsPanel from "../components/AttachmentsPanel";
 import { ApiError } from "../lib/api";
 import { gateForStage } from "../lib/gates";
 import {
@@ -196,6 +197,8 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
               <SummaryField title="Impacto estimado" text={active.extra.impact} />
               <SummaryField title="Recursos necessários" text={active.extra.resources} />
             </div>
+            {/* Submissão e entregas dos estágios anteriores (GAT-07) */}
+            <AttachmentsPanel key={active.ideaId} ideaId={active.ideaId} token={token} onSessionExpired={onSessionExpired} />
           </div>
 
           <p style={{ color: "#6E6E73", fontSize: 13, marginBottom: 16 }}>
