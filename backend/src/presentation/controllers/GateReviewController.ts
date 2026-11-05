@@ -21,6 +21,7 @@ const statusByMessage: Record<string, number> = {
   "Only gatekeepers can decide gates": 403,
   // 404
   "Idea not found": 404,
+  "Idea has been cancelled": 409,
   "Gate review not found": 404,
   "Gate not found": 404,
   // 409: a ideia ou a rodada não está no estado certo

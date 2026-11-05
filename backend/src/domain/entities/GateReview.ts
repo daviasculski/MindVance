@@ -4,7 +4,9 @@ export type GateReviewStatus =
   | "AGUARDANDO_DESIGNACAO"
   | "EM_AVALIACAO"
   | "AGUARDANDO_DECISAO"
-  | "DECIDIDA";
+  | "DECIDIDA"
+  /** Encerrada porque a ideia foi cancelada */
+  | "CANCELADA";
 
 export interface GateReviewEvaluator {
   evaluatorId: string;

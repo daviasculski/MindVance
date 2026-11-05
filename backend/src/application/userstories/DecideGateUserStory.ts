@@ -51,6 +51,10 @@ export class DecideGateUserStory {
       throw new Error("Gate review not found");
     }
     // Só decide depois de todos os pareceres da rodada (US019)
+    // CAN-02: rodada encerrada pelo cancelamento da ideia
+    if (review.status === "CANCELADA") {
+      throw new Error("Idea has been cancelled");
+    }
     if (review.status !== "AGUARDANDO_DECISAO") {
       throw new Error("Gate review is not awaiting a decision");
     }
@@ -58,6 +62,10 @@ export class DecideGateUserStory {
     const idea = await this.ideaRepository.findById(review.ideaId);
     if (!idea) {
       throw new Error("Idea not found");
+    }
+    // CAN-02: ideia cancelada não volta ao fluxo
+    if (idea.status === "CANCELLED") {
+      throw new Error("Idea has been cancelled");
     }
     const gate = await this.gateRepository.findById(review.gateId);
     if (!gate) {

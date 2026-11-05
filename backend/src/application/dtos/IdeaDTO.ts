@@ -32,11 +32,14 @@ export interface IdeaOutputDTO {
   extraFields: Record<string, unknown> | null;
   currentStage: IdeaStage;
   status: IdeaStatus;
+  /** Quem cancelou, quando e por quê (CAN-03); null se a ideia não foi cancelada */
+  cancellation: { at: Date; byId: string; byName: string; reason: string } | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export function toIdeaOutputDTO(idea: Idea, authorName?: string): IdeaOutputDTO {
+export function toIdeaOutputDTO(idea: Idea, authorName?: string, cancelledByName?: string): IdeaOutputDTO {
+  const cancellation = idea.cancellation;
   return {
     id: idea.id!,
     title: idea.title,
@@ -46,6 +49,9 @@ export function toIdeaOutputDTO(idea: Idea, authorName?: string): IdeaOutputDTO 
     extraFields: idea.extraFields ?? null,
     currentStage: idea.currentStage,
     status: idea.status,
+    cancellation: cancellation
+      ? { ...cancellation, byName: cancelledByName ?? "Usuário" }
+      : null,
     createdAt: idea.createdAt!,
     updatedAt: idea.updatedAt!,
   };

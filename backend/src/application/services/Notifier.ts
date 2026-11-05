@@ -157,9 +157,32 @@ export class Notifier {
     });
   }
 
-  ideaCancelled(idea: Idea) {
+  /** Cancelamento (CAN-03) → autor (se foi outra pessoa) e avaliadores da rodada encerrada */
+  async ideaCancelled(
+    idea: Idea,
+    cancellerName: string,
+    reason: string,
+    cancelledByAuthor: boolean,
+    evaluatorIds: string[],
+  ) {
+    if (!cancelledByAuthor) {
+      await this.toUsers([idea.authorId], {
+        type: "IDEA_CANCELLED",
+        title: "Ideia cancelada",
+        message: `“${idea.title}” foi cancelada por ${cancellerName}: ${reason}`,
+        ideaId: idea.id,
+        link: ideaLink(idea),
+      });
+    }
+    await this.toUsers(evaluatorIds, {
+      type: "IDEA_CANCELLED",
+      title: "Avaliação cancelada",
+      message: `“${idea.title}” foi cancelada e saiu da sua fila. Não é mais necessário enviar o parecer.`,
+      ideaId: idea.id,
+      link: "evaluate",
+    });
     this.sendToUser(idea.authorId, (to) =>
-      this.emailService.sendIdeaFinalDecisionEmail(to, idea.title, "Cancelada"),
+      this.emailService.sendIdeaFinalDecisionEmail(to, idea.title, "Cancelada", reason),
     );
   }
 

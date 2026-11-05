@@ -26,8 +26,14 @@ export class GetIdeaByIdUserStory {
       }
     }
 
-    const [author] = await this.userRepository.findByIds([idea.authorId]);
+    const cancellerId = idea.cancellation?.byId;
+    const users = await this.userRepository.findByIds(cancellerId ? [idea.authorId, cancellerId] : [idea.authorId]);
+    const nameById = new Map(users.map((u) => [u.id, u.name]));
 
-    return toIdeaOutputDTO(idea, author?.name ?? "Colaborador");
+    return toIdeaOutputDTO(
+      idea,
+      nameById.get(idea.authorId) ?? "Colaborador",
+      cancellerId ? nameById.get(cancellerId) : undefined,
+    );
   }
 }

@@ -9,8 +9,16 @@ export interface IdeaProps {
   extraFields?: Record<string, unknown> | null;
   currentStage?: IdeaStage;
   status?: IdeaStatus;
+  /** Registro do cancelamento (CAN-03), presente só em ideias canceladas */
+  cancellation?: IdeaCancellation | null;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+export interface IdeaCancellation {
+  at: Date;
+  byId: string;
+  reason: string;
 }
 
 export class Idea {
@@ -53,6 +61,10 @@ export class Idea {
 
   get status(): IdeaStatus {
     return this.props.status ?? "EM_ANDAMENTO";
+  }
+
+  get cancellation(): IdeaCancellation | null {
+    return this.props.cancellation ?? null;
   }
 
   get createdAt(): Date | undefined {

@@ -132,6 +132,19 @@ export class PrismaGateReviewRepository implements IGateReviewRepository {
     return toReview(raw);
   }
 
+  async cancelOpenForIdea(ideaId: string): Promise<GateReview[]> {
+    const open = await prisma.gateReview.findMany({
+      where: { ideaId, status: { in: ["AGUARDANDO_DESIGNACAO", "EM_AVALIACAO", "AGUARDANDO_DECISAO"] } },
+      include: withEvaluators,
+    });
+    if (open.length === 0) return [];
+    await prisma.gateReview.updateMany({
+      where: { id: { in: open.map((r) => r.id) } },
+      data: { status: "CANCELADA" },
+    });
+    return open.map((r) => toReview({ ...r, status: "CANCELADA" }));
+  }
+
   async markDecided(reviewId: string): Promise<GateReview> {
     const raw = await prisma.gateReview.update({
       where: { id: reviewId },

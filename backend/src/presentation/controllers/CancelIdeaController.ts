@@ -5,13 +5,14 @@ import { sendError } from "../http";
 export class CancelIdeaController {
   constructor(private readonly cancelIdeaUserStory: CancelIdeaUserStory) {}
 
+  /** PATCH /ideas/:id/cancel — body: { justification } */
   async handle(req: Request, res: Response): Promise<Response> {
     if (!req.user) {
       return res.status(401).json({ error: "Authentication is required" });
     }
 
     try {
-      const cancelledIdea = await this.cancelIdeaUserStory.execute(req.params.id, {
+      const cancelledIdea = await this.cancelIdeaUserStory.execute(req.params.id, req.body?.justification, {
         id: req.user.id,
         role: req.user.role,
       });
@@ -22,9 +23,10 @@ export class CancelIdeaController {
         res,
         error,
         {
+          "Cancellation justification is required": 400,
           "Ideia não encontrada": 404,
           "Only the author or a manager can cancel this idea": 403,
-          "Idea has already been cancelled": 409,
+          "Only active ideas can be cancelled": 409,
         },
         "Unable to cancel idea",
       );

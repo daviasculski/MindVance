@@ -20,12 +20,19 @@ export class ListIdeasUserStory {
 
     const ideas = await this.ideaRepository.findAll(filters);
 
-    const authorIds = [...new Set(ideas.map((idea) => idea.authorId))];
-    const authors = await this.userRepository.findByIds(authorIds);
-    const nameById = new Map(authors.map((u) => [u.id, u.name]));
+    // Autores e quem cancelou (CAN-03), numa consulta só
+    const userIds = [
+      ...new Set(ideas.flatMap((idea) => [idea.authorId, ...(idea.cancellation ? [idea.cancellation.byId] : [])])),
+    ];
+    const users = await this.userRepository.findByIds(userIds);
+    const nameById = new Map(users.map((u) => [u.id, u.name]));
 
     return ideas.map((idea) =>
-      toIdeaOutputDTO(idea, nameById.get(idea.authorId) ?? "Colaborador"),
+      toIdeaOutputDTO(
+        idea,
+        nameById.get(idea.authorId) ?? "Colaborador",
+        idea.cancellation ? nameById.get(idea.cancellation.byId) : undefined,
+      ),
     );
   }
 }

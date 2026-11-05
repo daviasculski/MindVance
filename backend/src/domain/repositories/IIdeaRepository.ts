@@ -1,4 +1,4 @@
-import { Idea, IdeaProps } from "../entities/Idea";
+import { Idea, IdeaCancellation, IdeaProps } from "../entities/Idea";
 import { IdeaStage } from "../entities/IdeaStage";
 import { IdeaStatus } from "../entities/IdeaStatus";
 
@@ -29,5 +29,7 @@ export interface IIdeaRepository {
   findAll(filters?: IdeaFilters): Promise<Idea[]>;
   update(id: string, data: UpdateIdeaData): Promise<Idea>;
   updateProgress(id: string, data: IdeaProgressData): Promise<Idea>;
+  /** Marca a ideia como cancelada e grava quem, quando e por quê (CAN-03) */
+  cancel(id: string, cancellation: IdeaCancellation): Promise<Idea>;
   // Sem delete: o histórico de ideias é imutável (P3)
 }

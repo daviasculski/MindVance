@@ -12,6 +12,7 @@ const statusByMessage: Record<string, number> = {
   "Authors cannot evaluate their own ideas": 403,
   "Gate review not found": 404,
   "Idea not found": 404,
+  "Idea has been cancelled": 409,
   "Gate not found": 404,
   "This round is not open for evaluation": 409,
   "Idea already evaluated by this evaluator in this round": 409,

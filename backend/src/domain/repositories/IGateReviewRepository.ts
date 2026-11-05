@@ -29,6 +29,8 @@ export interface IGateReviewRepository {
     recommendation: GateDecisionType,
   ): Promise<GateReview>;
   markDecided(reviewId: string): Promise<GateReview>;
+  /** Encerra a rodada ainda aberta da ideia (CAN-02); retorna as rodadas encerradas */
+  cancelOpenForIdea(ideaId: string): Promise<GateReview[]>;
   /** Registra o atraso da rodada (UC02 FA02); a avaliação continua aberta */
   markOverdue(reviewId: string, at: Date): Promise<GateReview>;
 }

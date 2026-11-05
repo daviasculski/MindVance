@@ -4,7 +4,7 @@ import {
   IdeaProgressData,
   UpdateIdeaData,
 } from "../../domain/repositories/IIdeaRepository";
-import { Idea } from "../../domain/entities/Idea";
+import { Idea, IdeaCancellation } from "../../domain/entities/Idea";
 import { IdeaStage, isIdeaStage } from "../../domain/entities/IdeaStage";
 import { isIdeaStatus } from "../../domain/entities/IdeaStatus";
 import prisma from "../database/prisma/client";
@@ -19,6 +19,10 @@ function toEntity(raw: PrismaIdea): Idea {
     extraFields: raw.extra_fields as Record<string, unknown> | null,
     currentStage: raw.current_stage,
     status: raw.status,
+    cancellation:
+      raw.cancelled_at && raw.cancelled_by_id
+        ? { at: raw.cancelled_at, byId: raw.cancelled_by_id, reason: raw.cancellation_reason ?? "" }
+        : null,
     createdAt: raw.created_at,
     updatedAt: raw.updated_at,
   });
@@ -95,6 +99,20 @@ export class PrismaIdeaRepository implements IIdeaRepository {
               extra_fields: (data.extraFields ?? {}) as Prisma.InputJsonValue,
             }
           : {}),
+      },
+    });
+
+    return toEntity(raw);
+  }
+
+  async cancel(id: string, cancellation: IdeaCancellation): Promise<Idea> {
+    const raw = await prisma.idea.update({
+      where: { id },
+      data: {
+        status: "CANCELLED",
+        cancelled_at: cancellation.at,
+        cancelled_by_id: cancellation.byId,
+        cancellation_reason: cancellation.reason,
       },
     });
 

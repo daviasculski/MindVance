@@ -24,7 +24,8 @@ export type NotificationType =
   | "GATE_READY_FOR_DECISION"
   | "EVALUATIONS_COMPLETED"
   | "GATE_DECIDED"
-  | "EVALUATION_OVERDUE";
+  | "EVALUATION_OVERDUE"
+  | "IDEA_CANCELLED";
 
 export type NewNotification = Pick<Notification, "type" | "title" | "message"> & {
   ideaId?: string | null;

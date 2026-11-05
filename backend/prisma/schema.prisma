@@ -39,6 +39,8 @@ enum GateReviewStatus {
   EM_AVALIACAO
   AGUARDANDO_DECISAO
   DECIDIDA
+  /// Encerrada porque a ideia foi cancelada
+  CANCELADA
 }
 
 enum UserRole {
@@ -55,18 +57,22 @@ enum UserApprovalStatus {
 }
 
 model Idea {
-  id            String         @id @default(uuid())
-  title         String         @db.VarChar(255)
-  description   String         @db.Text
-  author_id     String         @db.VarChar(255)
-  extra_fields  Json?          @default("{}")
-  current_stage IdeaStage      @default(IDEACAO)
-  status        IdeaStatus     @default(EM_ANDAMENTO)
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  evaluations   Evaluation[]
-  gateDecisions GateDecision[]
-  gateReviews   GateReview[]
+  id                  String         @id @default(uuid())
+  title               String         @db.VarChar(255)
+  description         String         @db.Text
+  author_id           String         @db.VarChar(255)
+  extra_fields        Json?          @default("{}")
+  current_stage       IdeaStage      @default(IDEACAO)
+  status              IdeaStatus     @default(EM_ANDAMENTO)
+  /// Registro imutável do cancelamento (CAN-03): quem, quando e por quê
+  cancelled_at        DateTime?
+  cancelled_by_id     String?        @db.VarChar(255)
+  cancellation_reason String?        @db.Text
+  created_at          DateTime       @default(now())
+  updated_at          DateTime       @updatedAt
+  evaluations         Evaluation[]
+  gateDecisions       GateDecision[]
+  gateReviews         GateReview[]
 
   @@map("ideas")
 }
