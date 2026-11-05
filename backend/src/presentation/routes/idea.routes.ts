@@ -27,6 +27,15 @@ import { GetFunnelUserStory } from "../../application/userstories/GetFunnelUserS
 import { sendError } from "../http";
 import { notifier } from "../dependencies";
 import { ListIdeaGateReviewsUserStory } from "../../application/userstories/ListIdeaGateReviewsUserStory";
+import { IdeaAttachmentsUserStory } from "../../application/userstories/IdeaAttachmentsUserStory";
+import { PrismaAttachmentRepository } from "../../infrastructure/repositories/PrismaAttachmentRepository";
+import path from "path";
+import {
+  originalNameOf,
+  removeUploadedFiles,
+  uploadAttachments,
+  uploadDir,
+} from "../middlewares/uploadAttachments";
 
 const ideaRoutes = Router();
 
@@ -70,6 +79,20 @@ const gateDecisionController = new GateDecisionController(
     gateReviewRepository,
   ),
 );
+const ideaAttachments = new IdeaAttachmentsUserStory(
+  ideaRepository,
+  gateReviewRepository,
+  new PrismaAttachmentRepository(),
+  userRepository,
+);
+const attachmentErrors = {
+  "Ideia não encontrada": 404,
+  "Attachment not found": 404,
+  "You cannot view this idea": 403,
+  "Only the author can attach files": 403,
+  "Files can only be attached before triage, between gates or after revision": 409,
+  "At least one file is required": 400,
+};
 const listIdeaEvaluationsController = new ListIdeaEvaluationsController(
   new ListIdeaEvaluationsUserStory(
     ideaRepository,
@@ -115,6 +138,41 @@ ideaRoutes.get("/:id/gate-reviews", async (req, res) => {
 });
 // Abre uma rodada: Gestor na triagem (G1) ou autor solicitando revisão do gate
 ideaRoutes.post("/:id/gate-reviews", (req, res) => gateReviewController.open(req, res));
+// Anexos da submissão e entregas dos estágios (SUB-02, ACO-04)
+ideaRoutes.get("/:id/attachments", async (req, res) => {
+  try {
+    return res.status(200).json(await ideaAttachments.list(req.params.id, { id: req.user!.id, role: req.user!.role }));
+  } catch (error) {
+    return sendError(res, error, attachmentErrors, "Unable to list attachments");
+  }
+});
+ideaRoutes.post("/:id/attachments", uploadAttachments, async (req, res) => {
+  const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+  try {
+    const created = await ideaAttachments.upload(
+      req.params.id,
+      files.map((f) => ({ originalName: originalNameOf(f), storedName: f.filename, mimeType: f.mimetype, size: f.size })),
+      { id: req.user!.id, role: req.user!.role },
+    );
+    return res.status(201).json(created);
+  } catch (error) {
+    removeUploadedFiles(req);
+    return sendError(res, error, attachmentErrors, "Unable to upload attachments");
+  }
+});
+ideaRoutes.get("/:id/attachments/:attachmentId/download", async (req, res) => {
+  try {
+    const attachment = await ideaAttachments.getForDownload(req.params.id, req.params.attachmentId, {
+      id: req.user!.id,
+      role: req.user!.role,
+    });
+    return res.download(path.join(uploadDir, attachment.storedName), attachment.fileName, (error) => {
+      if (error && !res.headersSent) res.status(404).json({ error: "Attachment file not found" });
+    });
+  } catch (error) {
+    return sendError(res, error, attachmentErrors, "Unable to download attachment");
+  }
+});
 ideaRoutes.put("/:id", (req, res) => updateIdeaController.handle(req, res));
 // Sem DELETE: ideias e seu histórico são imutáveis (P3)
 ideaRoutes.patch("/:id/cancel", (req, res) => cancelIdeaController.handle(req, res));

@@ -7,7 +7,8 @@ import {
   toIdeaOutputDTO,
 } from "../dtos/IdeaDTO";
 
-const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM", "EM_ANDAMENTO", "EM_REVISAO"];
+/** Fora de avaliação: antes da triagem, entre gates ou após Revisar (D13). Vale também para anexos. */
+export const editableStatuses: IdeaStatus[] = ["AGUARDANDO_TRIAGEM", "EM_ANDAMENTO", "EM_REVISAO"];
 
 export class UpdateIdeaUserStory {
   constructor(private readonly ideaRepository: IIdeaRepository) {}

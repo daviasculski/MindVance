@@ -73,8 +73,27 @@ model Idea {
   evaluations         Evaluation[]
   gateDecisions       GateDecision[]
   gateReviews         GateReview[]
+  attachments         Attachment[]
 
   @@map("ideas")
+}
+
+/// Anexo da ideia ou entrega de um estágio (SUB-02, ACO-04). Arquivo em disco (UPLOAD_DIR).
+model Attachment {
+  id           String    @id @default(uuid())
+  ideaId       String
+  uploadedById String    @db.VarChar(255)
+  /// Estágio da ideia no envio: separa a submissão das entregas de cada estágio
+  stage        IdeaStage
+  fileName     String    @db.VarChar(255)
+  storedName   String    @unique @db.VarChar(255)
+  mimeType     String    @db.VarChar(255)
+  size         Int
+  createdAt    DateTime  @default(now())
+  idea         Idea      @relation(fields: [ideaId], references: [id], onDelete: Restrict)
+
+  @@index([ideaId])
+  @@map("attachments")
 }
 
 /// Gate de saída de um estágio. O estágio sem gate de saída (Lançamento) encerra o fluxo.
