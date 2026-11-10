@@ -34,6 +34,8 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
 
   useEffect(() => {
     let cancelled = false;
+    setItems(null);
+    setError(null);
     listAttachments(ideaId, token)
       .then((list) => !cancelled && setItems(list))
       .catch((err) => {
@@ -41,7 +43,13 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
         if (err instanceof ApiError && err.status === 401) return expiredRef.current();
         // 403: quem não vê o histórico da ideia também não vê os anexos
         setItems([]);
-        if (!(err instanceof ApiError && err.status === 403)) setError("Não foi possível carregar os anexos.");
+        if (err instanceof ApiError && err.status === 403) return;
+        if (err instanceof ApiError && err.status === 0) {
+          setError(err.message);
+          return;
+        }
+        const status = err instanceof ApiError ? ` (HTTP ${err.status})` : "";
+        setError(`Não foi possível carregar os anexos${status}.`);
       });
     return () => { cancelled = true; };
   }, [ideaId, token]);
