@@ -50,27 +50,27 @@ export default function ResetPassword({ onBackToLogin }: ResetPasswordProps) {
             alt=""
             className="h-10 w-auto object-contain"
           />
-          <h1 style={{ color: "#1D1D1F", fontSize: 24, fontWeight: 700 }}>MindVance</h1>
+          <h1 style={{ color: "#0A1931", fontSize: 24, fontWeight: 700 }}>MindVance</h1>
         </div>
 
         {complete ? (
           <div className="text-center">
-            <CheckCircle2 size={38} style={{ color: "#34C759", margin: "0 auto 14px" }} />
-            <h2 style={{ color: "#1D1D1F", fontSize: 18, fontWeight: 700 }}>Senha redefinida</h2>
+            <CheckCircle2 size={38} style={{ color: "#0072CE", margin: "0 auto 14px" }} />
+            <h2 style={{ color: "#0A1931", fontSize: 18, fontWeight: 700 }}>Senha redefinida</h2>
             <p className="mt-2 mb-6" style={{ color: "#6E6E73", fontSize: 13 }}>
               Sua senha foi atualizada. Agora você já pode entrar na sua conta.
             </p>
             <button
               onClick={onBackToLogin}
-              className="w-full py-3 rounded-xl font-semibold"
-              style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14 }}
+              className="primary-action w-full py-3 rounded-xl font-semibold"
+              style={{ border: "none", cursor: "pointer", fontSize: 14 }}
             >
               Voltar para o login
             </button>
           </div>
         ) : (
           <>
-            <h2 style={{ color: "#1D1D1F", fontSize: 19, fontWeight: 700 }}>Criar nova senha</h2>
+            <h2 style={{ color: "#0A1931", fontSize: 19, fontWeight: 700 }}>Criar nova senha</h2>
             <p className="mt-2 mb-5" style={{ color: "#6E6E73", fontSize: 13 }}>
               Escolha uma senha com pelo menos 8 caracteres.
             </p>
@@ -100,7 +100,7 @@ export default function ResetPassword({ onBackToLogin }: ResetPasswordProps) {
                 />
               </label>
               {error && (
-                <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
+                <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
                   <AlertCircle size={13} />
                   {error}
                 </div>
@@ -108,8 +108,8 @@ export default function ResetPassword({ onBackToLogin }: ResetPasswordProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl font-semibold"
-                style={{ background: loading ? "#FBD9AE" : "#F59E0B", color: "#FFFFFF", border: "none", cursor: loading ? "wait" : "pointer", fontSize: 14 }}
+                className="primary-action w-full py-3 rounded-xl font-semibold"
+                style={{ border: "none", cursor: loading ? "wait" : "pointer", fontSize: 14 }}
               >
                 {loading ? "Atualizando..." : "Redefinir senha"}
               </button>
@@ -134,7 +134,7 @@ const inputStyle: React.CSSProperties = {
   background: "#F5F5F7",
   border: "1.5px solid transparent",
   borderRadius: 12,
-  color: "#1D1D1F",
+  color: "#0A1931",
   fontSize: 13.5,
   padding: "10px 12px",
   outline: "none",

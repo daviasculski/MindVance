@@ -14,9 +14,9 @@ export default function WeightedSlider({ label, weight, value, max = 10, descrip
     <div>
       <div className="flex items-center justify-between mb-2.5">
         <div>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "#1D1D1F" }}>{label}</span>
+          <span style={{ fontSize: 15, fontWeight: 600, color: "#0A1931" }}>{label}</span>
           {description && (
-            <p style={{ fontSize: 11.5, color: "#AEAEB2", marginTop: 2 }}>{description}</p>
+            <p style={{ fontSize: 11.5, color: "#6E6E73", marginTop: 2 }}>{description}</p>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -32,9 +32,9 @@ export default function WeightedSlider({ label, weight, value, max = 10, descrip
           >
             Peso {weight}%
           </span>
-          <span style={{ fontSize: 17, fontWeight: 700, color: unscored ? "#D2D2D7" : "#F59E0B", minWidth: 36, textAlign: "right" }}>
+          <span style={{ fontSize: 17, fontWeight: 700, color: unscored ? "#D2D2D7" : "#0072CE", minWidth: 36, textAlign: "right" }}>
             {unscored ? "—" : value}
-            <span style={{ fontSize: 12, color: "#AEAEB2", fontWeight: 500 }}>/{max}</span>
+            <span style={{ fontSize: 12, color: "#6E6E73", fontWeight: 500 }}>/{max}</span>
           </span>
         </div>
       </div>

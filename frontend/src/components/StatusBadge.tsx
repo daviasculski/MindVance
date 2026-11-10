@@ -1,7 +1,7 @@
 import type { IdeaStatus } from "../types";
 
 const WAITING = { bg: "#F0F0F2", color: "#6E6E73" };
-const IN_GATE = { bg: "rgba(139,124,246,0.12)", color: "#6D5CD6" };
+const IN_GATE = { bg: "rgba(0,180,216,0.12)", color: "#0A1931" };
 
 const config: Record<IdeaStatus, { bg: string; color: string; label: string }> = {
   "Aguardando triagem": { ...WAITING, label: "Aguardando triagem" },
@@ -9,13 +9,13 @@ const config: Record<IdeaStatus, { bg: string; color: string; label: string }> =
   "Em avaliação": { ...IN_GATE, label: "Em avaliação" },
   "Aguardando decisão": { ...IN_GATE, label: "Aguardando decisão" },
   "Em andamento": {
-    bg: "rgba(59,130,246,0.1)",
-    color: "#2563EB",
+    bg: "rgba(0,114,206,0.1)",
+    color: "#0A1931",
     label: "Em andamento",
   },
   Aprovada: {
-    bg: "rgba(52,199,89,0.12)",
-    color: "#1F8A3B",
+    bg: "rgba(0,245,138,0.18)",
+    color: "#0A1931",
     label: "Aprovada para lançamento",
   },
   Rejeitada: {
@@ -31,8 +31,8 @@ const config: Record<IdeaStatus, { bg: string; color: string; label: string }> =
     label: "Cancelada",
   },
   "Em revisão": {
-    bg: "rgba(245,158,11,0.12)",
-    color: "#B6790A",
+    bg: "rgba(0,180,216,0.12)",
+    color: "#0A1931",
     label: "Em revisão",
   },
 };

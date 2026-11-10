@@ -120,20 +120,20 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
         <div className="text-center max-w-md">
           <div
             className="inline-flex items-center justify-center mb-6 rounded-full"
-            style={{ width: 64, height: 64, background: "rgba(52,199,89,0.12)" }}
+            style={{ width: 64, height: 64, background: "rgba(0,245,138,0.18)" }}
           >
-            <CheckCircle2 size={30} style={{ color: "#34C759" }} />
+            <CheckCircle2 size={30} style={{ color: "#0A1931" }} />
           </div>
-          <h2 style={{ fontWeight: 700, fontSize: 24, color: "#1D1D1F", marginBottom: 12 }}>
+          <h2 style={{ fontWeight: 700, fontSize: 24, color: "#0A1931", marginBottom: 12 }}>
             Ideia submetida!
           </h2>
           <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
-            Sua ideia entrou no estágio <span style={{ color: "#B6790A", fontWeight: 600 }}>{stage}</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
+            Sua ideia entrou no estágio <span style={{ color: "#0072CE", fontWeight: 600 }}>{stage}</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
           </p>
           {uploadWarning && (
             <div
               className="mt-4 flex items-start gap-1.5 rounded-xl px-3 py-2.5 text-left"
-              style={{ color: "#8A5A00", fontSize: 12.5, background: "rgba(245,158,11,0.12)" }}
+              style={{ color: "#0A1931", fontSize: 12.5, background: "rgba(0,180,216,0.12)" }}
               role="alert"
             >
               <AlertCircle size={13} style={{ marginTop: 2, flexShrink: 0 }} />
@@ -144,28 +144,28 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
             className="mt-6 p-4 text-left rounded-2xl card-soft"
             style={{ background: "#FFFFFF" }}
           >
-            <div style={{ color: "#AEAEB2", fontSize: 11, marginBottom: 8, fontWeight: 600 }}>IDEIA SUBMETIDA</div>
-            <div style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
+            <div style={{ color: "#6E6E73", fontSize: 11, marginBottom: 8, fontWeight: 600 }}>IDEIA SUBMETIDA</div>
+            <div style={{ color: "#0A1931", fontSize: 15, fontWeight: 600, marginBottom: 12 }}>
               {submitted.title}
             </div>
             <GateRail stage={stage} size="sm" />
             <div className="mt-3 flex items-center gap-2">
               <GateBadge label={`Gate 1 — ${stage}`} size="sm" />
-              <span style={{ color: "#AEAEB2", fontSize: 11 }}>Pendente de avaliação</span>
+              <span style={{ color: "#6E6E73", fontSize: 11 }}>Pendente de avaliação</span>
             </div>
           </div>
           <div className="mt-6 flex items-center justify-center gap-3">
             <button
               onClick={onViewMyIdeas}
               className="px-6 py-2.5 rounded-xl font-medium"
-              style={{ background: "#FFFFFF", color: "#1D1D1F", border: "1px solid #E5E5EA", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+              style={{ background: "#FFFFFF", color: "#0A1931", border: "1px solid #E5E5EA", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
             >
               Ver minhas ideias
             </button>
             <button
               onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: defaultDepartment, impact: "", resources: "" }); }}
-              className="px-6 py-2.5 rounded-xl font-medium"
-              style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
+              className="primary-action px-6 py-2.5 rounded-xl font-medium"
+              style={{ border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
             >
               Submeter outra ideia
             </button>
@@ -185,7 +185,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
           <div className="flex items-center gap-3 mb-3">
             <GateBadge label="Entrará no Gate 1 — Ideação" />
           </div>
-          <h1 style={{ fontWeight: 700, fontSize: 26, color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontWeight: 700, fontSize: 26, color: "#0A1931", letterSpacing: "-0.02em" }}>
             Submeter Nova Ideia
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 14, marginTop: 6 }}>
@@ -207,8 +207,9 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                     style={{
                       width: 26,
                       height: 26,
-                      background: done ? "#34C759" : active ? "#F59E0B" : "#E5E5EA",
-                      color: done || active ? "#FFFFFF" : "#AEAEB2",
+                      background: done ? "#00F58A" : active ? "#00B4D8" : "#E5E5EA",
+                      color: done || active ? "#0A1931" : "#6E6E73",
+                      border: done || active ? "1px solid #0A1931" : "1px solid transparent",
                       flexShrink: 0,
                     }}
                   >
@@ -217,7 +218,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                   <span
                     style={{
                       fontSize: 12.5,
-                      color: active ? "#1D1D1F" : "#AEAEB2",
+                      color: active ? "#0A1931" : "#6E6E73",
                       fontWeight: active ? 600 : 400,
                       whiteSpace: "nowrap",
                     }}
@@ -231,7 +232,8 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                     style={{
                       height: 2,
                       width: 40,
-                      background: step > n ? "#34C759" : "#E5E5EA",
+                      background: step > n ? "#00F58A" : "#E5E5EA",
+                      boxShadow: step > n ? "inset 0 0 0 1px #0A1931" : "none",
                       margin: "0 12px",
                       flexShrink: 0,
                     }}
@@ -312,12 +314,12 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
               {/* Stage preview */}
               <div
                 className="p-4 rounded-2xl"
-                style={{ background: "rgba(245,158,11,0.06)" }}
+                style={{ background: "rgba(0,180,216,0.08)" }}
               >
-                <div style={{ color: "#B6790A", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                <div style={{ color: "#0072CE", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
                   ESTÁGIO DE ENTRADA
                 </div>
-                <div style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
+                <div style={{ color: "#0A1931", fontSize: 14, fontWeight: 600, marginBottom: 10 }}>
                   Ideação
                 </div>
                 <GateRail stage="Ideação" size="sm" showLabels />
@@ -337,7 +339,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                 </label>
                 <label
                   className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 py-8"
-                  style={{ background: "#F5F5F7", border: "1.5px dashed #D2D2D7", color: "#AEAEB2", cursor: "pointer" }}
+                  style={{ background: "#F5F5F7", border: "1.5px dashed #D2D2D7", color: "#6E6E73", cursor: "pointer" }}
                 >
                   <input
                     type="file"
@@ -346,14 +348,14 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                     className="hidden"
                     onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }}
                   />
-                  <Upload size={22} style={{ color: "#B6790A" }} />
+                  <Upload size={22} style={{ color: "#0072CE" }} />
                   <span style={{ fontSize: 13, color: "#6E6E73" }}>Clique para escolher arquivos</span>
-                  <span style={{ fontSize: 11, color: "#AEAEB2" }}>
+                  <span style={{ fontSize: 11, color: "#6E6E73" }}>
                     Imagens, PDF, Office, texto ou .zip · até {MAX_FILES_PER_UPLOAD} arquivos de {MAX_FILE_MB} MB
                   </span>
                 </label>
                 {fileError && (
-                  <div className="mt-2 flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }} role="alert">
+                  <div className="mt-2 flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12 }} role="alert">
                     <AlertCircle size={12} />
                     {fileError}
                   </div>
@@ -366,14 +368,14 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
                         className="flex items-center gap-2 rounded-xl px-3 py-2"
                         style={{ background: "#FFFFFF", border: "1px solid #E5E5EA" }}
                       >
-                        <Paperclip size={13} style={{ color: "#AEAEB2" }} />
-                        <span className="truncate flex-1" style={{ fontSize: 12.5, color: "#1D1D1F" }}>{file.name}</span>
-                        <span style={{ fontSize: 11, color: "#AEAEB2" }}>{formatSize(file.size)}</span>
+                        <Paperclip size={13} style={{ color: "#6E6E73" }} />
+                        <span className="truncate flex-1" style={{ fontSize: 12.5, color: "#0A1931" }}>{file.name}</span>
+                        <span style={{ fontSize: 11, color: "#6E6E73" }}>{formatSize(file.size)}</span>
                         <button
                           type="button"
                           aria-label={`Remover ${file.name}`}
                           onClick={() => { setFiles((list) => list.filter((_, j) => j !== i)); setFileError(null); }}
-                          style={{ background: "none", border: "none", cursor: "pointer", color: "#AEAEB2", padding: 2 }}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#6E6E73", padding: 2 }}
                         >
                           <X size={13} />
                         </button>
@@ -385,11 +387,11 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
 
               {/* Summary */}
               <div className="rounded-2xl p-4" style={{ background: "#F5F5F7" }}>
-                <div style={{ color: "#AEAEB2", fontSize: 11, marginBottom: 8, fontWeight: 600 }}>
+                <div style={{ color: "#6E6E73", fontSize: 11, marginBottom: 8, fontWeight: 600 }}>
                   REVISÃO DA SUBMISSÃO
                 </div>
-                <div style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 700, marginBottom: 4 }}>
-                  {form.title || <span style={{ color: "#AEAEB2" }}>Sem título</span>}
+                <div style={{ color: "#0A1931", fontSize: 15, fontWeight: 700, marginBottom: 4 }}>
+                  {form.title || <span style={{ color: "#6E6E73" }}>Sem título</span>}
                 </div>
                 {form.department && (
                   <div style={{ color: "#6E6E73", fontSize: 13, marginBottom: 8 }}>
@@ -408,7 +410,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
           {errors.form && (
             <div
               className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mt-5"
-              style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+              style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
             >
               <AlertCircle size={13} />
               {errors.form}
@@ -435,12 +437,10 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
           {step < 3 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-2.5 rounded-xl font-semibold transition-all"
+              className="primary-action px-6 py-2.5 rounded-xl font-semibold transition-all"
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                background: "#F59E0B",
-                color: "#FFFFFF",
                 border: "none",
                 cursor: "pointer",
               }}
@@ -451,12 +451,10 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="px-6 py-2.5 rounded-xl font-semibold transition-all"
+              className="primary-action px-6 py-2.5 rounded-xl font-semibold transition-all"
               style={{
                 fontSize: 14,
                 fontWeight: 600,
-                background: loading ? "#FBD9AE" : "#F59E0B",
-                color: "#FFFFFF",
                 border: "none",
                 cursor: loading ? "not-allowed" : "pointer",
               }}
@@ -474,9 +472,9 @@ function inp(err: boolean): React.CSSProperties {
   return {
     width: "100%",
     background: "#F5F5F7",
-    border: `1.5px solid ${err ? "#FF3B30" : "transparent"}`,
+    border: `1.5px solid ${err ? "#B42318" : "transparent"}`,
     borderRadius: 12,
-    color: "#1D1D1F",
+    color: "#0A1931",
     fontSize: 13.5,
     padding: "10px 12px",
     outline: "none",
@@ -493,11 +491,11 @@ function FormField({
         {label}
       </label>
       {hint && (
-        <p style={{ color: "#AEAEB2", fontSize: 11.5, marginTop: -4 }}>{hint}</p>
+        <p style={{ color: "#6E6E73", fontSize: 11.5, marginTop: -4 }}>{hint}</p>
       )}
       {children}
       {error && (
-        <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+        <div className="flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12 }}>
           <AlertCircle size={12} />
           {error}
         </div>

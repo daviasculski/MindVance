@@ -163,22 +163,22 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           <div style={{ width: 1, height: 20, background: "#E5E5EA" }} />
           <GateBadge label={gateLabel(active.stage)} size="sm" />
           {active.round > 1 && (
-            <span style={{ color: "#B6790A", fontSize: 12, fontWeight: 600 }}>Rodada {active.round} · reenviada após revisão</span>
+            <span style={{ color: "#0072CE", fontSize: 12, fontWeight: 600 }}>Rodada {active.round} · reenviada após revisão</span>
           )}
-          <div style={{ color: active.overdue ? "#B6790A" : "#8E8E93", fontSize: 12, fontWeight: active.overdue ? 600 : 400, marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ color: active.overdue ? "#0072CE" : "#6E6E73", fontSize: 12, fontWeight: active.overdue ? 600 : 400, marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
             <Clock size={12} />
             {formatDeadline(active)}
           </div>
         </div>
 
         <div className="px-8 py-6 max-w-4xl mx-auto">
-          <h2 style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F", letterSpacing: "-0.02em", marginBottom: 6 }}>
+          <h2 style={{ fontWeight: 700, fontSize: 22, color: "#0A1931", letterSpacing: "-0.02em", marginBottom: 6 }}>
             {active.title}
           </h2>
           <div className="flex items-center gap-3 mb-4">
-            <span style={{ color: "#AEAEB2", fontSize: 13 }}>por {active.authorName}</span>
+            <span style={{ color: "#6E6E73", fontSize: 13 }}>por {active.authorName}</span>
             {active.extra.department && <DeptTag name={active.extra.department} />}
-            <span style={{ color: "#AEAEB2", fontSize: 13 }}>
+            <span style={{ color: "#6E6E73", fontSize: 13 }}>
               {new Date(active.createdAt).toLocaleDateString("pt-BR")}
             </span>
           </div>
@@ -188,7 +188,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
           {/* Resumo da ideia: o avaliador precisa ler o que está avaliando */}
           <div className="rounded-2xl p-5 mb-8 card-soft" style={{ background: "#FFFFFF" }}>
-            <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 14 }}>
+            <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 14 }}>
               RESUMO DA IDEIA
             </div>
             <div className="grid gap-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
@@ -205,7 +205,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
             Dê uma nota de 0 a 10 a cada critério. O anel mostra a sua nota ponderada e a recomendação que ela gera.
           </p>
           {scoreError && (
-            <div className="flex items-center gap-1.5 mb-4" style={{ color: "#FF3B30", fontSize: 12.5 }}>
+            <div className="flex items-center gap-1.5 mb-4" style={{ color: "#B42318", fontSize: 12.5 }}>
               <AlertCircle size={13} />
               Dê nota a todos os critérios antes de confirmar o envio
             </div>
@@ -230,7 +230,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 className="p-5 rounded-2xl card-elevated flex flex-col items-center sticky top-24"
                 style={{ background: "#FFFFFF" }}
               >
-                <div style={{ color: "#AEAEB2", fontSize: 10.5, fontWeight: 600, marginBottom: 12 }}>
+                <div style={{ color: "#6E6E73", fontSize: 10.5, fontWeight: 600, marginBottom: 12 }}>
                   VEREDITO PONDERADO
                 </div>
                 <VerdictRing
@@ -247,8 +247,8 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
           {/* Justification */}
           <div className="mb-6">
-            <label style={{ color: "#1D1D1F", fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
-              Justificativa geral <span style={{ color: "#FF3B30" }}>*</span>
+            <label style={{ color: "#0A1931", fontSize: 13, fontWeight: 600, display: "block", marginBottom: 8 }}>
+              Justificativa geral <span style={{ color: "#B42318" }}>*</span>
             </label>
             <textarea
               value={justification}
@@ -258,9 +258,9 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
               style={{
                 width: "100%",
                 background: "#FFFFFF",
-                border: `1.5px solid ${justError ? "#FF3B30" : "transparent"}`,
+                border: `1.5px solid ${justError ? "#B42318" : "transparent"}`,
                 borderRadius: 14,
-                color: "#1D1D1F",
+                color: "#0A1931",
                 fontSize: 13.5,
                 padding: "12px 14px",
                 outline: "none",
@@ -269,7 +269,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
               className="card-soft"
             />
             {justError && (
-              <div className="flex items-center gap-1.5 mt-2" style={{ color: "#FF3B30", fontSize: 12 }}>
+              <div className="flex items-center gap-1.5 mt-2" style={{ color: "#B42318", fontSize: 12 }}>
                 <AlertCircle size={12} />
                 Justificativa obrigatória antes de confirmar o envio
               </div>
@@ -279,7 +279,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           {submitError && (
             <div
               className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mb-4"
-              style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+              style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
             >
               <AlertCircle size={13} />
               {submitError}
@@ -289,10 +289,8 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full py-3.5 rounded-xl font-semibold"
+            className="primary-action w-full py-3.5 rounded-xl font-semibold"
             style={{
-              background: submitting ? "#FBD9AE" : "#F59E0B",
-              color: "#FFFFFF",
               border: "none",
               cursor: submitting ? "not-allowed" : "pointer",
               fontWeight: 600,
@@ -318,7 +316,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
     <div className="flex-1 overflow-y-auto p-8" style={{ background: "#F5F5F7" }}>
       <div className="max-w-3xl mx-auto">
         <div className="mb-8">
-          <h1 style={{ fontWeight: 700, fontSize: 24, color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontWeight: 700, fontSize: 24, color: "#0A1931", letterSpacing: "-0.02em" }}>
             Fila de Avaliações
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 4 }}>
@@ -331,10 +329,10 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
         {submittedTitle && (
           <div
             className="rounded-2xl p-4 mb-6 flex items-center gap-3"
-            style={{ background: "rgba(52,199,89,0.1)" }}
+            style={{ background: "rgba(0,245,138,0.18)" }}
           >
-            <CheckCircle2 size={18} style={{ color: "#34C759" }} />
-            <span style={{ color: "#1F8A3B", fontSize: 13 }}>
+            <CheckCircle2 size={18} style={{ color: "#0A1931" }} />
+            <span style={{ color: "#0A1931", fontSize: 13 }}>
               Avaliação de “{submittedTitle}” enviada com sucesso.
             </span>
           </div>
@@ -342,14 +340,14 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
         {loadError ? (
           <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
-            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#B42318", fontSize: 13.5 }}>
               <AlertCircle size={15} />
               {loadError}
             </div>
             <button
               onClick={load}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+              style={{ background: "#F5F5F7", color: "#0A1931", border: "none", cursor: "pointer", fontSize: 13 }}
             >
               <RotateCw size={13} />
               Tentar novamente
@@ -366,7 +364,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
             {/* Pending */}
             {pending.length > 0 && (
               <div className="mb-8">
-                <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
                   PENDENTES
                 </div>
                 <div className="flex flex-col gap-3">
@@ -391,9 +389,9 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                     onClick={() => setFilter(value)}
                     className="px-3.5 py-2 rounded-xl transition-colors"
                     style={{
-                      background: selected ? "#1D1D1F" : "#FFFFFF",
+                      background: selected ? "#0A1931" : "#FFFFFF",
                       color: selected ? "#FFFFFF" : "#6E6E73",
-                      border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                      border: `1px solid ${selected ? "#0A1931" : "#E5E5EA"}`,
                       cursor: "pointer",
                       fontSize: 12.5,
                       fontWeight: selected ? 600 : 500,
@@ -412,7 +410,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 {/* Pending */}
                 {visiblePending.length > 0 && (
                   <div className="mb-8">
-                    <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                    <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
                       PENDENTES
                     </div>
                     <div className="flex flex-col gap-3">
@@ -426,7 +424,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
                 {/* Done */}
                 {visibleDone.length > 0 && (
                   <div className={visiblePending.length === 0 ? "mt-8" : ""}>
-                    <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+                    <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
                       CONCLUÍDAS
                     </div>
                     <div className="flex flex-col gap-3">
@@ -450,9 +448,9 @@ function SummaryField({ title, text }: { title: string; text?: string }) {
     <div>
       <div style={{ color: "#6E6E73", fontSize: 11.5, fontWeight: 600, marginBottom: 6 }}>{title}</div>
       {text ? (
-        <p style={{ color: "#1D1D1F", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</p>
+        <p style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</p>
       ) : (
-        <p style={{ color: "#AEAEB2", fontSize: 13, fontStyle: "italic" }}>Não informado</p>
+        <p style={{ color: "#6E6E73", fontSize: 13, fontStyle: "italic" }}>Não informado</p>
       )}
     </div>
   );
@@ -491,7 +489,7 @@ function CriteriaRow({
           background: "#F5F5F7",
           border: "none",
           borderRadius: 10,
-          color: "#1D1D1F",
+          color: "#0A1931",
           fontSize: 12.5,
           padding: "9px 11px",
           outline: "none",
@@ -505,8 +503,8 @@ function CriteriaRow({
 /** Recomendação que a nota atual gera (mesma regra do backend). */
 function RecommendationPill({ verdict }: { verdict: ReturnType<typeof recommend> }) {
   const tone = {
-    aprovada: { bg: "rgba(52,199,89,0.12)", color: "#1F8A3B" },
-    "revisão": { bg: "rgba(245,158,11,0.12)", color: "#B6790A" },
+    aprovada: { bg: "rgba(0,245,138,0.18)", color: "#0A1931" },
+    "revisão": { bg: "rgba(0,180,216,0.12)", color: "#0A1931" },
     rejeitada: { bg: "#F0F0F2", color: "#6E6E73" },
   }[verdict];
   return (
@@ -531,13 +529,13 @@ function PendingCard({ item, onClick }: { item: PendingEvaluation; onClick: () =
           <div className="flex items-center gap-2 mb-1.5">
             <GateBadge label={gateLabel(item.stage)} size="sm" />
             {item.round > 1 && (
-              <span style={{ color: "#B6790A", fontSize: 11, fontWeight: 600 }}>Rodada {item.round}</span>
+              <span style={{ color: "#0072CE", fontSize: 11, fontWeight: 600 }}>Rodada {item.round}</span>
             )}
             <span
               className="inline-flex items-center gap-1 rounded-full"
               style={{
-                background: item.overdue ? "#FDE7C8" : "#F0F0F2",
-                color: item.overdue ? "#9A5B0A" : "#6E6E73",
+                background: item.overdue ? "rgba(0,180,216,0.12)" : "#F0F0F2",
+                color: item.overdue ? "#0A1931" : "#6E6E73",
                 fontSize: 10.5,
                 fontWeight: 600,
                 padding: "2px 8px",
@@ -547,10 +545,10 @@ function PendingCard({ item, onClick }: { item: PendingEvaluation; onClick: () =
               {formatDeadline(item)}
             </span>
           </div>
-          <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 4 }}>
+          <div style={{ fontWeight: 600, fontSize: 15, color: "#0A1931", marginBottom: 4 }}>
             {item.title}
           </div>
-          <div style={{ color: "#AEAEB2", fontSize: 12, marginBottom: 10 }}>
+          <div style={{ color: "#6E6E73", fontSize: 12, marginBottom: 10 }}>
             por {item.authorName}{item.extra.department ? ` · ${item.extra.department}` : ""}
           </div>
           <div style={{ maxWidth: 320 }}>
@@ -568,18 +566,18 @@ function DoneCard({ item }: { item: CompletedEvaluation }) {
     <div className="w-full rounded-2xl p-5 card-soft" style={{ background: "#FFFFFF", opacity: 0.8 }}>
       <div className="flex items-center gap-2 mb-1.5">
         <GateBadge label={gateLabel(item.stage)} size="sm" tone="neutral" />
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#1F8A3B", fontSize: 11 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#0A1931", fontSize: 11 }}>
           <CheckCircle2 size={12} />
           Concluída
         </span>
       </div>
-      <div style={{ fontWeight: 600, fontSize: 15, color: "#1D1D1F", marginBottom: 6 }}>
+      <div style={{ fontWeight: 600, fontSize: 15, color: "#0A1931", marginBottom: 6 }}>
         {item.ideaTitle}
       </div>
-      <div className="flex items-center gap-3" style={{ color: "#AEAEB2", fontSize: 12 }}>
+      <div className="flex items-center gap-3" style={{ color: "#6E6E73", fontSize: 12 }}>
         <span>
           Nota enviada:{" "}
-          <span style={{ color: "#B6790A", fontWeight: 600 }}>
+          <span style={{ color: "#0072CE", fontWeight: 600 }}>
             {item.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}/{MAX_SCORE}
           </span>
         </span>
@@ -615,11 +613,11 @@ function EvaluationEmptyState({ filter }: { filter: EvaluationFilter }) {
       className="rounded-2xl p-12 text-center card-soft"
       style={{ background: "#FFFFFF" }}
     >
-      <CheckCircle2 size={36} style={{ color: filter === "pending" ? "#34C759" : "#AEAEB2", margin: "0 auto 12px" }} />
-      <div style={{ color: "#1D1D1F", fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
+      <CheckCircle2 size={36} style={{ color: filter === "pending" ? "#0072CE" : "#6E6E73", margin: "0 auto 12px" }} />
+      <div style={{ color: "#0A1931", fontSize: 16, fontWeight: 600, marginBottom: 6 }}>
         {message.title}
       </div>
-      <p style={{ color: "#AEAEB2", fontSize: 13 }}>
+      <p style={{ color: "#6E6E73", fontSize: 13 }}>
         {message.description}
       </p>
     </div>

@@ -210,7 +210,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               onClick={() => { setEditing(true); setNotice(null); setActionError(null); }}
               disabled={busy}
               className="flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background: "#FFFFFF", color: "#1D1D1F", border: "1px solid #E5E5EA", cursor: "pointer", fontWeight: 600, fontSize: 13 }}
+              style={{ background: "#FFFFFF", color: "#0A1931", border: "1px solid #E5E5EA", cursor: "pointer", fontWeight: 600, fontSize: 13 }}
             >
               <Pencil size={14} />
               Editar ideia
@@ -232,8 +232,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             <button
               onClick={requestReview}
               disabled={busy}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background: busy ? "#FBD9AE" : "#F59E0B", color: "#FFFFFF", border: "none", cursor: busy ? "not-allowed" : "pointer", fontWeight: 600, fontSize: 13 }}
+              className="primary-action flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ border: "none", cursor: busy ? "not-allowed" : "pointer", fontWeight: 600, fontSize: 13 }}
             >
               <Send size={14} />
               {busy ? "Solicitando..." : "Solicitar revisão do gate"}
@@ -250,7 +250,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               style={{
                 fontWeight: 700,
                 fontSize: 26,
-                color: "#1D1D1F",
+                color: "#0A1931",
                 letterSpacing: "-0.02em",
                 lineHeight: 1.2,
                 marginBottom: 8,
@@ -260,23 +260,23 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             </h1>
 
             <div className="flex items-center gap-3 mb-6">
-              <span style={{ color: "#AEAEB2", fontSize: 13 }}>
+              <span style={{ color: "#6E6E73", fontSize: 13 }}>
                 por {idea.author}
               </span>
               {idea.department && <DeptTag name={idea.department} />}
-              <span style={{ color: "#AEAEB2", fontSize: 13 }}>
+              <span style={{ color: "#6E6E73", fontSize: 13 }}>
                 {new Date(idea.submittedAt).toLocaleDateString("pt-BR")}
               </span>
             </div>
 
             {notice && (
-              <div className="flex items-center gap-2 rounded-2xl p-4 mb-6" style={{ background: "rgba(52,199,89,0.1)", color: "#1F8A3B", fontSize: 13 }}>
-                <CheckCircle2 size={16} />
+              <div className="flex items-center gap-2 rounded-2xl p-4 mb-6" style={{ background: "rgba(0,245,138,0.18)", color: "#0A1931", fontSize: 13 }}>
+                <CheckCircle2 size={16} style={{ color: "#0A1931" }} />
                 {notice}
               </div>
             )}
             {actionError && (
-              <div className="flex items-center gap-2 rounded-2xl p-4 mb-6" style={{ background: "rgba(255,59,48,0.08)", color: "#FF3B30", fontSize: 13 }}>
+              <div className="flex items-center gap-2 rounded-2xl p-4 mb-6" style={{ background: "rgba(255,59,48,0.08)", color: "#B42318", fontSize: 13 }}>
                 <AlertCircle size={15} />
                 {actionError}
               </div>
@@ -285,10 +285,10 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             {/* Próximo passo esperado (ACO-07), visível ao autor */}
             {isAuthor && live && (
               <div className="flex items-start gap-3 rounded-2xl p-4 mb-8" style={{ background: "#FFFFFF", border: "1px solid #E5E5EA" }}>
-                <Compass size={16} style={{ color: "#B6790A", marginTop: 1, flexShrink: 0 }} />
+                <Compass size={16} style={{ color: "#0072CE", marginTop: 1, flexShrink: 0 }} />
                 <div>
-                  <div style={{ color: "#AEAEB2", fontSize: 10.5, fontWeight: 600, marginBottom: 3 }}>PRÓXIMO PASSO</div>
-                  <p style={{ color: "#1D1D1F", fontSize: 13, lineHeight: 1.55 }}>{nextStep(idea)}</p>
+                  <div style={{ color: "#6E6E73", fontSize: 10.5, fontWeight: 600, marginBottom: 3 }}>PRÓXIMO PASSO</div>
+                  <p style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.55 }}>{nextStep(idea)}</p>
                 </div>
               </div>
             )}
@@ -308,8 +308,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                 style={{ background: "#FAFAFA" }}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <Quote size={14} style={{ color: "#AEAEB2" }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>
+                  <Quote size={14} style={{ color: "#6E6E73" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#6E6E73" }}>
                     ENCERRADA NESTA ETAPA — JUSTIFICATIVA
                   </span>
                 </div>
@@ -322,8 +322,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             {cancellation && (
               <div className="p-5 mb-8 rounded-2xl" style={{ background: "#FAFAFA" }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <Ban size={14} style={{ color: "#8E8E93" }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#8E8E93" }}>
+                  <Ban size={14} style={{ color: "#6E6E73" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#6E6E73" }}>
                     IDEIA CANCELADA POR {cancellation.responsible.toUpperCase()} EM{" "}
                     {new Date(cancellation.date).toLocaleDateString("pt-BR")} — JUSTIFICATIVA
                   </span>
@@ -335,21 +335,21 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             {revisionRequest && (
               <div
                 className="p-5 mb-8 rounded-2xl"
-                style={{ background: "rgba(245,158,11,0.07)" }}
+                style={{ background: "rgba(0,180,216,0.08)" }}
               >
                 <div className="flex items-center gap-2 mb-3">
-                  <RotateCcw size={14} style={{ color: "#B6790A" }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#B6790A" }}>
+                  <RotateCcw size={14} style={{ color: "#0072CE" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#0072CE" }}>
                     DEVOLVIDA PARA REVISÃO — AJUSTES SOLICITADOS
                   </span>
                 </div>
-                <p style={{ color: "#1D1D1F", fontSize: 13.5, lineHeight: 1.65 }}>
+                <p style={{ color: "#0A1931", fontSize: 13.5, lineHeight: 1.65 }}>
                   {revisionRequest.feedback}
                 </p>
                 {revisionRequest.reviewPoints && revisionRequest.reviewPoints.length > 0 && (
                   <ul className="mt-3 flex flex-col gap-1">
                     {revisionRequest.reviewPoints.map((p, j) => (
-                      <li key={j} style={{ color: "#1D1D1F", fontSize: 13, lineHeight: 1.5 }}>
+                      <li key={j} style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.5 }}>
                         · {p}
                       </li>
                     ))}
@@ -363,7 +363,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               className="p-5 mb-8 rounded-2xl card-soft"
               style={{ background: "#FFFFFF" }}
             >
-              <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 18 }}>
+              <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 18 }}>
                 PROGRESSO NO FUNIL
               </div>
               <GateRail stage={idea.stage} status={idea.status} size="md" showLabels />
@@ -397,7 +397,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             >
               <div
                 style={{
-                  color: "#AEAEB2",
+                  color: "#6E6E73",
                   fontSize: 11,
                   fontWeight: 600,
                   marginBottom: 16,
@@ -407,7 +407,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               </div>
               <div className="flex flex-col gap-0">
                 {idea.timeline.length === 0 ? (
-                  <div style={{ color: "#AEAEB2", fontSize: 13 }}>
+                  <div style={{ color: "#6E6E73", fontSize: 13 }}>
                     Nenhuma movimentação registrada.
                   </div>
                 ) : (
@@ -423,36 +423,36 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               height: 28,
                               background:
                                 entry.decision === "aprovada"
-                                  ? "rgba(52,199,89,0.12)"
+                                  ? "rgba(0,245,138,0.18)"
                                   : entry.decision === "rejeitada"
                                   ? "#F0F0F2"
                                   : entry.decision === "revisão"
-                                  ? "rgba(245,158,11,0.12)"
+                                  ? "rgba(0,180,216,0.12)"
                                   : entry.decision === "avaliada"
-                                  ? "rgba(139,124,246,0.12)"
+                                  ? "rgba(0,114,206,0.12)"
                                   : entry.decision === "atraso"
-                                  ? "#FEF3E2"
+                                  ? "rgba(0,114,206,0.12)"
                                   : entry.decision === "cancelada"
                                   ? "#F0F0F2"
-                                  : "rgba(59,130,246,0.12)",
+                                  : "rgba(0,114,206,0.12)",
                             }}
                           >
                             {entry.decision === "gate-aberto" ? (
-                              <DoorOpen size={13} style={{ color: "#3B82F6" }} />
+                              <DoorOpen size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "atraso" ? (
-                              <Clock size={13} style={{ color: "#B6790A" }} />
+                              <Clock size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "cancelada" ? (
-                              <Ban size={13} style={{ color: "#8E8E93" }} />
+                              <Ban size={13} style={{ color: "#6E6E73" }} />
                             ) : entry.decision === "avaliada" ? (
-                              <Star size={13} style={{ color: "#8B7CF6" }} />
+                              <Star size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "aprovada" ? (
-                              <CheckCircle2 size={13} style={{ color: "#34C759" }} />
+                              <CheckCircle2 size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "rejeitada" ? (
-                              <XCircle size={13} style={{ color: "#8E8E93" }} />
+                              <XCircle size={13} style={{ color: "#6E6E73" }} />
                             ) : entry.decision === "revisão" ? (
-                              <RotateCcw size={13} style={{ color: "#F59E0B" }} />
+                              <RotateCcw size={13} style={{ color: "#0072CE" }} />
                             ) : (
-                              <Clock size={13} style={{ color: "#3B82F6" }} />
+                              <Clock size={13} style={{ color: "#0072CE" }} />
                             )}
                           </div>
                           {!isLast && (
@@ -461,21 +461,21 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                         </div>
                         <div className="pb-4">
                           {entry.stage && (
-                            <div style={{ color: "#B6790A", fontSize: 10, fontWeight: 600, letterSpacing: "0.03em" }}>
+                            <div style={{ color: "#0072CE", fontSize: 10, fontWeight: 600, letterSpacing: "0.03em" }}>
                               {entry.stage.toUpperCase()}
                               {entry.gateOrder !== undefined && (
-                                <span style={{ color: "#AEAEB2" }}>
+                                <span style={{ color: "#6E6E73" }}>
                                   {" "}· GATE {entry.gateOrder}
                                   {entry.round !== undefined && entry.round > 1 ? ` · RODADA ${entry.round}` : ""}
                                 </span>
                               )}
                             </div>
                           )}
-                          <div style={{ color: "#1D1D1F", fontSize: 12.5, fontWeight: 600, marginTop: 2 }}>
+                          <div style={{ color: "#0A1931", fontSize: 12.5, fontWeight: 600, marginTop: 2 }}>
                             {entry.decision === "avaliada" ? (
                               <>
                                 Avaliada ·{" "}
-                                <span style={{ color: "#6D5CD6" }}>
+                                <span style={{ color: "#0072CE" }}>
                                   nota {(entry.score ?? 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}/10
                                 </span>
                               </>
@@ -496,13 +496,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               : "Enviada para revisão"}
                           </div>
                           {entry.recommendation && (
-                            <div style={{ color: "#AEAEB2", fontSize: 11, marginTop: 1 }}>
+                            <div style={{ color: "#6E6E73", fontSize: 11, marginTop: 1 }}>
                               Recomendação do sistema: {recommendationLabel[entry.recommendation]}
                               {entry.score !== undefined &&
                                 ` (score ${entry.score.toLocaleString("pt-BR", { maximumFractionDigits: 2 })})`}
                             </div>
                           )}
-                          <div style={{ color: "#AEAEB2", fontSize: 11, marginTop: 1 }}>
+                          <div style={{ color: "#6E6E73", fontSize: 11, marginTop: 1 }}>
                             {new Date(entry.date).toLocaleDateString("pt-BR")} · {entry.responsible}
                           </div>
                           <p style={{ color: "#6E6E73", fontSize: 12, marginTop: 5, lineHeight: 1.55 }}>
@@ -511,15 +511,15 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                           {entry.reviewPoints && entry.reviewPoints.length > 0 && (
                             <div
                               className="mt-3 rounded-xl p-3"
-                              style={{ background: "rgba(245,158,11,0.07)" }}
+                              style={{ background: "rgba(0,180,216,0.08)" }}
                             >
-                              <div className="flex items-center gap-1.5 mb-2" style={{ color: "#B6790A", fontSize: 11, fontWeight: 600 }}>
+                              <div className="flex items-center gap-1.5 mb-2" style={{ color: "#0072CE", fontSize: 11, fontWeight: 600 }}>
                                 <AlertTriangle size={11} />
                                 Pontos a revisar
                               </div>
                               <ul className="flex flex-col gap-1">
                                 {entry.reviewPoints.map((p, j) => (
-                                  <li key={j} style={{ color: "#1D1D1F", fontSize: 11, lineHeight: 1.5 }}>
+                                  <li key={j} style={{ color: "#0A1931", fontSize: 11, lineHeight: 1.5 }}>
                                     · {p}
                                   </li>
                                 ))}
@@ -532,12 +532,12 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                   })
                 )}
                 {evalState === "loading" && (
-                  <div style={{ color: "#AEAEB2", fontSize: 12, marginTop: 4 }}>
+                  <div style={{ color: "#6E6E73", fontSize: 12, marginTop: 4 }}>
                     Carregando avaliações...
                   </div>
                 )}
                 {evalState === "error" && (
-                  <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12, marginTop: 4 }}>
+                  <div className="flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12, marginTop: 4 }}>
                     <AlertTriangle size={12} />
                     Não foi possível carregar as avaliações.
                   </div>
@@ -563,15 +563,15 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             className="w-full max-w-md rounded-2xl p-6 card-soft"
             style={{ background: "#FFFFFF" }}
           >
-            <h2 id="cancel-idea-title" style={{ color: "#1D1D1F", fontSize: 18, fontWeight: 700 }}>
+            <h2 id="cancel-idea-title" style={{ color: "#0A1931", fontSize: 18, fontWeight: 700 }}>
               Cancelar esta ideia?
             </h2>
             <p className="mt-3" style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
               A proposta será removida do funil ativo e de qualquer avaliação em andamento. O registro e o histórico
               serão mantidos, com o seu nome e a justificativa.
             </p>
-            <label className="block mt-4" style={{ color: "#1D1D1F", fontSize: 13, fontWeight: 600 }}>
-              Justificativa <span style={{ color: "#FF3B30" }}>*</span>
+            <label className="block mt-4" style={{ color: "#0A1931", fontSize: 13, fontWeight: 600 }}>
+              Justificativa <span style={{ color: "#B42318" }}>*</span>
             </label>
             <textarea
               value={cancelReason}
@@ -586,9 +586,9 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                 width: "100%",
                 marginTop: 6,
                 background: "#F5F5F7",
-                border: `1.5px solid ${cancelReasonError ? "#FF3B30" : "transparent"}`,
+                border: `1.5px solid ${cancelReasonError ? "#B42318" : "transparent"}`,
                 borderRadius: 12,
-                color: "#1D1D1F",
+                color: "#0A1931",
                 fontSize: 13.5,
                 padding: "10px 12px",
                 outline: "none",
@@ -596,13 +596,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               }}
             />
             {cancelReasonError && (
-              <div className="flex items-center gap-1.5 mt-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+              <div className="flex items-center gap-1.5 mt-1.5" style={{ color: "#B42318", fontSize: 12 }}>
                 <AlertCircle size={12} />
                 Informe a justificativa do cancelamento
               </div>
             )}
             {actionError && (
-              <div className="flex items-center gap-2 rounded-xl p-3 mt-4" style={{ background: "rgba(255,59,48,0.08)", color: "#FF3B30", fontSize: 13 }}>
+              <div className="flex items-center gap-2 rounded-xl p-3 mt-4" style={{ background: "rgba(255,59,48,0.08)", color: "#B42318", fontSize: 13 }}>
                 <AlertCircle size={15} />
                 {actionError}
               </div>
@@ -646,11 +646,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </div>
       {children ? (
-        <p style={{ color: "#1D1D1F", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+        <p style={{ color: "#0A1931", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
           {children}
         </p>
       ) : (
-        <p style={{ color: "#AEAEB2", fontSize: 13.5, fontStyle: "italic" }}>Não informado</p>
+        <p style={{ color: "#6E6E73", fontSize: 13.5, fontStyle: "italic" }}>Não informado</p>
       )}
     </div>
   );
@@ -703,7 +703,7 @@ function EditIdeaForm({
         <input value={form[key]} onChange={(e) => set(key, e.target.value)} style={inputStyle(!!errors[key])} />
       )}
       {errors[key] && (
-        <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+        <div className="flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12 }}>
           <AlertCircle size={12} />
           {errors[key]}
         </div>
@@ -713,7 +713,7 @@ function EditIdeaForm({
 
   return (
     <div className="p-6 mb-8 rounded-2xl card-soft flex flex-col gap-4" style={{ background: "#FFFFFF" }}>
-      <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600 }}>EDITAR IDEIA</div>
+      <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600 }}>EDITAR IDEIA</div>
       {field("title", "Título da ideia *")}
       {field("problem", "Problema identificado *", 4)}
       {field("solution", "Solução proposta *", 4)}
@@ -730,7 +730,7 @@ function EditIdeaForm({
           ))}
         </select>
         {errors.department && (
-          <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+          <div className="flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12 }}>
             <AlertCircle size={12} />
             {errors.department}
           </div>
@@ -738,7 +738,7 @@ function EditIdeaForm({
       </div>
       {field("impact", "Impacto estimado", 3)}
       {field("resources", "Recursos necessários", 3)}
-      <p style={{ color: "#AEAEB2", fontSize: 12 }}>
+      <p style={{ color: "#6E6E73", fontSize: 12 }}>
         Salvar não reenvia a ideia ao gate. Quando terminar, use “Solicitar revisão do gate”.
       </p>
       <div className="flex justify-end gap-3">
@@ -753,8 +753,8 @@ function EditIdeaForm({
         <button
           onClick={submit}
           disabled={busy}
-          className="px-6 py-2.5 rounded-xl"
-          style={{ background: busy ? "#FBD9AE" : "#F59E0B", color: "#FFFFFF", border: "none", cursor: busy ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 600 }}
+          className="primary-action px-6 py-2.5 rounded-xl"
+          style={{ border: "none", cursor: busy ? "not-allowed" : "pointer", fontSize: 14, fontWeight: 600 }}
         >
           {busy ? "Salvando..." : "Salvar alterações"}
         </button>
@@ -767,9 +767,9 @@ function inputStyle(hasError: boolean): React.CSSProperties {
   return {
     width: "100%",
     background: "#F5F5F7",
-    border: `1.5px solid ${hasError ? "#FF3B30" : "transparent"}`,
+    border: `1.5px solid ${hasError ? "#B42318" : "transparent"}`,
     borderRadius: 12,
-    color: "#1D1D1F",
+    color: "#0A1931",
     fontSize: 13.5,
     padding: "10px 12px",
     outline: "none",

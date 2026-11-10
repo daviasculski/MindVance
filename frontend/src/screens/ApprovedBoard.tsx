@@ -49,14 +49,14 @@ export default function ApprovedBoard({ token, onOpenIdea, onSessionExpired }: A
           <BoardHeader count={null} />
           {error ? (
             <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
-              <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+              <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#B42318", fontSize: 13.5 }}>
                 <AlertCircle size={15} />
                 {error}
               </div>
               <button
                 onClick={load}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
-                style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+                style={{ background: "#F5F5F7", color: "#0A1931", border: "none", cursor: "pointer", fontSize: 13 }}
               >
                 <RotateCw size={13} />
                 Tentar novamente
@@ -84,10 +84,10 @@ export default function ApprovedBoard({ token, onOpenIdea, onSessionExpired }: A
         ) : (
           <div className="grid gap-5" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
             {approvedIdeas.map((idea) => (
-              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#34C759" onClick={() => onOpenIdea(idea)} />
+              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#00F58A" onClick={() => onOpenIdea(idea)} />
             ))}
             {launchedOthers.map((idea) => (
-              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#3B82F6" onClick={() => onOpenIdea(idea)} />
+              <IdeaShowcaseCard key={idea.id} idea={idea} accent="#0072CE" onClick={() => onOpenIdea(idea)} />
             ))}
           </div>
         )}
@@ -100,12 +100,12 @@ function BoardHeader({ count }: { count: number | null }) {
   return (
     <div className="mb-8">
       <div className="flex items-center gap-3 mb-3">
-        <Trophy size={22} style={{ color: "#F59E0B" }} />
+        <Trophy size={22} style={{ color: "#0072CE" }} />
         <h1
           style={{
             fontWeight: 700,
             fontSize: 24,
-            color: "#1D1D1F",
+            color: "#0A1931",
             letterSpacing: "-0.02em",
           }}
         >
@@ -137,7 +137,7 @@ function IdeaShowcaseCard({ idea, accent, onClick }: { idea: Idea; accent: strin
         style={{
           fontWeight: 700,
           fontSize: 15,
-          color: "#1D1D1F",
+          color: "#0A1931",
           lineHeight: 1.3,
           marginBottom: 8,
         }}
@@ -173,11 +173,11 @@ function IdeaShowcaseCard({ idea, accent, onClick }: { idea: Idea; accent: strin
           gap: 6,
         }}
       >
-        <div className="flex items-center gap-2" style={{ color: "#AEAEB2", fontSize: 11 }}>
+        <div className="flex items-center gap-2" style={{ color: "#6E6E73", fontSize: 11 }}>
           <Rocket size={11} style={{ color: accent }} />
           por {idea.author}
         </div>
-        <div className="flex items-center gap-2" style={{ color: "#AEAEB2", fontSize: 11 }}>
+        <div className="flex items-center gap-2" style={{ color: "#6E6E73", fontSize: 11 }}>
           <Calendar size={11} />
           {new Date(idea.submittedAt).toLocaleDateString("pt-BR")}
         </div>
@@ -196,7 +196,7 @@ function EmptyState() {
       <div style={{ color: "#6E6E73", fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
         Nenhuma ideia aprovada ainda
       </div>
-      <p style={{ color: "#AEAEB2", fontSize: 13 }}>
+      <p style={{ color: "#6E6E73", fontSize: 13 }}>
         Assim que ideias forem aprovadas no funil Stage-Gate, elas aparecerão aqui.
       </p>
     </div>

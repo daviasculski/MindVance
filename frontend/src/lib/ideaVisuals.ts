@@ -53,7 +53,7 @@ export function rejectionFeedback(idea: Idea): string | null {
 /** Warm, non-alarming aging tone — never reaches red. */
 export function agingTone(days: number): { bg: string; color: string; label: string } {
   if (days < 5) return { bg: "#F0F0F2", color: "#6E6E73", label: `${days}d` };
-  if (days < 12) return { bg: "#FEF3E2", color: "#B6790A", label: `${days}d` };
-  if (days < 21) return { bg: "#FDE7C8", color: "#9A5B0A", label: `${days}d` };
-  return { bg: "#FBD9AE", color: "#7A4308", label: `${days}d` };
+  if (days < 12) return { bg: "rgba(0,180,216,0.12)", color: "#0A1931", label: `${days}d` };
+  if (days < 21) return { bg: "rgba(0,180,216,0.12)", color: "#0A1931", label: `${days}d` };
+  return { bg: "rgba(0,114,206,0.12)", color: "#0A1931", label: `${days}d` };
 }

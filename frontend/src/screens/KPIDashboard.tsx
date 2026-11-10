@@ -5,12 +5,11 @@ import StatusBadge from "../components/StatusBadge";
 import { ApiError } from "../lib/api";
 import { getMetrics, type Metrics } from "../lib/insights";
 
-const AMBER = "#F59E0B";
-// Mesmo matiz, passo mais escuro: destaca o gargalo sem introduzir uma nova série
-const AMBER_DARK = "#B6790A";
-const INK = "#1D1D1F";
+const CYAN = "#00B4D8";
+const BLUE = "#0072CE";
+const INK = "#0A1931";
 const INK_SECONDARY = "#6E6E73";
-const INK_MUTED = "#AEAEB2";
+const INK_MUTED = "#6E6E73";
 
 type Preset = "30d" | "90d" | "12m" | "all" | "custom";
 
@@ -57,15 +56,24 @@ function ValueTooltip({ active, payload, label, unit }: any) {
 function RoundDot(props: any) {
   const { cx, cy } = props;
   if (cx == null || cy == null) return null;
-  return <circle cx={cx} cy={cy} r={4} fill={AMBER} stroke="#FFFFFF" strokeWidth={2} />;
+  return <circle cx={cx} cy={cy} r={4} fill={CYAN} stroke="#FFFFFF" strokeWidth={2} />;
 }
 
-function TickMeter({ pct, color = AMBER, label }: { pct: number; color?: string; label: string }) {
+function TickMeter({ pct, color = CYAN, label }: { pct: number; color?: string; label: string }) {
   const filled = Math.round((pct / 100) * 12);
   return (
     <div className="flex-1 flex gap-[3px]" role="img" aria-label={label} title={label}>
       {Array.from({ length: 12 }).map((_, i) => (
-        <div key={i} className="rounded-full" style={{ height: 6, flex: 1, background: i < filled ? color : "#E5E5EA" }} />
+        <div
+          key={i}
+          className="rounded-full"
+          style={{
+            height: 6,
+            flex: 1,
+            background: i < filled ? color : "#E5E5EA",
+            boxShadow: i < filled ? "inset 0 0 0 1px rgba(10,25,49,0.65)" : "none",
+          }}
+        />
       ))}
     </div>
   );
@@ -134,9 +142,9 @@ export default function KPIDashboard({ token, readOnly, onSessionExpired }: KPID
               onClick={() => setPreset(p.id)}
               className="rounded-xl px-3.5 py-2"
               style={{
-                background: preset === p.id ? "rgba(245,158,11,0.12)" : "#FFFFFF",
-                border: `1px solid ${preset === p.id ? AMBER : "#E5E5EA"}`,
-                color: preset === p.id ? AMBER_DARK : INK_SECONDARY,
+                background: preset === p.id ? "rgba(0,180,216,0.12)" : "#FFFFFF",
+                border: `1px solid ${preset === p.id ? CYAN : "#E5E5EA"}`,
+                color: preset === p.id ? "#0A1931" : INK_SECONDARY,
                 fontSize: 12.5,
                 fontWeight: preset === p.id ? 600 : 400,
                 cursor: "pointer",
@@ -170,7 +178,7 @@ export default function KPIDashboard({ token, readOnly, onSessionExpired }: KPID
 
         {error ? (
           <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
-            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#B42318", fontSize: 13.5 }}>
               <AlertCircle size={15} />
               {error}
             </div>
@@ -220,21 +228,21 @@ function Dashboard({ metrics }: { metrics: Metrics }) {
       {/* Números de destaque */}
       <div className="grid gap-4 mb-8" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
         {[
-          { icon: <Target size={18} style={{ color: AMBER }} />, label: "Ideias submetidas", value: metrics.totalIdeas, sub: "no período" },
+          { icon: <Target size={18} style={{ color: BLUE }} />, label: "Ideias submetidas", value: metrics.totalIdeas, sub: "no período" },
           {
-            icon: <TrendingUp size={18} style={{ color: "#34C759" }} />,
+            icon: <TrendingUp size={18} style={{ color: "#0072CE" }} />,
             label: "Aprovação nos gates",
             value: approvalRate !== null ? `${approvalRate}%` : "—",
             sub: totals.concluded > 0 ? `${totals.approved} de ${totals.concluded} decisões finais` : "sem decisões no período",
           },
           {
-            icon: <Clock size={18} style={{ color: "#3B82F6" }} />,
+            icon: <Clock size={18} style={{ color: "#0072CE" }} />,
             label: "Tempo médio/estágio",
             value: avgDays !== null ? `${avgDays}d` : "—",
             sub: "média dos estágios com gate",
           },
           {
-            icon: <Layers size={18} style={{ color: "#8B7CF6" }} />,
+            icon: <Layers size={18} style={{ color: "#0072CE" }} />,
             label: "Em desenvolvimento",
             value: metrics.inDevelopment.length,
             sub: "aprovados no Gate 3 ou além",
@@ -261,7 +269,7 @@ function Dashboard({ metrics }: { metrics: Metrics }) {
               <XAxis dataKey="label" tick={{ fill: INK_MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: INK_MUTED, fontSize: 11 }} axisLine={false} tickLine={false} width={25} />
               <Tooltip content={<ValueTooltip unit=" ideias" />} cursor={{ stroke: "#E5E5EA" }} />
-              <Line type="monotone" dataKey="count" stroke={AMBER} strokeWidth={2} dot={<RoundDot />} activeDot={{ r: 5 }} />
+              <Line type="monotone" dataKey="count" stroke={BLUE} strokeWidth={2} dot={<RoundDot />} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </Card>
@@ -276,7 +284,7 @@ function Dashboard({ metrics }: { metrics: Metrics }) {
                   <div style={{ color: INK_SECONDARY, fontSize: 10.5, width: 100, flexShrink: 0, textAlign: "right" }}>{row.stage}</div>
                   <TickMeter
                     pct={pct}
-                    color={i === metrics.reachedByStage.length - 1 ? "#34C759" : AMBER}
+                    color={i === metrics.reachedByStage.length - 1 ? "#00F58A" : CYAN}
                     label={`${row.stage}: ${row.count} ideias (${pct}%)`}
                   />
                   <div style={{ color: INK, fontSize: 11, fontWeight: 700, width: 30, textAlign: "right" }}>{row.count}</div>
@@ -322,7 +330,7 @@ function Dashboard({ metrics }: { metrics: Metrics }) {
               <Tooltip content={<ValueTooltip unit=" dias" />} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
               <Bar dataKey="days" radius={[4, 4, 0, 0]}>
                 {metrics.avgDaysByStage.map((s) => (
-                  <Cell key={s.stage} fill={bottleneck && s.stage === bottleneck.stage ? AMBER_DARK : AMBER} />
+                  <Cell key={s.stage} fill={bottleneck && s.stage === bottleneck.stage ? "#0A1931" : BLUE} />
                 ))}
               </Bar>
             </BarChart>

@@ -121,11 +121,9 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
               type="button"
               disabled={uploading}
               onClick={() => inputRef.current?.click()}
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5"
+              className="primary-action flex items-center gap-1.5 rounded-lg px-3 py-1.5"
               style={{
-                background: "#FFF7E8",
-                color: "#B6790A",
-                border: "1px solid #FBD9AE",
+                border: "1px solid rgba(0,180,216,0.35)",
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: uploading ? "not-allowed" : "pointer",
@@ -142,7 +140,7 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
       {error && (
         <div
           className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mb-2"
-          style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+          style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
           role="alert"
         >
           <AlertCircle size={13} />
@@ -151,7 +149,7 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
       )}
 
       {items.length === 0 && canAttach && (
-        <p style={{ color: "#AEAEB2", fontSize: 12 }}>
+        <p style={{ color: "#6E6E73", fontSize: 12 }}>
           Nenhum arquivo ainda. Até {MAX_FILES_PER_UPLOAD} por envio, {MAX_FILE_MB} MB cada (imagens, PDF, Office, texto ou .zip).
         </p>
       )}
@@ -159,7 +157,7 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
       <div className="flex flex-col gap-4">
         {groups.map((group) => (
           <div key={group.stage}>
-            <div style={{ color: "#AEAEB2", fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
+            <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 6 }}>
               {group.stage === "Ideação" ? "Ideação (submissão)" : group.stage}
             </div>
             <div className="flex flex-col gap-2">
@@ -173,19 +171,19 @@ export default function AttachmentsPanel({ ideaId, token, onSessionExpired, canA
                   style={{ background: "#FFFFFF", border: "none", cursor: "pointer" }}
                 >
                   {att.kind === "image" ? (
-                    <Image size={16} style={{ color: "#3B82F6" }} />
+                    <Image size={16} style={{ color: "#0072CE" }} />
                   ) : att.kind === "prototype" ? (
-                    <Layers size={16} style={{ color: "#8B7CF6" }} />
+                    <Layers size={16} style={{ color: "#0072CE" }} />
                   ) : (
-                    <FileText size={16} style={{ color: "#2DD4BF" }} />
+                    <FileText size={16} style={{ color: "#0072CE" }} />
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate" style={{ color: "#1D1D1F", fontSize: 13 }}>{att.name}</div>
-                    <div style={{ color: "#AEAEB2", fontSize: 11 }}>
+                    <div className="truncate" style={{ color: "#0A1931", fontSize: 13 }}>{att.name}</div>
+                    <div style={{ color: "#6E6E73", fontSize: 11 }}>
                       {att.size} · {att.uploadedBy} · {new Date(att.date).toLocaleDateString("pt-BR")}
                     </div>
                   </div>
-                  <Download size={14} style={{ color: "#AEAEB2" }} />
+                  <Download size={14} style={{ color: "#6E6E73" }} />
                 </button>
               ))}
             </div>

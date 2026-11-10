@@ -9,25 +9,22 @@
   --color-border: #e5e5ea;
   --color-border-strong: #d2d2d7;
 
-  --color-text-primary: #1d1d1f;
+  --color-text-primary: #0a1931;
   --color-text-secondary: #6e6e73;
-  --color-text-tertiary: #aeaeb2;
+  --color-text-tertiary: #6e6e73;
 
-  --color-amber: #f59e0b;
-  --color-amber-surface: rgba(245, 158, 11, 0.1);
-  --color-amber-border: rgba(245, 158, 11, 0.35);
+  --color-brand-navy: #0a1931;
+  --color-brand-blue: #0072ce;
+  --color-brand-cyan: #00b4d8;
+  --color-brand-emerald: #00f58a;
+  --color-brand-cyan-soft: rgba(0, 180, 216, 0.12);
+  --color-brand-blue-soft: rgba(0, 114, 206, 0.1);
+  --color-brand-emerald-soft: rgba(0, 245, 138, 0.18);
+  --color-brand-emerald-border: rgba(0, 245, 138, 0.55);
 
-  --color-green: #34c759;
-  --color-green-surface: rgba(52, 199, 89, 0.1);
-  --color-green-border: rgba(52, 199, 89, 0.35);
-
-  --color-red: #ff3b30;
+  --color-red: #b42318;
   --color-red-surface: rgba(255, 59, 48, 0.08);
   --color-red-border: rgba(255, 59, 48, 0.25);
-
-  --color-blue: #3b82f6;
-  --color-blue-surface: rgba(59, 130, 246, 0.1);
-  --color-blue-border: rgba(59, 130, 246, 0.3);
 
   --font-display: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
@@ -48,7 +45,7 @@ html, body, #root {
 
 body {
   background: #f5f5f7;
-  color: #1d1d1f;
+  color: #0a1931;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -62,16 +59,41 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid #f59e0b;
+  outline: 2px solid var(--color-brand-blue);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.ios-slider:focus-visible {
+  outline: 2px solid var(--color-brand-blue) !important;
+  outline-offset: 2px;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, var(--color-brand-cyan) 0%, var(--color-brand-emerald) 100%);
+  color: var(--color-brand-navy);
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.primary-action:hover:not(:disabled) {
+  background: var(--color-brand-blue);
+  color: #ffffff;
+}
+
+.primary-action:disabled {
+  background: #e5e5ea;
+  color: #6e6e73;
+  cursor: not-allowed;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #aeaeb2; }
+::-webkit-scrollbar-thumb:hover { background: #6e6e73; }
 
 /* Elevation */
 .card-elevated {

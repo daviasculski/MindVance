@@ -1,16 +1,16 @@
 interface GateBadgeProps {
   label: string;
   size?: "sm" | "md";
-  tone?: "amber" | "green" | "neutral";
+  tone?: "cyan" | "green" | "neutral";
 }
 
 const tones = {
-  amber: { bg: "rgba(245,158,11,0.12)", color: "#B6790A" },
-  green: { bg: "rgba(52,199,89,0.12)", color: "#1F8A3B" },
+  cyan: { bg: "rgba(0,180,216,0.12)", color: "#0A1931" },
+  green: { bg: "rgba(0,245,138,0.18)", color: "#0A1931" },
   neutral: { bg: "#F0F0F2", color: "#6E6E73" },
 };
 
-export default function GateBadge({ label, size = "md", tone = "amber" }: GateBadgeProps) {
+export default function GateBadge({ label, size = "md", tone = "cyan" }: GateBadgeProps) {
   const isSmall = size === "sm";
   const c = tones[tone];
   return (

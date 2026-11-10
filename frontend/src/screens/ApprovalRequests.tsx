@@ -82,7 +82,7 @@ export default function ApprovalRequests({
           <div>
             <h1
               style={{
-                color: "#1D1D1F",
+                color: "#0A1931",
                 fontSize: 24,
                 fontWeight: 700,
                 letterSpacing: "-0.02em",
@@ -140,18 +140,18 @@ export default function ApprovalRequests({
               <button
                 type="button"
                 onClick={() => void loadRequests()}
-                style={{ color: "#8A5A00", fontSize: 13 }}
+                style={{ color: "#0072CE", fontSize: 13 }}
               >
                 Tentar novamente
               </button>
             </div>
           ) : requests.length === 0 ? (
             <div className="p-10 text-center">
-              <UserCheck size={28} style={{ color: "#34A853", margin: "0 auto 12px" }} />
-              <p style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600 }}>
+              <UserCheck size={28} style={{ color: "#0072CE", margin: "0 auto 12px" }} />
+              <p style={{ color: "#0A1931", fontSize: 15, fontWeight: 600 }}>
                 Nenhuma solicitação pendente
               </p>
-              <p style={{ color: "#8E8E93", fontSize: 13, marginTop: 5 }}>
+              <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 5 }}>
                 Os novos pedidos de acesso aparecerão aqui.
               </p>
             </div>
@@ -169,7 +169,7 @@ export default function ApprovalRequests({
                   <div className="min-w-0">
                     <p
                       className="truncate"
-                      style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 600 }}
+                      style={{ color: "#0A1931", fontSize: 14, fontWeight: 600 }}
                     >
                       {request.name}
                     </p>
@@ -182,8 +182,8 @@ export default function ApprovalRequests({
                     <span
                       className="mt-2 inline-flex rounded-full px-2.5 py-1"
                       style={{
-                        background: "rgba(245,158,11,0.12)",
-                        color: "#8A5A00",
+                        background: "rgba(0,180,216,0.12)",
+                        color: "#0A1931",
                         fontSize: 11,
                         fontWeight: 600,
                       }}
@@ -200,9 +200,9 @@ export default function ApprovalRequests({
                       disabled={activeRequest !== null}
                       className="flex items-center gap-2 rounded-xl px-3.5 py-2.5"
                       style={{
-                        background: "rgba(52,199,89,0.12)",
-                        border: "none",
-                        color: "#1F8A3B",
+                        background: "rgba(0,245,138,0.18)",
+                        border: "1px solid #0072CE",
+                        color: "#0A1931",
                         cursor: activeRequest ? "not-allowed" : "pointer",
                         fontSize: 12.5,
                         fontWeight: 600,

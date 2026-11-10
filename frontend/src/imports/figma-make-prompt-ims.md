@@ -36,22 +36,20 @@ confiável, estruturado, com hierarquia visual clara para números e status.
    gates com todas as avaliações concluídas e toma a decisão final de
    aprovação/rejeição/revisão, sempre com justificativa obrigatória.
 
-## Identidade visual (use exatamente esta base, mas capriche na execução)
+## Identidade visual (paleta oficial MindVance)
 
-- **Paleta**: fundo em tons de slate bem escuro (`#0b1120` → `#131b2e` →
-  `#1e293b` → `#334155`, texto secundário `#94a3b8`, texto principal
-  `#f1f5f9`). Cor de destaque/ação em **âmbar** (`#f59e0b`, hover
-  `#b45309`) — representa os gates de decisão. Verde (`#22c55e`) para
-  aprovação/sucesso. Vermelho (`#ef4444`) para rejeição/erro. Evite azul
-  genérico de SaaS — a identidade do produto gira em torno de slate + âmbar.
-- **Tipografia**: **Sora** (peso 600–800) para títulos e display; **Inter**
-  (peso 400–600) para corpo de texto, labels e dados tabulares.
-- **Tom visual**: modo escuro como padrão, cantos arredondados médios
-  (8–16px), cards com borda sutil (1px, baixo contraste) em vez de sombras
-  pesadas, bastante respiro entre seções. Ícones lineares, finos.
-- Evite qualquer aparência de template genérico de admin dashboard — quero
-  que o "gate" (âmbar) seja um elemento visual recorrente e reconhecível em
-  toda a interface, não só um detalhe de botão.
+- **Paleta**: azul escuro profundo (`#0A1931`) para textos principais; azul
+  (`#0072CE`) para destaques e foco; ciano (`#00B4D8`) para a??es e estados
+  ativos; esmeralda (`#00F58A`) para aprova??o, sucesso e progresso conclu?do.
+  Use vermelho apenas para rejei??o/erro.
+- **Tipografia**: **Sora** (peso 600?800) para t?tulos e display; **Inter**
+  (peso 400?600) para corpo de texto, labels e dados tabulares.
+- **Tom visual**: cantos arredondados m?dios (8?16px), cards com borda sutil
+  (1px, baixo contraste) em vez de sombras pesadas, bastante respiro entre
+  se??es. ?cones lineares, finos.
+- Evite qualquer apar?ncia de template gen?rico de admin dashboard ? use a
+  paleta de azuis e esmeralda de forma recorrente em toda a interface, n?o s?
+  como detalhe de bot?o.
 
 ## Telas a gerar (nesta ordem de prioridade)
 

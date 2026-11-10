@@ -21,7 +21,7 @@ const roleFilters: { value: RoleFilter; label: string }[] = [
 ];
 
 const statusLabel: Record<ManagedUser["approvalStatus"], { text: string; color: string; bg: string }> = {
-  PENDING: { text: "pedido pendente", color: "#8A5A00", bg: "rgba(245,158,11,0.12)" },
+  PENDING: { text: "pedido pendente", color: "#0A1931", bg: "rgba(0,180,216,0.12)" },
   REJECTED: { text: "pedido recusado", color: "#6E6E73", bg: "#F0F0F2" },
   APPROVED: { text: "", color: "", bg: "" },
 };
@@ -79,7 +79,7 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h1 style={{ color: "#1D1D1F", fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>Usuários</h1>
+            <h1 style={{ color: "#0A1931", fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>Usuários</h1>
             <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 5 }}>
               Altere o papel de qualquer usuário. A mudança vale no próximo acesso dele e aprova a conta.
             </p>
@@ -99,7 +99,7 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
           {error ? (
             <div className="p-6">
               <p className="mb-4" role="alert" style={{ color: "#C62828", fontSize: 14 }}>{error}</p>
-              <button type="button" onClick={() => void load()} style={{ color: "#8A5A00", fontSize: 13 }}>
+              <button type="button" onClick={() => void load()} style={{ color: "#0072CE", fontSize: 13 }}>
                 Tentar novamente
               </button>
             </div>
@@ -107,8 +107,8 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
             <p className="p-6" style={{ color: "#6E6E73", fontSize: 14 }}>Carregando usuários...</p>
           ) : users.length === 0 ? (
             <div className="p-10 text-center">
-              <Users size={28} style={{ color: "#AEAEB2", margin: "0 auto 12px" }} />
-              <p style={{ color: "#1D1D1F", fontSize: 15, fontWeight: 600 }}>Nenhum usuário cadastrado</p>
+              <Users size={28} style={{ color: "#6E6E73", margin: "0 auto 12px" }} />
+              <p style={{ color: "#0A1931", fontSize: 15, fontWeight: 600 }}>Nenhum usuário cadastrado</p>
             </div>
           ) : (
             <>
@@ -123,9 +123,9 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                       onClick={() => setRoleFilter(value)}
                       className="rounded-xl px-3.5 py-2 transition-colors"
                       style={{
-                        background: selected ? "#1D1D1F" : "#FFFFFF",
+                        background: selected ? "#0A1931" : "#FFFFFF",
                         color: selected ? "#FFFFFF" : "#6E6E73",
-                        border: `1px solid ${selected ? "#1D1D1F" : "#E5E5EA"}`,
+                        border: `1px solid ${selected ? "#0A1931" : "#E5E5EA"}`,
                         cursor: "pointer",
                         fontSize: 12.5,
                         fontWeight: selected ? 600 : 500,
@@ -152,13 +152,13 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                     style={{ borderBottom: index < (visibleUsers?.length ?? 0) - 1 ? "1px solid #F0F0F2" : "none" }}
                   >
                     <div className="min-w-0">
-                      <p className="truncate" style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 600 }}>
+                      <p className="truncate" style={{ color: "#0A1931", fontSize: 14, fontWeight: 600 }}>
                         {user.name}
-                        {isSelf && <span style={{ color: "#AEAEB2", fontWeight: 400 }}> (você)</span>}
+                        {isSelf && <span style={{ color: "#6E6E73", fontWeight: 400 }}> (você)</span>}
                       </p>
                       <p className="truncate" style={{ color: "#6E6E73", fontSize: 12.5, marginTop: 3 }}>
                         {user.email}
-                        {user.department && <span style={{ color: "#AEAEB2" }}> · {user.department}</span>}
+                        {user.department && <span style={{ color: "#6E6E73" }}> · {user.department}</span>}
                       </p>
                       {user.approvalStatus !== "APPROVED" && (
                         <span
@@ -169,7 +169,7 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                         </span>
                       )}
                       {rowError?.id === user.id && (
-                        <p className="flex items-center gap-1.5 mt-2" style={{ color: "#FF3B30", fontSize: 12 }}>
+                        <p className="flex items-center gap-1.5 mt-2" style={{ color: "#B42318", fontSize: 12 }}>
                           <AlertCircle size={12} />
                           {rowError.message}
                         </p>
@@ -184,7 +184,7 @@ export default function UsersAdmin({ token, currentUserId, onSessionExpired }: U
                         background: "#F5F5F7",
                         border: "1.5px solid transparent",
                         borderRadius: 12,
-                        color: "#1D1D1F",
+                        color: "#0A1931",
                         fontSize: 13,
                         padding: "8px 12px",
                         cursor: isSelf ? "not-allowed" : "pointer",

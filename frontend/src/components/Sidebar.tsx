@@ -88,9 +88,9 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
       <div className="px-3 py-2">
         <div
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl"
-          style={{ background: "#F5F5F7", color: "#1D1D1F", fontSize: 13 }}
+          style={{ background: "#F5F5F7", color: "#0A1931", fontSize: 13 }}
         >
-          <div className="rounded-full" style={{ width: 6, height: 6, background: "#F59E0B" }} />
+          <div className="rounded-full" style={{ width: 6, height: 6, background: "#0072CE" }} />
           {roleLabels[role]}
         </div>
         {/* Pedido de Avaliador/Gestor ainda não aprovado: opera como Colaborador (P1) */}
@@ -98,8 +98,8 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
           <div
             className="mt-1.5 rounded-xl px-3 py-2"
             style={{
-              background: user.approvalStatus === "PENDING" ? "rgba(245,158,11,0.08)" : "#F5F5F7",
-              color: user.approvalStatus === "PENDING" ? "#8A5A00" : "#6E6E73",
+              background: user.approvalStatus === "PENDING" ? "rgba(0,180,216,0.12)" : "#F5F5F7",
+              color: user.approvalStatus === "PENDING" ? "#0A1931" : "#6E6E73",
               fontSize: 11.5,
               lineHeight: 1.45,
             }}
@@ -121,8 +121,8 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
               onClick={() => onNavigate(item.screen)}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors text-left"
               style={{
-                background: active ? "rgba(245,158,11,0.1)" : "transparent",
-                color: active ? "#B6790A" : "#6E6E73",
+                background: active ? "rgba(0,180,216,0.12)" : "transparent",
+                color: active ? "#0A1931" : "#6E6E73",
                 fontSize: 13.5,
                 fontWeight: active ? 600 : 400,
                 cursor: "pointer",
@@ -142,13 +142,13 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
             className="flex items-center justify-center flex-shrink-0 rounded-full"
             style={{ width: 30, height: 30, background: "#F5F5F7" }}
           >
-            <span style={{ color: "#B6790A", fontSize: 12, fontWeight: 600 }}>{initials(user.name)}</span>
+            <span style={{ color: "#0072CE", fontSize: 12, fontWeight: 600 }}>{initials(user.name)}</span>
           </div>
           <div className="min-w-0">
-            <div className="truncate" style={{ color: "#1D1D1F", fontSize: 12.5, fontWeight: 600 }}>
+            <div className="truncate" style={{ color: "#0A1931", fontSize: 12.5, fontWeight: 600 }}>
               {user.name}
             </div>
-            <div className="truncate" style={{ color: "#AEAEB2", fontSize: 11 }}>
+            <div className="truncate" style={{ color: "#6E6E73", fontSize: 11 }}>
               {user.email}
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function Sidebar({ user, screen, onNavigate, onLogout, token, onO
           onClick={onLogout}
           className="w-full flex items-center gap-2 rounded-xl px-3 py-2 transition-colors"
           style={{
-            color: "#AEAEB2",
+            color: "#6E6E73",
             fontSize: 13,
             cursor: "pointer",
             background: "transparent",

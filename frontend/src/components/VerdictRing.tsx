@@ -7,11 +7,11 @@ interface VerdictRingProps extends GateThresholds {
   strokeWidth?: number;
 }
 
-// Mesma regra do backend: aprovar (verde), revisar (âmbar), rejeitar (cinza, sem vermelho punitivo)
+// Mesma regra do backend: aprovar (esmeralda), revisar (ciano), rejeitar (cinza, sem vermelho punitivo)
 const colorByRecommendation = {
-  aprovada: "#34C759",
-  "revisão": "#F59E0B",
-  rejeitada: "#AEAEB2",
+  aprovada: "#00F58A",
+  "revisão": "#00B4D8",
+  rejeitada: "#6E6E73",
 } as const;
 
 export default function VerdictRing({
@@ -67,7 +67,7 @@ export default function VerdictRing({
             <line
               key={t}
               {...n}
-              stroke="#1D1D1F"
+              stroke="#0A1931"
               strokeWidth={2.5}
               strokeLinecap="round"
               opacity={opacity}
@@ -79,7 +79,7 @@ export default function VerdictRing({
         className="absolute inset-0 flex flex-col items-center justify-center"
         style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" }}
       >
-        <div style={{ fontSize: size * 0.24, fontWeight: 700, color: "#1D1D1F", letterSpacing: "-0.02em", lineHeight: 1 }}>
+        <div style={{ fontSize: size * 0.24, fontWeight: 700, color: "#0A1931", letterSpacing: "-0.02em", lineHeight: 1 }}>
           {/* Até 2 casas, como o backend: 6,95 não pode aparecer como "7,0" e recomendar Revisar */}
           {score.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
         </div>

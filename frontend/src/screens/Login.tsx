@@ -153,7 +153,7 @@ export default function Login({ onLogin }: LoginProps) {
                   fontWeight: 500,
                   fontSize: 13,
                   background: mode === m ? "#FFFFFF" : "transparent",
-                  color: mode === m ? "#1D1D1F" : "#6E6E73",
+                  color: mode === m ? "#0A1931" : "#6E6E73",
                   border: "none",
                   cursor: "pointer",
                   boxShadow: mode === m ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
@@ -200,7 +200,7 @@ export default function Login({ onLogin }: LoginProps) {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: "#AEAEB2", background: "none", border: "none", cursor: "pointer" }}
+                  style={{ color: "#6E6E73", background: "none", border: "none", cursor: "pointer" }}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
@@ -217,7 +217,7 @@ export default function Login({ onLogin }: LoginProps) {
                   setForgotOpen(true);
                 }}
                 className="self-end"
-                style={{ color: "#B6790A", background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}
+                style={{ color: "#0072CE", background: "none", border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 600, padding: 0 }}
               >
                 Esqueci minha senha
               </button>
@@ -239,7 +239,7 @@ export default function Login({ onLogin }: LoginProps) {
                   <option value="gatekeeper">Gestor de Inovação</option>
                 </select>
                 {role !== "colaborador" && (
-                  <p style={{ color: "#AEAEB2", fontSize: 11.5, lineHeight: 1.5 }}>
+                  <p style={{ color: "#6E6E73", fontSize: 11.5, lineHeight: 1.5 }}>
                     Este perfil depende da aprovação de um Administrador. Você poderá entrar assim que ela for aprovada.
                   </p>
                 )}
@@ -265,7 +265,7 @@ export default function Login({ onLogin }: LoginProps) {
             {errors.form && (
               <div
                 className="flex items-center gap-1.5 rounded-xl px-3 py-2.5"
-                style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
+                style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}
               >
                 <AlertCircle size={13} />
                 {errors.form}
@@ -275,7 +275,7 @@ export default function Login({ onLogin }: LoginProps) {
             {notice && (
               <div
                 className="rounded-xl px-3 py-2.5"
-                style={{ color: "#8A5A00", fontSize: 12.5, background: "rgba(245,158,11,0.12)" }}
+                style={{ color: "#0A1931", fontSize: 12.5, background: "rgba(0,180,216,0.12)" }}
                 role="status"
               >
                 {notice}
@@ -285,12 +285,10 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold transition-all mt-1"
+              className="primary-action w-full py-3 rounded-xl font-semibold transition-all mt-1"
               style={{
                 fontWeight: 600,
                 fontSize: 14,
-                background: loading ? "#FBD9AE" : "#F59E0B",
-                color: "#FFFFFF",
                 border: "none",
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.8 : 1,
@@ -303,7 +301,7 @@ export default function Login({ onLogin }: LoginProps) {
 
         <p
           className="text-center mt-4"
-          style={{ color: "#AEAEB2", fontSize: 12 }}
+          style={{ color: "#6E6E73", fontSize: 12 }}
         >
           Acesso restrito a colaboradores autorizados
         </p>
@@ -328,12 +326,12 @@ export default function Login({ onLogin }: LoginProps) {
               type="button"
               onClick={() => setForgotOpen(false)}
               className="absolute right-4 top-4"
-              style={{ color: "#8E8E93", background: "none", border: "none", cursor: "pointer" }}
+              style={{ color: "#6E6E73", background: "none", border: "none", cursor: "pointer" }}
               aria-label="Fechar"
             >
               <X size={18} />
             </button>
-            <h2 id="forgot-password-title" style={{ color: "#1D1D1F", fontSize: 19, fontWeight: 700 }}>
+            <h2 id="forgot-password-title" style={{ color: "#0A1931", fontSize: 19, fontWeight: 700 }}>
               Recuperar senha
             </h2>
             <p className="mt-2 mb-5" style={{ color: "#6E6E73", fontSize: 13, lineHeight: 1.5 }}>
@@ -351,21 +349,21 @@ export default function Login({ onLogin }: LoginProps) {
                 />
               </Field>
               {forgotError && (
-                <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ color: "#FF3B30", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
+                <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5" style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
                   <AlertCircle size={13} />
                   {forgotError}
                 </div>
               )}
               {forgotMessage && (
-                <p role="status" className="rounded-xl px-3 py-2.5" style={{ color: "#1F8A3B", fontSize: 12.5, background: "rgba(52,199,89,0.1)" }}>
+                <p role="status" className="rounded-xl px-3 py-2.5" style={{ color: "#0A1931", fontSize: 12.5, background: "rgba(0,245,138,0.18)" }}>
                   {forgotMessage}
                 </p>
               )}
               <button
                 type="submit"
                 disabled={forgotLoading}
-                className="w-full py-3 rounded-xl font-semibold"
-                style={{ background: forgotLoading ? "#FBD9AE" : "#F59E0B", color: "#FFFFFF", border: "none", cursor: forgotLoading ? "wait" : "pointer", fontSize: 14 }}
+                className="primary-action w-full py-3 rounded-xl font-semibold"
+                style={{ border: "none", cursor: forgotLoading ? "wait" : "pointer", fontSize: 14 }}
               >
                 {forgotLoading ? "Enviando..." : "Enviar link de recuperação"}
               </button>
@@ -389,7 +387,7 @@ export default function Login({ onLogin }: LoginProps) {
             aria-modal="true"
             aria-labelledby="registration-success-title"
           >
-            <h2 id="registration-success-title" style={{ color: "#1D1D1F", fontSize: 19, fontWeight: 700 }}>
+            <h2 id="registration-success-title" style={{ color: "#0A1931", fontSize: 19, fontWeight: 700 }}>
               {registrationSuccess.pendingApproval ? "Solicitação enviada" : "Conta criada"}
             </h2>
             <p className="mt-3 mb-6" style={{ color: "#6E6E73", fontSize: 13, lineHeight: 1.55 }}>
@@ -400,8 +398,8 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               type="button"
               onClick={closeRegistrationSuccess}
-              className="w-full py-3 rounded-xl font-semibold"
-              style={{ background: "#F59E0B", color: "#FFFFFF", border: "none", cursor: "pointer", fontSize: 14 }}
+              className="primary-action w-full py-3 rounded-xl font-semibold"
+              style={{ border: "none", cursor: "pointer", fontSize: 14 }}
             >
               Ir para o login
             </button>
@@ -416,9 +414,9 @@ function inputStyle(hasError: boolean) {
   return {
     width: "100%",
     background: "#F5F5F7",
-    border: `1.5px solid ${hasError ? "#FF3B30" : "transparent"}`,
+    border: `1.5px solid ${hasError ? "#B42318" : "transparent"}`,
     borderRadius: 12,
-    color: "#1D1D1F",
+    color: "#0A1931",
     fontSize: 13.5,
     padding: "10px 12px",
     outline: "none",
@@ -441,7 +439,7 @@ function Field({
       </label>
       {children}
       {error && (
-        <div className="flex items-center gap-1.5" style={{ color: "#FF3B30", fontSize: 12 }}>
+        <div className="flex items-center gap-1.5" style={{ color: "#B42318", fontSize: 12 }}>
           <AlertCircle size={12} />
           {error}
         </div>

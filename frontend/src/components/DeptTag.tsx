@@ -2,7 +2,7 @@ import { departments } from "../data";
 
 export default function DeptTag({ name }: { name: string }) {
   const dept = departments.find((d) => d.name === name);
-  const dot = dept?.color ?? "#AEAEB2";
+  const dot = dept?.color ?? "#6E6E73";
   const text = dept?.textColor ?? "#6E6E73";
   return (
     <span
@@ -14,7 +14,10 @@ export default function DeptTag({ name }: { name: string }) {
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
       }}
     >
-      <span className="rounded-full" style={{ width: 6, height: 6, background: dot, flexShrink: 0 }} />
+      <span
+        className="rounded-full"
+        style={{ width: 6, height: 6, background: dot, flexShrink: 0, boxShadow: "0 0 0 1px #0A1931" }}
+      />
       {name}
     </span>
   );

@@ -128,8 +128,8 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
               minWidth: 16,
               height: 16,
               padding: "0 4px",
-              background: "#F59E0B",
-              color: "#FFFFFF",
+              background: "#00B4D8",
+              color: "#0A1931",
               fontSize: 10,
               fontWeight: 700,
               border: "2px solid #FFFFFF",
@@ -148,13 +148,13 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
           aria-label="Notificações"
         >
           <div className="flex items-center justify-between px-4 py-3 gap-3" style={{ borderBottom: "1px solid #F0F0F2" }}>
-            <span style={{ color: "#1D1D1F", fontSize: 14, fontWeight: 700 }}>Notificações</span>
+            <span style={{ color: "#0A1931", fontSize: 14, fontWeight: 700 }}>Notificações</span>
             <div className="flex items-center gap-3">
               {unread > 0 && (
                 <button
                   onClick={handleReadAll}
                   className="flex items-center gap-1.5"
-                  style={{ color: "#B6790A", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}
+                  style={{ color: "#0072CE", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: "pointer" }}
                 >
                   <CheckCheck size={13} />
                   Marcar todas como lidas
@@ -165,7 +165,7 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
                   onClick={handleClear}
                   disabled={clearing}
                   className="flex items-center gap-1.5"
-                  style={{ color: "#FF3B30", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: clearing ? "wait" : "pointer", whiteSpace: "nowrap" }}
+                  style={{ color: "#B42318", fontSize: 12, fontWeight: 600, background: "none", border: "none", cursor: clearing ? "wait" : "pointer", whiteSpace: "nowrap" }}
                 >
                   <Trash2 size={13} />
                   {clearing ? "Limpando..." : "Limpar"}
@@ -176,16 +176,16 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
 
           <div className="overflow-y-auto">
             {error && (
-              <p className="px-4 py-3 text-center" style={{ color: "#FF3B30", fontSize: 12 }}>
+              <p className="px-4 py-3 text-center" style={{ color: "#B42318", fontSize: 12 }}>
                 {error}
               </p>
             )}
             {error && items.length === 0 ? (
-              <p className="p-6 text-center" style={{ color: "#AEAEB2", fontSize: 13 }}>
+              <p className="p-6 text-center" style={{ color: "#6E6E73", fontSize: 13 }}>
                 As notificações não foram alteradas.
               </p>
             ) : items.length === 0 ? (
-              <p className="p-6 text-center" style={{ color: "#AEAEB2", fontSize: 13 }}>
+              <p className="p-6 text-center" style={{ color: "#6E6E73", fontSize: 13 }}>
                 Nenhuma notificação por enquanto.
               </p>
             ) : (
@@ -195,7 +195,7 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
                   onClick={() => handleClick(n)}
                   className="w-full text-left flex gap-3 px-4 py-3"
                   style={{
-                    background: n.readAt ? "#FFFFFF" : "rgba(245,158,11,0.05)",
+                    background: n.readAt ? "#FFFFFF" : "rgba(0,180,216,0.06)",
                     border: "none",
                     borderBottom: "1px solid #F5F5F7",
                     cursor: n.link ? "pointer" : "default",
@@ -203,17 +203,17 @@ export default function NotificationBell({ token, onOpen, onSessionExpired }: No
                 >
                   <span
                     className="rounded-full flex-shrink-0"
-                    style={{ width: 7, height: 7, marginTop: 6, background: n.readAt ? "transparent" : "#F59E0B" }}
+                    style={{ width: 7, height: 7, marginTop: 6, background: n.readAt ? "transparent" : "#0072CE" }}
                     aria-hidden
                   />
                   <span className="min-w-0">
-                    <span className="block" style={{ color: "#1D1D1F", fontSize: 13, fontWeight: n.readAt ? 500 : 700 }}>
+                    <span className="block" style={{ color: "#0A1931", fontSize: 13, fontWeight: n.readAt ? 500 : 700 }}>
                       {n.title}
                     </span>
                     <span className="block" style={{ color: "#6E6E73", fontSize: 12, lineHeight: 1.5, marginTop: 2 }}>
                       {n.message}
                     </span>
-                    <span className="block" style={{ color: "#AEAEB2", fontSize: 11, marginTop: 4 }}>
+                    <span className="block" style={{ color: "#6E6E73", fontSize: 11, marginTop: 4 }}>
                       {timeAgo(n.createdAt)}
                       {!n.readAt && <span className="sr-only"> · não lida</span>}
                     </span>

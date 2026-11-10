@@ -14,8 +14,8 @@ const trackHeight: Record<NonNullable<GateRailProps["size"]>, number> = {
   md: 10,
 };
 
-const GREEN = "#34C759";
-const AMBER = "#F59E0B";
+const EMERALD = "#00F58A";
+const CYAN = "#00B4D8";
 const NEUTRAL = "#E5E5EA";
 const REJECTED_TONE = "#C7C7CC";
 
@@ -32,8 +32,8 @@ export default function GateRail({ stage, status, size = "sm", showLabels = fals
           const passed = i < curIdx || approvedFinal;
           const current = i === curIdx && !approvedFinal;
           let bg = NEUTRAL;
-          if (passed) bg = GREEN;
-          else if (current) bg = closed ? REJECTED_TONE : AMBER;
+          if (passed) bg = EMERALD;
+          else if (current) bg = closed ? REJECTED_TONE : CYAN;
           return (
             <div
               key={s}
@@ -42,6 +42,7 @@ export default function GateRail({ stage, status, size = "sm", showLabels = fals
                 flex: 1,
                 height,
                 background: bg,
+                boxShadow: passed || current ? "inset 0 0 0 1px rgba(10,25,49,0.65)" : "none",
                 borderTopLeftRadius: i === 0 ? height : 0,
                 borderBottomLeftRadius: i === 0 ? height : 0,
                 borderTopRightRadius: i === STAGES.length - 1 ? height : 0,
@@ -62,7 +63,7 @@ export default function GateRail({ stage, status, size = "sm", showLabels = fals
                 textAlign: "center",
                 fontSize: 9.5,
                 lineHeight: 1.25,
-                color: i === curIdx ? "#1D1D1F" : "#AEAEB2",
+                color: i === curIdx ? "#0A1931" : "#6E6E73",
                 fontWeight: i === curIdx ? 600 : 400,
                 fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
               }}

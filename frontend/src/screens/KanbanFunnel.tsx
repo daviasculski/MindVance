@@ -96,14 +96,14 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
         style={{ borderBottom: "1px solid #E5E5EA", background: "#FFFFFF" }}
       >
         <div>
-          <h1 style={{ fontWeight: 700, fontSize: 22, color: "#1D1D1F", letterSpacing: "-0.02em" }}>
+          <h1 style={{ fontWeight: 700, fontSize: 22, color: "#0A1931", letterSpacing: "-0.02em" }}>
             Painel do Funil
           </h1>
           <p style={{ color: "#6E6E73", fontSize: 13, marginTop: 3 }}>
             {funnel ? (
               <>
                 {filtered.length} ideia{filtered.length !== 1 ? "s" : ""} no funil ·{" "}
-                <span style={{ color: "#AEAEB2" }} title="Quantas ideias chegaram a cada estágio">
+                <span style={{ color: "#6E6E73" }} title="Quantas ideias chegaram a cada estágio">
                   chegaram a cada estágio: {survival}
                 </span>
               </>
@@ -135,7 +135,7 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
             style={{
               background: filterOpen || activeFilters ? "#F5F5F7" : "#FFFFFF",
               border: "1px solid #E5E5EA",
-              color: activeFilters ? "#B6790A" : "#6E6E73",
+              color: activeFilters ? "#0072CE" : "#6E6E73",
               fontSize: 13,
               cursor: "pointer",
             }}
@@ -154,14 +154,14 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
           style={{ borderBottom: "1px solid #E5E5EA", background: "#FFFFFF" }}
         >
           <div className="flex items-center gap-2">
-            <label style={{ color: "#AEAEB2", fontSize: 12 }}>Área:</label>
+            <label style={{ color: "#6E6E73", fontSize: 12 }}>Área:</label>
             <select value={filterDept} onChange={(e) => setFilterDept(e.target.value)} style={selStyle}>
               <option value="all">Todas</option>
               {departments.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <label style={{ color: "#AEAEB2", fontSize: 12 }}>Status:</label>
+            <label style={{ color: "#6E6E73", fontSize: 12 }}>Status:</label>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={selStyle}>
               <option value="all">Todos</option>
               {statusOptions.map((s) => (
@@ -170,15 +170,15 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <label style={{ color: "#AEAEB2", fontSize: 12 }}>Submetidas de</label>
+            <label style={{ color: "#6E6E73", fontSize: 12 }}>Submetidas de</label>
             <input type="date" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} style={selStyle} />
-            <label style={{ color: "#AEAEB2", fontSize: 12 }}>até</label>
+            <label style={{ color: "#6E6E73", fontSize: 12 }}>até</label>
             <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} style={selStyle} />
           </div>
           {activeFilters && (
             <button
               onClick={() => { setFilterDept("all"); setFilterStatus("all"); setFrom(""); setTo(""); }}
-              style={{ color: "#B6790A", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
+              style={{ color: "#0072CE", fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
             >
               Limpar filtros
             </button>
@@ -189,14 +189,14 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
       {error ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="p-6 rounded-2xl card-soft text-center" style={{ background: "#FFFFFF" }}>
-            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#FF3B30", fontSize: 13.5 }}>
+            <div className="flex items-center justify-center gap-2 mb-4" style={{ color: "#B42318", fontSize: 13.5 }}>
               <AlertCircle size={15} />
               {error}
             </div>
             <button
               onClick={load}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl"
-              style={{ background: "#F5F5F7", color: "#1D1D1F", border: "none", cursor: "pointer", fontSize: 13 }}
+              style={{ background: "#F5F5F7", color: "#0A1931", border: "none", cursor: "pointer", fontSize: 13 }}
             >
               <RotateCw size={13} />
               Tentar novamente
@@ -224,7 +224,7 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
                   {/* Column header */}
                   <div className="px-3 py-3 flex-shrink-0">
                     <div className="flex items-center justify-between mb-1">
-                      <div style={{ fontSize: 10.5, fontWeight: 700, color: "#B6790A", letterSpacing: "0.02em" }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 700, color: "#0072CE", letterSpacing: "0.02em" }}>
                         {isFinal ? "ESTÁGIO FINAL" : `GATE ${idx + 1}`}
                       </div>
                       <div
@@ -233,8 +233,8 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
                           minWidth: 20,
                           height: 20,
                           padding: "0 6px",
-                          background: cards.length > 0 ? "rgba(245,158,11,0.12)" : "#F0F0F2",
-                          color: cards.length > 0 ? "#B6790A" : "#AEAEB2",
+                          background: cards.length > 0 ? "rgba(0,180,216,0.12)" : "#F0F0F2",
+                          color: cards.length > 0 ? "#0A1931" : "#6E6E73",
                           fontWeight: 700,
                           fontSize: 11,
                         }}
@@ -242,7 +242,7 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
                         {funnel ? cards.length : "–"}
                       </div>
                     </div>
-                    <div style={{ fontWeight: 600, fontSize: 13.5, color: "#1D1D1F" }}>{stageShort[stage]}</div>
+                    <div style={{ fontWeight: 600, fontSize: 13.5, color: "#0A1931" }}>{stageShort[stage]}</div>
                   </div>
 
                   {/* Cards */}
@@ -252,7 +252,7 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
                     ) : cards.length === 0 ? (
                       <div
                         className="flex items-center justify-center rounded-2xl py-8"
-                        style={{ border: "1.5px dashed #E5E5EA", color: "#AEAEB2", fontSize: 12 }}
+                        style={{ border: "1.5px dashed #E5E5EA", color: "#6E6E73", fontSize: 12 }}
                       >
                         Nenhuma ideia
                       </div>
@@ -287,12 +287,12 @@ function IdeaCard({ idea, onClick }: { idea: FunnelIdea; onClick: () => void }) 
       }}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <div style={{ fontWeight: 600, fontSize: 12.5, color: rejected ? "#6E6E73" : "#1D1D1F", lineHeight: 1.4 }}>
+        <div style={{ fontWeight: 600, fontSize: 12.5, color: rejected ? "#6E6E73" : "#0A1931", lineHeight: 1.4 }}>
           {idea.title}
         </div>
         <GateAgingBadge idea={idea} />
       </div>
-      <div style={{ fontSize: 11, color: "#AEAEB2", marginBottom: 8 }}>
+      <div style={{ fontSize: 11, color: "#6E6E73", marginBottom: 8 }}>
         {idea.author}
         {idea.currentRound !== null && idea.currentRound > 1 && ` · rodada ${idea.currentRound}`}
       </div>
@@ -304,8 +304,8 @@ function IdeaCard({ idea, onClick }: { idea: FunnelIdea; onClick: () => void }) 
 
       {rejected && feedback && (
         <div className="flex items-start gap-1.5 mb-2 rounded-xl px-2.5 py-2" style={{ background: "#F5F5F7" }}>
-          <Quote size={11} style={{ color: "#AEAEB2", flexShrink: 0, marginTop: 2 }} />
-          <p style={{ fontSize: 10.5, color: "#8E8E93", lineHeight: 1.4 }}>
+          <Quote size={11} style={{ color: "#6E6E73", flexShrink: 0, marginTop: 2 }} />
+          <p style={{ fontSize: 10.5, color: "#6E6E73", lineHeight: 1.4 }}>
             {feedback.length > 90 ? feedback.slice(0, 90) + "…" : feedback}
           </p>
         </div>
@@ -324,7 +324,7 @@ const selStyle: React.CSSProperties = {
   background: "#F5F5F7",
   border: "none",
   borderRadius: 8,
-  color: "#1D1D1F",
+  color: "#0A1931",
   fontSize: 12,
   padding: "5px 8px",
   outline: "none",
