@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2, Ban } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, RotateCcw, Clock, AlertTriangle, Quote, Star, Pencil, Send, Compass, AlertCircle, DoorOpen, Trash2, Ban, MoveRight } from "lucide-react";
 import type { Idea, Role, TimelineEntry } from "../types";
 import { departments } from "../data";
 import GateBadge from "../components/GateBadge";
@@ -9,7 +9,7 @@ import GateRail from "../components/GateRail";
 import GateAgingBadge from "../components/GateAgingBadge";
 import AttachmentsPanel from "../components/AttachmentsPanel";
 import { rejectionFeedback } from "../lib/ideaVisuals";
-import { gateForStage } from "../lib/gates";
+import { gateForStage, STAGES } from "../lib/gates";
 import { ApiError } from "../lib/api";
 import {
   canRequestGateReview,
@@ -18,11 +18,13 @@ import {
   canBeCancelled,
   getIdea,
   listGateDecisions,
+  listManualStageTransitions,
   listIdeaGateReviews,
   listIdeaEvaluations,
   nextStep,
   openGateReview,
   updateIdea,
+  moveIdeaToNextStage,
   toIdea,
   type NewIdeaInput,
 } from "../lib/ideas";
@@ -44,6 +46,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
   const [historyVersion, setHistoryVersion] = useState(0);
   const [editing, setEditing] = useState(false);
   const [confirmingCancellation, setConfirmingCancellation] = useState(false);
+  const [showManualMove, setShowManualMove] = useState(false);
+  const [manualMoveReason, setManualMoveReason] = useState("");
   const [cancelReason, setCancelReason] = useState("");
   const [cancelReasonError, setCancelReasonError] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -60,14 +64,22 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     if (!token) return;
     let cancelled = false;
     setEvalState("loading");
-    Promise.all([
-      listIdeaEvaluations(baseIdea.id, token),
-      listGateDecisions(baseIdea.id, token),
-      listIdeaGateReviews(baseIdea.id, token),
-    ])
-      .then(([evaluations, decisions, rounds]) => {
+    const historyRequest =
+      viewerRole === "administrador"
+        ? Promise.all([listManualStageTransitions(baseIdea.id, token)])
+            .then(([manualTransitions]) => [[], [], [], manualTransitions] as const)
+        : Promise.all([
+            listIdeaEvaluations(baseIdea.id, token),
+            listGateDecisions(baseIdea.id, token),
+            listIdeaGateReviews(baseIdea.id, token),
+            viewerRole === "gatekeeper"
+              ? listManualStageTransitions(baseIdea.id, token)
+              : Promise.resolve([]),
+          ]);
+    historyRequest
+      .then(([evaluations, decisions, rounds, manualTransitions]) => {
         if (cancelled) return;
-        setHistory([...rounds, ...evaluations, ...decisions]);
+        setHistory([...rounds, ...evaluations, ...decisions, ...manualTransitions]);
         setEvalState("idle");
       })
       .catch((err) => {
@@ -81,7 +93,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
         setEvalState(err instanceof ApiError && err.status === 403 ? "idle" : "error");
       });
     return () => { cancelled = true; };
-  }, [baseIdea.id, token, historyVersion]);
+  }, [baseIdea.id, token, historyVersion, viewerRole]);
 
   async function handleError(err: unknown) {
     if (err instanceof ApiError && err.status === 401) {
@@ -122,6 +134,26 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
       setBaseIdea(toIdea(updated, baseIdea.author));
       setEditing(false);
       setNotice("Alterações salvas. Quando terminar os ajustes, solicite a revisão do gate.");
+    } catch (err) {
+      await handleError(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function advanceStage() {
+    if (!token) return;
+    setBusy(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const result = await moveIdeaToNextStage(baseIdea.id, manualMoveReason, token);
+      const updatedIdea = toIdea(result.idea, baseIdea.author);
+      setBaseIdea(updatedIdea);
+      setManualMoveReason("");
+      setShowManualMove(false);
+      setHistoryVersion((version) => version + 1);
+      setNotice(`Estágio avançado manualmente para ${updatedIdea.stage}.`);
     } catch (err) {
       await handleError(err);
     } finally {
@@ -173,6 +205,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     editableStatuses.includes(idea.status);
   const canRequest = Boolean(live) && isAuthor && canRequestGateReview(idea);
   const isManager = viewerRole === "gatekeeper" || viewerRole === "administrador";
+  const canAdvanceManually =
+    Boolean(live) &&
+    isManager &&
+    ["Aguardando triagem", "Em andamento", "Em revisão"].includes(idea.status) &&
+    idea.stage !== "Teste e Validação" &&
+    idea.stage !== "Lançamento";
+  const nextStage = STAGES[STAGES.indexOf(idea.stage) + 1];
   // Só ideias ativas no funil podem ser canceladas (não aprovadas, rejeitadas nem já canceladas)
   const canCancel = Boolean(live) && (isAuthor || isManager) && canBeCancelled(idea);
   const cancellation = idea.status === "Cancelada"
@@ -227,6 +266,17 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               Cancelar ideia
             </button>
           )}
+          {canAdvanceManually && !editing && (
+            <button
+              onClick={() => { setShowManualMove((visible) => !visible); setManualMoveReason(""); setActionError(null); }}
+              disabled={busy}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl"
+              style={{ background: "#FFFFFF", color: "#0072CE", border: "1px solid #B8D7F0", cursor: "pointer", fontWeight: 600, fontSize: 13 }}
+            >
+              <MoveRight size={14} />
+              Avançar estágio
+            </button>
+          )}
           {/* D6: G2–G5 e reenvio após Revisar. Notificar o Gestor entra com as notificações. */}
           {canRequest && !editing && (
             <button
@@ -243,6 +293,48 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
       </div>
 
       <div className="px-8 py-6 max-w-5xl mx-auto">
+        {showManualMove && nextStage && (
+          <section className="rounded-2xl p-5 mb-6 card-soft" style={{ background: "#FFFFFF" }}>
+            <h2 style={{ color: "#0A1931", fontWeight: 700, fontSize: 15 }}>
+              Avançar para {nextStage}
+            </h2>
+            <p className="mt-1 mb-3" style={{ color: "#6E6E73", fontSize: 12.5 }}>
+              Avança somente um estágio. Esta ação não aprova um Gate formal; informe o motivo para registrar no histórico.
+            </p>
+            <label htmlFor="manual-stage-reason" className="sr-only">Justificativa do avanço manual</label>
+            <textarea
+              id="manual-stage-reason"
+              value={manualMoveReason}
+              onChange={(event) => setManualMoveReason(event.target.value)}
+              maxLength={2000}
+              rows={3}
+              placeholder="Justificativa obrigatória para o avanço"
+              className="w-full rounded-xl p-3"
+              style={{ color: "#0A1931", background: "#F5F5F7", border: "1px solid #E5E5EA", resize: "vertical", fontSize: 13 }}
+              disabled={busy}
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                type="button"
+                onClick={() => setShowManualMove(false)}
+                disabled={busy}
+                className="rounded-xl px-4 py-2"
+                style={{ background: "#F5F5F7", color: "#0A1931", border: "none", cursor: "pointer", fontSize: 13 }}
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                onClick={advanceStage}
+                disabled={busy || manualMoveReason.trim().length === 0}
+                className="primary-action rounded-xl px-4 py-2"
+                style={{ border: "none", cursor: busy || manualMoveReason.trim().length === 0 ? "not-allowed" : "pointer", fontWeight: 600, fontSize: 13 }}
+              >
+                {busy ? "Avançando..." : `Confirmar avanço`}
+              </button>
+            </div>
+          </section>
+        )}
         <div className="grid gap-8" style={{ gridTemplateColumns: "1fr 340px" }}>
           {/* Main content */}
           <div>
@@ -443,6 +535,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               <Clock size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "cancelada" ? (
                               <Ban size={13} style={{ color: "#6E6E73" }} />
+                            ) : entry.decision === "mudanca-manual" ? (
+                              <MoveRight size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "avaliada" ? (
                               <Star size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "aprovada" ? (
@@ -487,6 +581,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               ? "Prazo de avaliação vencido"
                               : entry.decision === "cancelada"
                               ? "Ideia cancelada"
+                              : entry.decision === "mudanca-manual"
+                              ? `Avanço manual${entry.fromStage && entry.toStage ? ` · ${entry.fromStage} → ${entry.toStage}` : ""}`
                               : entry.decision === "submetida"
                               ? "Submetida"
                               : entry.decision === "aprovada"

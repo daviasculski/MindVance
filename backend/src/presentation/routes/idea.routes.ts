@@ -29,6 +29,10 @@ import { notifier } from "../dependencies";
 import { ListIdeaGateReviewsUserStory } from "../../application/userstories/ListIdeaGateReviewsUserStory";
 import { IdeaAttachmentsUserStory } from "../../application/userstories/IdeaAttachmentsUserStory";
 import { PrismaAttachmentRepository } from "../../infrastructure/repositories/PrismaAttachmentRepository";
+import { PrismaManualStageTransitionRepository } from "../../infrastructure/repositories/PrismaManualStageTransitionRepository";
+import { MoveIdeaToNextStageUserStory } from "../../application/userstories/MoveIdeaToNextStageUserStory";
+import { ListManualStageTransitionsUserStory } from "../../application/userstories/ListManualStageTransitionsUserStory";
+import { ManualStageTransitionController } from "../controllers/ManualStageTransitionController";
 import path from "path";
 import {
   originalNameOf,
@@ -46,6 +50,7 @@ const userRepository = new PrismaUserRepository();
 const gateDecisionRepository = new PrismaGateDecisionRepository();
 const gateRepository = new PrismaGateRepository();
 const gateReviewRepository = new PrismaGateReviewRepository();
+const manualStageTransitionRepository = new PrismaManualStageTransitionRepository();
 
 const ideaController = new IdeaController(new CreateIdeaUserStorie(ideaRepository, notifier));
 const listIdeaGateReviews = new ListIdeaGateReviewsUserStory(ideaRepository, gateRepository, gateReviewRepository);
@@ -62,13 +67,23 @@ const cancelIdeaController = new CancelIdeaController(
   new CancelIdeaUserStory(ideaRepository, gateReviewRepository, userRepository, notifier),
 );
 const getInnovationMetricsController = new GetInnovationMetricsController(
-  new GetInnovationMetricsUserStory(ideaRepository, gateRepository, gateDecisionRepository),
+  new GetInnovationMetricsUserStory(
+    ideaRepository,
+    gateRepository,
+    gateDecisionRepository,
+    manualStageTransitionRepository,
+  ),
 );
 const getFunnelUserStory = new GetFunnelUserStory(
   ideaRepository,
   userRepository,
   gateReviewRepository,
   gateDecisionRepository,
+  manualStageTransitionRepository,
+);
+const manualStageTransitionController = new ManualStageTransitionController(
+  new MoveIdeaToNextStageUserStory(ideaRepository, manualStageTransitionRepository),
+  new ListManualStageTransitionsUserStory(manualStageTransitionRepository, userRepository),
 );
 const gateDecisionController = new GateDecisionController(
   new ListGateDecisionsUserStory(
@@ -110,14 +125,24 @@ ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 ideaRoutes.get("/metrics", ensureRole("GATEKEEPER", "ADMIN"), (req, res) =>
   getInnovationMetricsController.handle(req, res),
 );
-// Painel do funil: só o Gestor de Inovação (FUN-04)
-ideaRoutes.get("/funnel", ensureRole("GATEKEEPER"), async (_req, res) => {
+// Painel do funil e avanço manual: Gestor de Inovação e Administrador
+ideaRoutes.get("/funnel", ensureRole("GATEKEEPER", "ADMIN"), async (_req, res) => {
   try {
     return res.status(200).json(await getFunnelUserStory.execute());
   } catch (error) {
     return sendError(res, error, {}, "Unable to load funnel");
   }
 });
+ideaRoutes.patch(
+  "/:id/stage",
+  ensureRole("GATEKEEPER", "ADMIN"),
+  (req, res) => manualStageTransitionController.move(req, res),
+);
+ideaRoutes.get(
+  "/:id/stage-transitions",
+  ensureRole("GATEKEEPER", "ADMIN"),
+  (req, res) => manualStageTransitionController.list(req, res),
+);
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.get("/:id/evaluations", (req, res) => listIdeaEvaluationsController.handle(req, res));
 ideaRoutes.get("/:id/gate-decisions", (req, res) => gateDecisionController.list(req, res));

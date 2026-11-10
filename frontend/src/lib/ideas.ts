@@ -184,6 +184,62 @@ export async function listGateDecisions(ideaId: string, token: string): Promise<
   }));
 }
 
+interface ApiManualStageTransition {
+  id: string;
+  fromStage: ApiStage;
+  toStage: ApiStage;
+  reason: string;
+  changedByName: string;
+  createdAt: string;
+}
+
+export async function listManualStageTransitions(
+  ideaId: string,
+  token: string,
+): Promise<TimelineEntry[]> {
+  const transitions = await apiRequest<ApiManualStageTransition[]>(
+    `/ideas/${encodeURIComponent(ideaId)}/stage-transitions`,
+    { token },
+  );
+  return transitions.map((transition) => ({
+    id: transition.id,
+    date: transition.createdAt,
+    stage: stageFromApi[transition.toStage],
+    fromStage: stageFromApi[transition.fromStage],
+    toStage: stageFromApi[transition.toStage],
+    decision: "mudanca-manual",
+    responsible: transition.changedByName,
+    feedback: transition.reason,
+  }));
+}
+
+export interface MoveIdeaToNextStageResponse {
+  idea: ApiIdea;
+  transition: {
+    id: string;
+    fromStage: ApiStage;
+    toStage: ApiStage;
+    reason: string;
+    changedById: string;
+    createdAt: string;
+  };
+}
+
+export function moveIdeaToNextStage(
+  ideaId: string,
+  reason: string,
+  token: string,
+): Promise<MoveIdeaToNextStageResponse> {
+  return apiRequest<MoveIdeaToNextStageResponse>(
+    `/ideas/${encodeURIComponent(ideaId)}/stage`,
+    {
+      method: "PATCH",
+      token,
+      body: { reason: reason.trim() },
+    },
+  );
+}
+
 /** Avaliações da ideia, já no formato de entradas do histórico (ordem cronológica). */
 export async function listIdeaEvaluations(ideaId: string, token: string): Promise<TimelineEntry[]> {
   const evaluations = await apiRequest<ApiIdeaEvaluation[]>(

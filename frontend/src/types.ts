@@ -68,9 +68,18 @@ export interface TimelineEntry {
   id: string;
   date: string;
   stage?: Stage;
-  decision: GateDecisionType | "submetida" | "avaliada" | "gate-aberto" | "atraso" | "cancelada";
+  decision:
+    | GateDecisionType
+    | "submetida"
+    | "avaliada"
+    | "gate-aberto"
+    | "atraso"
+    | "cancelada"
+    | "mudanca-manual";
   responsible: string;
   feedback: string;
+  fromStage?: Stage;
+  toStage?: Stage;
   reviewPoints?: string[];
   /** Nota de 0 a 10: do parecer ("avaliada") ou consolidada da rodada (decisões). */
   score?: number;

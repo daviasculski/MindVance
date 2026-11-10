@@ -2,6 +2,7 @@ import { Idea } from "../../domain/entities/Idea";
 import { IdeaStage, ideaStages } from "../../domain/entities/IdeaStage";
 import { IdeaStatus, ideaStatuses } from "../../domain/entities/IdeaStatus";
 import { IGateDecisionRepository } from "../../domain/repositories/IGateDecisionRepository";
+import { IManualStageTransitionRepository } from "../../domain/repositories/IManualStageTransitionRepository";
 import { IGateRepository } from "../../domain/repositories/IGateRepository";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { furthestStageIndex, stageJourney } from "../services/ideaJourney";
@@ -67,6 +68,7 @@ export class GetInnovationMetricsUserStory {
     private readonly ideaRepository: IIdeaRepository,
     private readonly gateRepository: IGateRepository,
     private readonly gateDecisionRepository: IGateDecisionRepository,
+    private readonly manualStageTransitionRepository?: IManualStageTransitionRepository,
   ) {}
 
   async execute(period: MetricsPeriodDTO = {}): Promise<InnovationMetrics> {
@@ -77,13 +79,15 @@ export class GetInnovationMetricsUserStory {
     }
 
     // O período recorta as ideias pela data de submissão
-    const [ideas, gates, allDecisions] = await Promise.all([
+    const [ideas, gates, allDecisions, allManualTransitions] = await Promise.all([
       this.ideaRepository.findAll({ startDate: period.startDate, endDate: period.endDate }),
       this.gateRepository.findAll(),
       this.gateDecisionRepository.findAll(),
+      this.manualStageTransitionRepository?.findAll() ?? Promise.resolve([]),
     ]);
     const ideaIds = new Set(ideas.map((i) => i.id));
     const decisions = allDecisions.filter((d) => ideaIds.has(d.ideaId));
+    const manualTransitions = allManualTransitions.filter((t) => ideaIds.has(t.ideaId));
 
     const ideasByStage = Object.fromEntries(ideaStages.map((s) => [s, 0])) as Record<IdeaStage, number>;
     const ideasByStatus = Object.fromEntries(ideaStatuses.map((s) => [s, 0])) as Record<IdeaStatus, number>;
@@ -141,7 +145,7 @@ export class GetInnovationMetricsUserStory {
     const now = Date.now();
     const durations = new Map<IdeaStage, number[]>();
     for (const idea of ideas) {
-      for (const stay of stageJourney(idea, decisions)) {
+      for (const stay of stageJourney(idea, decisions, manualTransitions)) {
         const finished = stay.leftAt !== null;
         const active = !finished && idea.status !== "REJEITADA" && idea.status !== "APROVADA";
         if (!finished && !active) continue;

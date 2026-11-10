@@ -1,6 +1,7 @@
 import { IdeaStage, ideaStages } from "../../domain/entities/IdeaStage";
 import { IGateDecisionRepository } from "../../domain/repositories/IGateDecisionRepository";
 import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepository";
+import { IManualStageTransitionRepository } from "../../domain/repositories/IManualStageTransitionRepository";
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { IdeaOutputDTO, toIdeaOutputDTO } from "../dtos/IdeaDTO";
@@ -28,13 +29,15 @@ export class GetFunnelUserStory {
     private readonly userRepository: IUserRepository,
     private readonly gateReviewRepository: IGateReviewRepository,
     private readonly gateDecisionRepository: IGateDecisionRepository,
+    private readonly manualStageTransitionRepository: IManualStageTransitionRepository,
   ) {}
 
   async execute(): Promise<FunnelDTO> {
-    const [ideas, reviews, decisions] = await Promise.all([
+    const [ideas, reviews, decisions, manualTransitions] = await Promise.all([
       this.ideaRepository.findAll(),
       this.gateReviewRepository.findAll(),
       this.gateDecisionRepository.findAll(),
+      this.manualStageTransitionRepository.findAll(),
     ]);
 
     // Filtra para remover ideias canceladas do funil ativo
@@ -54,7 +57,7 @@ export class GetFunnelUserStory {
 
         return {
           ...toIdeaOutputDTO(idea, nameById.get(idea.authorId) ?? "Colaborador"),
-          lastMovementAt: lastMovementAt(idea, decisions, reviews),
+          lastMovementAt: lastMovementAt(idea, decisions, reviews, manualTransitions),
           currentRound:
             ideaReviews.length > 0
               ? ideaReviews[ideaReviews.length - 1].round

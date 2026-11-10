@@ -8,8 +8,9 @@ export interface NavItem {
 /**
  * Menu de cada perfil, conforme a matriz de permissões (docs/mindvance-funcionalidades-e-roadmap.md):
  * - o Avaliador mantém os acessos do Colaborador (D1);
- * - triagem, designação, decisão e funil são só do Gestor de Inovação (D2, D3, D4);
- * - o Administrador fica no backoffice: usuários e KPIs só leitura (P3);
+ * - triagem, designação e decisão são do Gestor; o Gestor e o Administrador
+ *   podem consultar o funil e registrar avanços manuais auditados;
+ * - o Administrador mantém o backoffice de usuários e KPIs;
  * - o Mural de aprovadas é visível a todos.
  */
 export const navByRole: Record<Role, NavItem[]> = {
@@ -31,8 +32,10 @@ export const navByRole: Record<Role, NavItem[]> = {
     { screen: "dashboard", label: "Indicadores" },
     { screen: "approved", label: "Mural de Aprovadas" },
   ],
-  // P3: gestão de usuários e KPIs só leitura; sem funil, triagem, designação, avaliação nem decisão
+  // Administradores podem consultar o funil e fazer avanços manuais auditados,
+  // mas não podem abrir rodadas, designar avaliadores ou decidir gates.
   administrador: [
+    { screen: "funnel", label: "Painel do Funil" },
     { screen: "users", label: "Usuários" },
     { screen: "approvals", label: "Solicitações" },
     { screen: "dashboard", label: "Indicadores" },
