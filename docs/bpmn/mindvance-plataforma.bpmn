@@ -1,0 +1,613 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:color="http://www.omg.org/spec/BPMN/non-normative/color/1.0" id="Definitions_MindVance" targetNamespace="https://mindvance.local/bpmn" exporter="MindVance" exporterVersion="1.0">
+  <bpmn:collaboration id="Collaboration_MindVance">
+    <bpmn:participant id="Pool_Acesso" name="Acesso à plataforma" processRef="Process_Acesso" />
+    <bpmn:participant id="Pool_Ciclo" name="Ciclo da ideia no Stage-Gate" processRef="Process_Ciclo" />
+    <bpmn:participant id="Pool_Gestao" name="Acompanhamento e backoffice" processRef="Process_Gestao" />
+    <bpmn:textAnnotation id="A_n1"><bpmn:text>Avaliador e Gestor dependem de aprovação do Admin. Conta pendente ou recusada não faz login.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="A_n2"><bpmn:text>Menus por papel — Colaborador: Nova ideia, Minhas ideias, Mural · Avaliador: + Fila de avaliações · Gestor: Triagem e designação, Decisão, Funil, Indicadores · Admin: Painel do Funil, Usuários, Solicitações, Indicadores (leitura). Todos: Notificações e Mural.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="A_n3"><bpmn:text>Toda requisição passa pelo token e pelo papel lido do banco a cada chamada.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n1"><bpmn:text>Título, problema, solução, área, impacto e recursos. Anexos: até 5 por envio, 10 MB cada (imagens, PDF, Office, texto, .zip).</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n2"><bpmn:text>Mesmo gate (nova rodada após Revisar) ou próximo gate (G2 a G5): o ciclo se repete</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n3"><bpmn:text>Nota de 0 a 10 e comentário por critério + justificativa geral. Instância múltipla paralela: um parecer por avaliador designado. A avaliação segue aberta após o prazo.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n4"><bpmn:text>Score = Σ (média do critério × peso). Alinhamento 30% · Viabilidade 25% · Mercado 25% · Risco 20%. ≥ 7,0 aprovar · ≥ 4,0 revisar · &lt; 4,0 rejeitar.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n5"><bpmn:text>O Gestor pode divergir da recomendação; transição grava responsável, data, decisão, recomendação, score e justificativa.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="B_n6"><bpmn:text>Edição e anexos só fora de avaliação: antes da triagem, entre gates ou após Revisar.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="C_n3"><bpmn:text>Só ideias aguardando triagem, em andamento ou em revisão. A ideia vai para "Em andamento" no estágio seguinte e o autor segue com as entregas (pool Ciclo). O Lançamento só é alcançado por aprovação no gate.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="C_n1"><bpmn:text>O Admin vê o funil e os indicadores (somente leitura) e pode avançar ideias e cancelá-las; não abre rodadas, não designa avaliadores nem decide gates. Pedidos de acesso: pool Acesso.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:textAnnotation id="C_n2"><bpmn:text>Critérios, pesos, limites e prazos dos gates vêm do banco, sem tela de configuração.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="Assoc_A_n2" sourceRef="A_n2" targetRef="A_rbac" />
+    <bpmn:association id="Assoc_B_n1" sourceRef="B_n1" targetRef="B_form" />
+    <bpmn:association id="Assoc_B_n3" sourceRef="B_n3" targetRef="B_avaliar" />
+    <bpmn:association id="Assoc_B_n4" sourceRef="B_n4" targetRef="B_consolidar" />
+    <bpmn:association id="Assoc_C_n3" sourceRef="C_n3" targetRef="G_registrar" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_Acesso" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Acesso">
+      <bpmn:lane id="A_User" name="Usuário">
+        <bpmn:flowNodeRef>A_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwConta</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_cadastro</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwSenha</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_novaSenha</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_login</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="A_Sys" name="Sistema">
+        <bpmn:flowNodeRef>A_criar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwPapel</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_boasVindas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_pendente</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_decisao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwAprovado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_recusado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_token</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_auth</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwStatus</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_negado</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_rbac</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_ok</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="A_Adm" name="Administrador">
+        <bpmn:flowNodeRef>A_analisar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>A_gwAprova</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="A_start" name="Precisa acessar a plataforma">
+      <bpmn:outgoing>Flow_A_start_A_gwConta</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="A_gwConta" name="Já tem conta?">
+      <bpmn:incoming>Flow_A_start_A_gwConta</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwConta_A_cadastro</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_gwConta_A_merge</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="A_cadastro" name="Preencher cadastro (papel e, se Colaborador, departamento)">
+      <bpmn:incoming>Flow_A_gwConta_A_cadastro</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_cadastro_A_criar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="A_criar" name="Validar dados e criar conta">
+      <bpmn:incoming>Flow_A_cadastro_A_criar</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_criar_A_gwPapel</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="A_gwPapel" name="Papel solicitado?">
+      <bpmn:incoming>Flow_A_criar_A_gwPapel</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwPapel_A_boasVindas</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_gwPapel_A_pendente</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="A_boasVindas" name="Ativar conta e enviar e-mail de boas-vindas">
+      <bpmn:incoming>Flow_A_gwPapel_A_boasVindas</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_boasVindas_A_merge</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:sendTask id="A_pendente" name="Registrar pedido pendente e avisar o Admin (e-mail)">
+      <bpmn:incoming>Flow_A_gwPapel_A_pendente</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_pendente_A_analisar</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="A_analisar" name="Analisar pedido de acesso">
+      <bpmn:incoming>Flow_A_pendente_A_analisar</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_analisar_A_gwAprova</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="A_gwAprova" name="Aprovar?">
+      <bpmn:incoming>Flow_A_analisar_A_gwAprova</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwAprova_A_decisao</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="A_decisao" name="Atualizar a conta e enviar e-mail com a decisão">
+      <bpmn:incoming>Flow_A_gwAprova_A_decisao</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_decisao_A_gwAprovado</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="A_gwAprovado" name="Aprovado?">
+      <bpmn:incoming>Flow_A_decisao_A_gwAprovado</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwAprovado_A_merge</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_gwAprovado_A_recusado</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="A_recusado" name="Cadastro recusado">
+      <bpmn:incoming>Flow_A_gwAprovado_A_recusado</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="A_merge" name="">
+      <bpmn:incoming>Flow_A_gwConta_A_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_A_boasVindas_A_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_A_gwAprovado_A_merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_merge_A_gwSenha</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="A_gwSenha" name="Lembra a senha?">
+      <bpmn:incoming>Flow_A_merge_A_gwSenha</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwSenha_A_login</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_gwSenha_A_token</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sendTask id="A_token" name="Gerar token e enviar link de redefinição (e-mail)">
+      <bpmn:incoming>Flow_A_gwSenha_A_token</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_token_A_novaSenha</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="A_novaSenha" name="Definir nova senha pelo link">
+      <bpmn:incoming>Flow_A_token_A_novaSenha</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_novaSenha_A_login</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="A_login" name="Fazer login (e-mail e senha)">
+      <bpmn:incoming>Flow_A_gwSenha_A_login</bpmn:incoming>
+      <bpmn:incoming>Flow_A_novaSenha_A_login</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_login_A_auth</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="A_auth" name="Autenticar e verificar status da conta">
+      <bpmn:incoming>Flow_A_login_A_auth</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_auth_A_gwStatus</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="A_gwStatus" name="Conta aprovada?">
+      <bpmn:incoming>Flow_A_auth_A_gwStatus</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_gwStatus_A_rbac</bpmn:outgoing>
+      <bpmn:outgoing>Flow_A_gwStatus_A_negado</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="A_negado" name="Acesso negado (pendente ou recusada)">
+      <bpmn:incoming>Flow_A_gwStatus_A_negado</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="A_rbac" name="Emitir token (JWT) e liberar menus pelo papel (RBAC)">
+      <bpmn:incoming>Flow_A_gwStatus_A_rbac</bpmn:incoming>
+      <bpmn:outgoing>Flow_A_rbac_A_ok</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="A_ok" name="Usuário autenticado">
+      <bpmn:incoming>Flow_A_rbac_A_ok</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_A_start_A_gwConta" sourceRef="A_start" targetRef="A_gwConta" />
+    <bpmn:sequenceFlow id="Flow_A_gwConta_A_cadastro" name="Não" sourceRef="A_gwConta" targetRef="A_cadastro" />
+    <bpmn:sequenceFlow id="Flow_A_gwConta_A_merge" name="Sim" sourceRef="A_gwConta" targetRef="A_merge" />
+    <bpmn:sequenceFlow id="Flow_A_cadastro_A_criar" sourceRef="A_cadastro" targetRef="A_criar" />
+    <bpmn:sequenceFlow id="Flow_A_criar_A_gwPapel" sourceRef="A_criar" targetRef="A_gwPapel" />
+    <bpmn:sequenceFlow id="Flow_A_gwPapel_A_boasVindas" name="Colaborador" sourceRef="A_gwPapel" targetRef="A_boasVindas" />
+    <bpmn:sequenceFlow id="Flow_A_gwPapel_A_pendente" name="Avaliador ou Gestor" sourceRef="A_gwPapel" targetRef="A_pendente" />
+    <bpmn:sequenceFlow id="Flow_A_boasVindas_A_merge" sourceRef="A_boasVindas" targetRef="A_merge" />
+    <bpmn:sequenceFlow id="Flow_A_pendente_A_analisar" sourceRef="A_pendente" targetRef="A_analisar" />
+    <bpmn:sequenceFlow id="Flow_A_analisar_A_gwAprova" sourceRef="A_analisar" targetRef="A_gwAprova" />
+    <bpmn:sequenceFlow id="Flow_A_gwAprova_A_decisao" name="Aprovar ou recusar" sourceRef="A_gwAprova" targetRef="A_decisao" />
+    <bpmn:sequenceFlow id="Flow_A_decisao_A_gwAprovado" sourceRef="A_decisao" targetRef="A_gwAprovado" />
+    <bpmn:sequenceFlow id="Flow_A_gwAprovado_A_merge" name="Sim" sourceRef="A_gwAprovado" targetRef="A_merge" />
+    <bpmn:sequenceFlow id="Flow_A_gwAprovado_A_recusado" name="Não" sourceRef="A_gwAprovado" targetRef="A_recusado" />
+    <bpmn:sequenceFlow id="Flow_A_merge_A_gwSenha" sourceRef="A_merge" targetRef="A_gwSenha" />
+    <bpmn:sequenceFlow id="Flow_A_gwSenha_A_login" name="Sim" sourceRef="A_gwSenha" targetRef="A_login" />
+    <bpmn:sequenceFlow id="Flow_A_gwSenha_A_token" name="Não" sourceRef="A_gwSenha" targetRef="A_token" />
+    <bpmn:sequenceFlow id="Flow_A_token_A_novaSenha" sourceRef="A_token" targetRef="A_novaSenha" />
+    <bpmn:sequenceFlow id="Flow_A_novaSenha_A_login" sourceRef="A_novaSenha" targetRef="A_login" />
+    <bpmn:sequenceFlow id="Flow_A_login_A_auth" sourceRef="A_login" targetRef="A_auth" />
+    <bpmn:sequenceFlow id="Flow_A_auth_A_gwStatus" sourceRef="A_auth" targetRef="A_gwStatus" />
+    <bpmn:sequenceFlow id="Flow_A_gwStatus_A_rbac" name="Sim" sourceRef="A_gwStatus" targetRef="A_rbac" />
+    <bpmn:sequenceFlow id="Flow_A_gwStatus_A_negado" name="Não" sourceRef="A_gwStatus" targetRef="A_negado" />
+    <bpmn:sequenceFlow id="Flow_A_rbac_A_ok" sourceRef="A_rbac" targetRef="A_ok" />
+  </bpmn:process>
+  <bpmn:process id="Process_Ciclo" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Ciclo">
+      <bpmn:lane id="B_Col" name="Colaborador (autor)">
+        <bpmn:flowNodeRef>B_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_form</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_submeter</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_ajustar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_entregas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_mergeCol</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_solicitar</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="B_Ges" name="Gestor de Inovação">
+        <bpmn:flowNodeRef>B_triar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_designar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_analisar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_decidir</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="B_Sys" name="Sistema">
+        <bpmn:flowNodeRef>B_registrar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_rodada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_atraso</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_atrasoFim</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_consolidar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_transicao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_gwDecisao</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_rejeitada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_gwUltimo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_lancada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_novaRodada</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_cancel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="B_Ava" name="Avaliador">
+        <bpmn:flowNodeRef>B_avaliar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>B_timer</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="B_start" name="Ideia concebida">
+      <bpmn:outgoing>Flow_B_start_B_form</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="B_form" name="Preencher formulário e anexar arquivos">
+      <bpmn:incoming>Flow_B_start_B_form</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_form_B_submeter</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="B_submeter" name="Submeter ideia">
+      <bpmn:incoming>Flow_B_form_B_submeter</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_submeter_B_registrar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="B_registrar" name="Registrar em Ideação e enviar e-mails (autor e Gestor)">
+      <bpmn:incoming>Flow_B_submeter_B_registrar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_registrar_B_triar</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="B_triar" name="Triar ideia e abrir o Gate 1">
+      <bpmn:incoming>Flow_B_registrar_B_triar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_triar_B_merge</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="B_merge" name="">
+      <bpmn:incoming>Flow_B_triar_B_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_B_novaRodada_B_merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_merge_B_designar</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="B_designar" name="Designar avaliadores (autor bloqueado)">
+      <bpmn:incoming>Flow_B_merge_B_designar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_designar_B_rodada</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="B_rodada" name="Iniciar prazo da rodada e notificar avaliadores (e-mail)">
+      <bpmn:incoming>Flow_B_designar_B_rodada</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_rodada_B_avaliar</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="B_avaliar" name="Avaliar nos 4 critérios e enviar parecer">
+      <bpmn:incoming>Flow_B_rodada_B_avaliar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_avaliar_B_consolidar</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics />
+    </bpmn:userTask>
+    <bpmn:boundaryEvent id="B_timer" name="Prazo do gate vencido" attachedToRef="B_avaliar" cancelActivity="false">
+      <bpmn:outgoing>Flow_B_timer_B_atraso</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="Timer_B_timer" />
+    </bpmn:boundaryEvent>
+    <bpmn:serviceTask id="B_atraso" name="Registrar atraso e alertar Avaliador e Gestor">
+      <bpmn:incoming>Flow_B_timer_B_atraso</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_atraso_B_atrasoFim</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="B_atrasoFim" name="Atraso registrado">
+      <bpmn:incoming>Flow_B_atraso_B_atrasoFim</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sendTask id="B_consolidar" name="Consolidar score, recomendar e notificar Gestor e autor (e-mail)">
+      <bpmn:incoming>Flow_B_avaliar_B_consolidar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_consolidar_B_analisar</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:userTask id="B_analisar" name="Analisar recomendação, pareceres e anexos">
+      <bpmn:incoming>Flow_B_consolidar_B_analisar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_analisar_B_decidir</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="B_decidir" name="Decidir com justificativa obrigatória">
+      <bpmn:incoming>Flow_B_analisar_B_decidir</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_decidir_B_transicao</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="B_transicao" name="Registrar transição imutável e notificar autor (e-mail)">
+      <bpmn:incoming>Flow_B_decidir_B_transicao</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_transicao_B_gwDecisao</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:exclusiveGateway id="B_gwDecisao" name="Decisão do Gestor">
+      <bpmn:incoming>Flow_B_transicao_B_gwDecisao</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_gwDecisao_B_rejeitada</bpmn:outgoing>
+      <bpmn:outgoing>Flow_B_gwDecisao_B_gwUltimo</bpmn:outgoing>
+      <bpmn:outgoing>Flow_B_gwDecisao_B_ajustar</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="B_rejeitada" name="Ideia rejeitada (arquivada)">
+      <bpmn:incoming>Flow_B_gwDecisao_B_rejeitada</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:exclusiveGateway id="B_gwUltimo" name="Último gate (G5)?">
+      <bpmn:incoming>Flow_B_gwDecisao_B_gwUltimo</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_gwUltimo_B_lancada</bpmn:outgoing>
+      <bpmn:outgoing>Flow_B_gwUltimo_B_entregas</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="B_lancada" name="Aprovada para lançamento (Mural)">
+      <bpmn:incoming>Flow_B_gwUltimo_B_lancada</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="B_ajustar" name="Ajustar ideia e anexar conforme o feedback">
+      <bpmn:incoming>Flow_B_gwDecisao_B_ajustar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_ajustar_B_mergeCol</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="B_entregas" name="Desenvolver e anexar as entregas do próximo estágio">
+      <bpmn:incoming>Flow_B_gwUltimo_B_entregas</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_entregas_B_mergeCol</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="B_mergeCol" name="">
+      <bpmn:incoming>Flow_B_ajustar_B_mergeCol</bpmn:incoming>
+      <bpmn:incoming>Flow_B_entregas_B_mergeCol</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_mergeCol_B_solicitar</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="B_solicitar" name="Solicitar revisão do gate">
+      <bpmn:incoming>Flow_B_mergeCol_B_solicitar</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_solicitar_B_novaRodada</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sendTask id="B_novaRodada" name="Abrir rodada (próximo gate ou nova rodada) e avisar Gestor (e-mail)">
+      <bpmn:incoming>Flow_B_solicitar_B_novaRodada</bpmn:incoming>
+      <bpmn:outgoing>Flow_B_novaRodada_B_merge</bpmn:outgoing>
+    </bpmn:sendTask>
+    <bpmn:subProcess id="B_cancel" name="Cancelamento da ideia (a qualquer momento enquanto ativa)" triggeredByEvent="true">
+            <bpmn:startEvent id="C_start" name="Pedido de cancelamento com justificativa (autor, Gestor ou Admin)">
+        <bpmn:outgoing>Flow_C_start_C_validar</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="Msg_C_start" />
+      </bpmn:startEvent>
+            <bpmn:serviceTask id="C_validar" name="Validar permissão, ideia ativa e justificativa">
+        <bpmn:incoming>Flow_C_start_C_validar</bpmn:incoming>
+        <bpmn:outgoing>Flow_C_validar_C_encerrar</bpmn:outgoing>
+      </bpmn:serviceTask>
+            <bpmn:serviceTask id="C_encerrar" name="Encerrar rodadas abertas e registrar quem cancelou e por quê">
+        <bpmn:incoming>Flow_C_validar_C_encerrar</bpmn:incoming>
+        <bpmn:outgoing>Flow_C_encerrar_C_notificar</bpmn:outgoing>
+      </bpmn:serviceTask>
+            <bpmn:sendTask id="C_notificar" name="Notificar autor e avaliadores designados (e-mail)">
+        <bpmn:incoming>Flow_C_encerrar_C_notificar</bpmn:incoming>
+        <bpmn:outgoing>Flow_C_notificar_C_fim</bpmn:outgoing>
+      </bpmn:sendTask>
+            <bpmn:endEvent id="C_fim" name="Ideia cancelada">
+        <bpmn:incoming>Flow_C_notificar_C_fim</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_C_start_C_validar" sourceRef="C_start" targetRef="C_validar" />
+      <bpmn:sequenceFlow id="Flow_C_validar_C_encerrar" sourceRef="C_validar" targetRef="C_encerrar" />
+      <bpmn:sequenceFlow id="Flow_C_encerrar_C_notificar" sourceRef="C_encerrar" targetRef="C_notificar" />
+      <bpmn:sequenceFlow id="Flow_C_notificar_C_fim" sourceRef="C_notificar" targetRef="C_fim" />
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_B_start_B_form" sourceRef="B_start" targetRef="B_form" />
+    <bpmn:sequenceFlow id="Flow_B_form_B_submeter" sourceRef="B_form" targetRef="B_submeter" />
+    <bpmn:sequenceFlow id="Flow_B_submeter_B_registrar" sourceRef="B_submeter" targetRef="B_registrar" />
+    <bpmn:sequenceFlow id="Flow_B_registrar_B_triar" sourceRef="B_registrar" targetRef="B_triar" />
+    <bpmn:sequenceFlow id="Flow_B_triar_B_merge" sourceRef="B_triar" targetRef="B_merge" />
+    <bpmn:sequenceFlow id="Flow_B_merge_B_designar" sourceRef="B_merge" targetRef="B_designar" />
+    <bpmn:sequenceFlow id="Flow_B_designar_B_rodada" sourceRef="B_designar" targetRef="B_rodada" />
+    <bpmn:sequenceFlow id="Flow_B_rodada_B_avaliar" sourceRef="B_rodada" targetRef="B_avaliar" />
+    <bpmn:sequenceFlow id="Flow_B_timer_B_atraso" sourceRef="B_timer" targetRef="B_atraso" />
+    <bpmn:sequenceFlow id="Flow_B_atraso_B_atrasoFim" sourceRef="B_atraso" targetRef="B_atrasoFim" />
+    <bpmn:sequenceFlow id="Flow_B_avaliar_B_consolidar" sourceRef="B_avaliar" targetRef="B_consolidar" />
+    <bpmn:sequenceFlow id="Flow_B_consolidar_B_analisar" sourceRef="B_consolidar" targetRef="B_analisar" />
+    <bpmn:sequenceFlow id="Flow_B_analisar_B_decidir" sourceRef="B_analisar" targetRef="B_decidir" />
+    <bpmn:sequenceFlow id="Flow_B_decidir_B_transicao" sourceRef="B_decidir" targetRef="B_transicao" />
+    <bpmn:sequenceFlow id="Flow_B_transicao_B_gwDecisao" sourceRef="B_transicao" targetRef="B_gwDecisao" />
+    <bpmn:sequenceFlow id="Flow_B_gwDecisao_B_rejeitada" name="Rejeitar" sourceRef="B_gwDecisao" targetRef="B_rejeitada" />
+    <bpmn:sequenceFlow id="Flow_B_gwDecisao_B_gwUltimo" name="Aprovar" sourceRef="B_gwDecisao" targetRef="B_gwUltimo" />
+    <bpmn:sequenceFlow id="Flow_B_gwDecisao_B_ajustar" name="Revisar" sourceRef="B_gwDecisao" targetRef="B_ajustar" />
+    <bpmn:sequenceFlow id="Flow_B_gwUltimo_B_lancada" name="Sim" sourceRef="B_gwUltimo" targetRef="B_lancada" />
+    <bpmn:sequenceFlow id="Flow_B_gwUltimo_B_entregas" name="Não" sourceRef="B_gwUltimo" targetRef="B_entregas" />
+    <bpmn:sequenceFlow id="Flow_B_ajustar_B_mergeCol" sourceRef="B_ajustar" targetRef="B_mergeCol" />
+    <bpmn:sequenceFlow id="Flow_B_entregas_B_mergeCol" sourceRef="B_entregas" targetRef="B_mergeCol" />
+    <bpmn:sequenceFlow id="Flow_B_mergeCol_B_solicitar" sourceRef="B_mergeCol" targetRef="B_solicitar" />
+    <bpmn:sequenceFlow id="Flow_B_solicitar_B_novaRodada" sourceRef="B_solicitar" targetRef="B_novaRodada" />
+    <bpmn:sequenceFlow id="Flow_B_novaRodada_B_merge" sourceRef="B_novaRodada" targetRef="B_merge" />
+  </bpmn:process>
+  <bpmn:process id="Process_Gestao" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Gestao">
+      <bpmn:lane id="C_Ges" name="Gestor ou Administrador">
+        <bpmn:flowNodeRef>G_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_funil</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_gwManual</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_avancar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_merge</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_kpi</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_fim</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="C_Adm" name="Administrador">
+        <bpmn:flowNodeRef>M_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M_papel</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="C_Sys" name="Sistema">
+        <bpmn:flowNodeRef>G_montar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_registrar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M_validar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>M_fim</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="G_start" name="Necessidade de acompanhamento">
+      <bpmn:outgoing>Flow_G_start_G_montar</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="G_montar" name="Montar funil e indicadores com dados reais">
+      <bpmn:incoming>Flow_G_start_G_montar</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_montar_G_funil</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="G_funil" name="Acompanhar o funil (estágios, filtros, Gate Aging)">
+      <bpmn:incoming>Flow_G_montar_G_funil</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_funil_G_gwManual</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="G_gwManual" name="Avançar alguma ideia manualmente?">
+      <bpmn:incoming>Flow_G_funil_G_gwManual</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_gwManual_G_avancar</bpmn:outgoing>
+      <bpmn:outgoing>Flow_G_gwManual_G_merge</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="G_avancar" name="Avançar ao próximo estágio com justificativa">
+      <bpmn:incoming>Flow_G_gwManual_G_avancar</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_avancar_G_registrar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="G_registrar" name="Validar status e destino e registrar a movimentação (quem, de onde, para onde, por quê)">
+      <bpmn:incoming>Flow_G_avancar_G_registrar</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_registrar_G_merge</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="G_merge" name="">
+      <bpmn:incoming>Flow_G_gwManual_G_merge</bpmn:incoming>
+      <bpmn:incoming>Flow_G_registrar_G_merge</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_merge_G_kpi</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="G_kpi" name="Analisar indicadores por período (Admin: somente leitura)">
+      <bpmn:incoming>Flow_G_merge_G_kpi</bpmn:incoming>
+      <bpmn:outgoing>Flow_G_kpi_G_fim</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="G_fim" name="Acompanhamento concluído">
+      <bpmn:incoming>Flow_G_kpi_G_fim</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:startEvent id="M_start" name="Necessidade de gestão de acessos">
+      <bpmn:outgoing>Flow_M_start_M_papel</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="M_papel" name="Alterar papel de um usuário">
+      <bpmn:incoming>Flow_M_start_M_papel</bpmn:incoming>
+      <bpmn:outgoing>Flow_M_papel_M_validar</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="M_validar" name="Validar permissão (RBAC) e atualizar papel">
+      <bpmn:incoming>Flow_M_papel_M_validar</bpmn:incoming>
+      <bpmn:outgoing>Flow_M_validar_M_fim</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="M_fim" name="Acesso atualizado">
+      <bpmn:incoming>Flow_M_validar_M_fim</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_G_start_G_montar" sourceRef="G_start" targetRef="G_montar" />
+    <bpmn:sequenceFlow id="Flow_G_montar_G_funil" sourceRef="G_montar" targetRef="G_funil" />
+    <bpmn:sequenceFlow id="Flow_G_funil_G_gwManual" sourceRef="G_funil" targetRef="G_gwManual" />
+    <bpmn:sequenceFlow id="Flow_G_gwManual_G_avancar" name="Sim" sourceRef="G_gwManual" targetRef="G_avancar" />
+    <bpmn:sequenceFlow id="Flow_G_gwManual_G_merge" name="Não" sourceRef="G_gwManual" targetRef="G_merge" />
+    <bpmn:sequenceFlow id="Flow_G_avancar_G_registrar" sourceRef="G_avancar" targetRef="G_registrar" />
+    <bpmn:sequenceFlow id="Flow_G_registrar_G_merge" sourceRef="G_registrar" targetRef="G_merge" />
+    <bpmn:sequenceFlow id="Flow_G_merge_G_kpi" sourceRef="G_merge" targetRef="G_kpi" />
+    <bpmn:sequenceFlow id="Flow_G_kpi_G_fim" sourceRef="G_kpi" targetRef="G_fim" />
+    <bpmn:sequenceFlow id="Flow_M_start_M_papel" sourceRef="M_start" targetRef="M_papel" />
+    <bpmn:sequenceFlow id="Flow_M_papel_M_validar" sourceRef="M_papel" targetRef="M_validar" />
+    <bpmn:sequenceFlow id="Flow_M_validar_M_fim" sourceRef="M_validar" targetRef="M_fim" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_MindVance">
+    <bpmndi:BPMNPlane id="Plane_MindVance" bpmnElement="Collaboration_MindVance">
+      <bpmndi:BPMNShape id="Pool_Acesso_di" bpmnElement="Pool_Acesso" isHorizontal="true" color:background-color="#F6F8FB" color:border-color="#1F3A5F"><dc:Bounds x="100" y="60" width="2980" height="660" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_User_di" bpmnElement="A_User" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="60" width="2950" height="230" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_Sys_di" bpmnElement="A_Sys" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="290" width="2950" height="260" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_Adm_di" bpmnElement="A_Adm" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="550" width="2950" height="170" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Ciclo_di" bpmnElement="Pool_Ciclo" isHorizontal="true" color:background-color="#F6F8FB" color:border-color="#1F3A5F"><dc:Bounds x="100" y="780" width="2980" height="1050" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Col_di" bpmnElement="B_Col" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="780" width="2950" height="240" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Ges_di" bpmnElement="B_Ges" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="1020" width="2950" height="200" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Sys_di" bpmnElement="B_Sys" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="1220" width="2950" height="420" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_Ava_di" bpmnElement="B_Ava" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="1640" width="2950" height="190" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Gestao_di" bpmnElement="Pool_Gestao" isHorizontal="true" color:background-color="#F6F8FB" color:border-color="#1F3A5F"><dc:Bounds x="100" y="1890" width="2300" height="550" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_Ges_di" bpmnElement="C_Ges" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="1890" width="2270" height="200" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_Adm_di" bpmnElement="C_Adm" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="2090" width="2270" height="150" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_Sys_di" bpmnElement="C_Sys" isHorizontal="true" color:border-color="#8796AD"><dc:Bounds x="130" y="2240" width="2270" height="200" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_start_di" bpmnElement="A_start" color:background-color="#E6F4EA" color:border-color="#3C8D4F"><dc:Bounds x="202" y="172" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="165" y="212" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwConta_di" bpmnElement="A_gwConta" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="305" y="165" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="275" y="219" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_cadastro_di" bpmnElement="A_cadastro" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="410" y="150" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_criar_di" bpmnElement="A_criar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="580" y="330" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwPapel_di" bpmnElement="A_gwPapel" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="785" y="345" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="755" y="313" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_boasVindas_di" bpmnElement="A_boasVindas" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="920" y="330" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_pendente_di" bpmnElement="A_pendente" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="920" y="445" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_analisar_di" bpmnElement="A_analisar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1100" y="595" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwAprova_di" bpmnElement="A_gwAprova" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1305" y="610" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1275" y="578" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_decisao_di" bpmnElement="A_decisao" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1420" y="445" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwAprovado_di" bpmnElement="A_gwAprovado" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1625" y="460" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1595" y="428" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_recusado_di" bpmnElement="A_recusado" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="1762" y="467" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1725" y="507" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_merge_di" bpmnElement="A_merge" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1625" y="165" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwSenha_di" bpmnElement="A_gwSenha" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1765" y="165" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1651" y="194" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_token_di" bpmnElement="A_token" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1870" y="330" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_novaSenha_di" bpmnElement="A_novaSenha" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="2030" y="150" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_login_di" bpmnElement="A_login" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="2210" y="150" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_auth_di" bpmnElement="A_auth" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="2205" y="330" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_gwStatus_di" bpmnElement="A_gwStatus" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="2425" y="345" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2395" y="313" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_negado_di" bpmnElement="A_negado" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="2432" y="477" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2395" y="517" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_rbac_di" bpmnElement="A_rbac" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="2560" y="330" width="160" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_ok_di" bpmnElement="A_ok" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="2802" y="352" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2765" y="392" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_start_di" bpmnElement="B_start" color:background-color="#E6F4EA" color:border-color="#3C8D4F"><dc:Bounds x="202" y="912" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="165" y="952" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_form_di" bpmnElement="B_form" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="280" y="890" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_submeter_di" bpmnElement="B_submeter" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="460" y="890" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_registrar_di" bpmnElement="B_registrar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="455" y="1270" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_triar_di" bpmnElement="B_triar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="670" y="1090" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_merge_di" bpmnElement="B_merge" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="865" y="1105" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_designar_di" bpmnElement="B_designar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="960" y="1090" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_rodada_di" bpmnElement="B_rodada" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1125" y="1270" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_avaliar_di" bpmnElement="B_avaliar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1325" y="1695" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_timer_di" bpmnElement="B_timer" color:background-color="#FFFFFF" color:border-color="#2F4B7C"><dc:Bounds x="1432" y="1677" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1472" y="1647" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_atraso_di" bpmnElement="B_atraso" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1380" y="1430" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_atrasoFim_di" bpmnElement="B_atrasoFim" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="1562" y="1452" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1525" y="1492" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_consolidar_di" bpmnElement="B_consolidar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1560" y="1270" width="160" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_analisar_di" bpmnElement="B_analisar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1565" y="1090" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_decidir_di" bpmnElement="B_decidir" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1750" y="1090" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_transicao_di" bpmnElement="B_transicao" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1745" y="1270" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_gwDecisao_di" bpmnElement="B_gwDecisao" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1965" y="1285" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="1935" y="1253" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_rejeitada_di" bpmnElement="B_rejeitada" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="1972" y="1412" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1935" y="1452" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_gwUltimo_di" bpmnElement="B_gwUltimo" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="2125" y="1285" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="2095" y="1253" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_lancada_di" bpmnElement="B_lancada" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="2272" y="1292" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="2235" y="1332" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_ajustar_di" bpmnElement="B_ajustar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1920" y="815" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_entregas_di" bpmnElement="B_entregas" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="2075" y="915" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_mergeCol_di" bpmnElement="B_mergeCol" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="2345" y="885" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_solicitar_di" bpmnElement="B_solicitar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="2450" y="870" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_novaRodada_di" bpmnElement="B_novaRodada" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="2615" y="1270" width="170" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_cancel_di" bpmnElement="B_cancel" isExpanded="true" color:background-color="#FAFAFC" color:border-color="#6B4C9A"><dc:Bounds x="220" y="1410" width="980" height="200" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_start_di" bpmnElement="C_start" color:background-color="#E6F4EA" color:border-color="#3C8D4F"><dc:Bounds x="262" y="1502" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="225" y="1542" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_validar_di" bpmnElement="C_validar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="365" y="1480" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_encerrar_di" bpmnElement="C_encerrar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="565" y="1480" width="170" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_notificar_di" bpmnElement="C_notificar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="790" y="1480" width="160" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_fim_di" bpmnElement="C_fim" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="1042" y="1502" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1005" y="1542" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_start_di" bpmnElement="G_start" color:background-color="#E6F4EA" color:border-color="#3C8D4F"><dc:Bounds x="202" y="1982" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="165" y="2022" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_montar_di" bpmnElement="G_montar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="285" y="2270" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_funil_di" bpmnElement="G_funil" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="465" y="1960" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_gwManual_di" bpmnElement="G_gwManual" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="675" y="1975" width="50" height="50" /><bpmndi:BPMNLabel><dc:Bounds x="645" y="2029" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_avancar_di" bpmnElement="G_avancar" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="785" y="1960" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_registrar_di" bpmnElement="G_registrar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="765" y="2270" width="190" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_merge_di" bpmnElement="G_merge" color:background-color="#FFF6E0" color:border-color="#B7861F"><dc:Bounds x="1035" y="1975" width="50" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_kpi_di" bpmnElement="G_kpi" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1135" y="1960" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_fim_di" bpmnElement="G_fim" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="1342" y="1982" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1305" y="2022" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M_start_di" bpmnElement="M_start" color:background-color="#E6F4EA" color:border-color="#3C8D4F"><dc:Bounds x="1522" y="2147" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1485" y="2187" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M_papel_di" bpmnElement="M_papel" color:background-color="#E8EEF8" color:border-color="#2F4B7C"><dc:Bounds x="1620" y="2125" width="140" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M_validar_di" bpmnElement="M_validar" color:background-color="#F1EBF7" color:border-color="#6B4C9A"><dc:Bounds x="1795" y="2270" width="150" height="80" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="M_fim_di" bpmnElement="M_fim" color:background-color="#FDECEC" color:border-color="#C62828"><dc:Bounds x="2012" y="2292" width="36" height="36" /><bpmndi:BPMNLabel><dc:Bounds x="1975" y="2332" width="110" height="27" /></bpmndi:BPMNLabel></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_A_start_A_gwConta_di" bpmnElement="Flow_A_start_A_gwConta" color:border-color="#33415C"><di:waypoint x="238" y="190" /><di:waypoint x="305" y="190" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwConta_A_cadastro_di" bpmnElement="Flow_A_gwConta_A_cadastro" color:border-color="#33415C"><di:waypoint x="355" y="190" /><di:waypoint x="410" y="190" /><bpmndi:BPMNLabel><dc:Bounds x="352.5" y="168" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwConta_A_merge_di" bpmnElement="Flow_A_gwConta_A_merge" color:border-color="#33415C"><di:waypoint x="330" y="165" /><di:waypoint x="330" y="90" /><di:waypoint x="1650" y="90" /><di:waypoint x="1650" y="165" /><bpmndi:BPMNLabel><dc:Bounds x="336" y="119.5" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_cadastro_A_criar_di" bpmnElement="Flow_A_cadastro_A_criar" color:border-color="#33415C"><di:waypoint x="550" y="190" /><di:waypoint x="650" y="190" /><di:waypoint x="650" y="330" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_criar_A_gwPapel_di" bpmnElement="Flow_A_criar_A_gwPapel" color:border-color="#33415C"><di:waypoint x="720" y="370" /><di:waypoint x="785" y="370" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwPapel_A_boasVindas_di" bpmnElement="Flow_A_gwPapel_A_boasVindas" color:border-color="#33415C"><di:waypoint x="835" y="370" /><di:waypoint x="920" y="370" /><bpmndi:BPMNLabel><dc:Bounds x="847.5" y="348" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwPapel_A_pendente_di" bpmnElement="Flow_A_gwPapel_A_pendente" color:border-color="#33415C"><di:waypoint x="810" y="395" /><di:waypoint x="810" y="485" /><di:waypoint x="920" y="485" /><bpmndi:BPMNLabel><dc:Bounds x="816" y="432" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_boasVindas_A_merge_di" bpmnElement="Flow_A_boasVindas_A_merge" color:border-color="#33415C"><di:waypoint x="1060" y="370" /><di:waypoint x="1100" y="370" /><di:waypoint x="1100" y="190" /><di:waypoint x="1625" y="190" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_pendente_A_analisar_di" bpmnElement="Flow_A_pendente_A_analisar" color:border-color="#33415C"><di:waypoint x="1060" y="485" /><di:waypoint x="1170" y="485" /><di:waypoint x="1170" y="595" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_analisar_A_gwAprova_di" bpmnElement="Flow_A_analisar_A_gwAprova" color:border-color="#33415C"><di:waypoint x="1240" y="635" /><di:waypoint x="1305" y="635" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwAprova_A_decisao_di" bpmnElement="Flow_A_gwAprova_A_decisao" color:border-color="#33415C"><di:waypoint x="1355" y="635" /><di:waypoint x="1490" y="635" /><di:waypoint x="1490" y="525" /><bpmndi:BPMNLabel><dc:Bounds x="1392.5" y="613" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_decisao_A_gwAprovado_di" bpmnElement="Flow_A_decisao_A_gwAprovado" color:border-color="#33415C"><di:waypoint x="1560" y="485" /><di:waypoint x="1625" y="485" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwAprovado_A_merge_di" bpmnElement="Flow_A_gwAprovado_A_merge" color:border-color="#33415C"><di:waypoint x="1650" y="460" /><di:waypoint x="1650" y="215" /><bpmndi:BPMNLabel><dc:Bounds x="1656" y="329.5" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwAprovado_A_recusado_di" bpmnElement="Flow_A_gwAprovado_A_recusado" color:border-color="#33415C"><di:waypoint x="1675" y="485" /><di:waypoint x="1762" y="485" /><bpmndi:BPMNLabel><dc:Bounds x="1688.5" y="463" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_merge_A_gwSenha_di" bpmnElement="Flow_A_merge_A_gwSenha" color:border-color="#33415C"><di:waypoint x="1675" y="190" /><di:waypoint x="1765" y="190" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwSenha_A_login_di" bpmnElement="Flow_A_gwSenha_A_login" color:border-color="#33415C"><di:waypoint x="1790" y="165" /><di:waypoint x="1790" y="115" /><di:waypoint x="2280" y="115" /><di:waypoint x="2280" y="150" /><bpmndi:BPMNLabel><dc:Bounds x="1796" y="132" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwSenha_A_token_di" bpmnElement="Flow_A_gwSenha_A_token" color:border-color="#33415C"><di:waypoint x="1790" y="215" /><di:waypoint x="1790" y="370" /><di:waypoint x="1870" y="370" /><bpmndi:BPMNLabel><dc:Bounds x="1796" y="284.5" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_token_A_novaSenha_di" bpmnElement="Flow_A_token_A_novaSenha" color:border-color="#33415C"><di:waypoint x="2010" y="370" /><di:waypoint x="2100" y="370" /><di:waypoint x="2100" y="230" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_novaSenha_A_login_di" bpmnElement="Flow_A_novaSenha_A_login" color:border-color="#33415C"><di:waypoint x="2170" y="190" /><di:waypoint x="2210" y="190" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_login_A_auth_di" bpmnElement="Flow_A_login_A_auth" color:border-color="#33415C"><di:waypoint x="2280" y="230" /><di:waypoint x="2280" y="330" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_auth_A_gwStatus_di" bpmnElement="Flow_A_auth_A_gwStatus" color:border-color="#33415C"><di:waypoint x="2355" y="370" /><di:waypoint x="2425" y="370" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwStatus_A_rbac_di" bpmnElement="Flow_A_gwStatus_A_rbac" color:border-color="#33415C"><di:waypoint x="2475" y="370" /><di:waypoint x="2560" y="370" /><bpmndi:BPMNLabel><dc:Bounds x="2487.5" y="348" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_gwStatus_A_negado_di" bpmnElement="Flow_A_gwStatus_A_negado" color:border-color="#33415C"><di:waypoint x="2450" y="395" /><di:waypoint x="2450" y="477" /><bpmndi:BPMNLabel><dc:Bounds x="2456" y="428" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_A_rbac_A_ok_di" bpmnElement="Flow_A_rbac_A_ok" color:border-color="#33415C"><di:waypoint x="2720" y="370" /><di:waypoint x="2802" y="370" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_start_B_form_di" bpmnElement="Flow_B_start_B_form" color:border-color="#33415C"><di:waypoint x="238" y="930" /><di:waypoint x="280" y="930" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_form_B_submeter_di" bpmnElement="Flow_B_form_B_submeter" color:border-color="#33415C"><di:waypoint x="420" y="930" /><di:waypoint x="460" y="930" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_submeter_B_registrar_di" bpmnElement="Flow_B_submeter_B_registrar" color:border-color="#33415C"><di:waypoint x="530" y="970" /><di:waypoint x="530" y="1270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_registrar_B_triar_di" bpmnElement="Flow_B_registrar_B_triar" color:border-color="#33415C"><di:waypoint x="605" y="1310" /><di:waypoint x="740" y="1310" /><di:waypoint x="740" y="1170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_triar_B_merge_di" bpmnElement="Flow_B_triar_B_merge" color:border-color="#33415C"><di:waypoint x="810" y="1130" /><di:waypoint x="865" y="1130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_merge_B_designar_di" bpmnElement="Flow_B_merge_B_designar" color:border-color="#33415C"><di:waypoint x="915" y="1130" /><di:waypoint x="960" y="1130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_designar_B_rodada_di" bpmnElement="Flow_B_designar_B_rodada" color:border-color="#33415C"><di:waypoint x="1100" y="1130" /><di:waypoint x="1200" y="1130" /><di:waypoint x="1200" y="1270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_rodada_B_avaliar_di" bpmnElement="Flow_B_rodada_B_avaliar" color:border-color="#33415C"><di:waypoint x="1200" y="1350" /><di:waypoint x="1200" y="1735" /><di:waypoint x="1325" y="1735" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_timer_B_atraso_di" bpmnElement="Flow_B_timer_B_atraso" color:border-color="#33415C"><di:waypoint x="1450" y="1677" /><di:waypoint x="1450" y="1510" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_atraso_B_atrasoFim_di" bpmnElement="Flow_B_atraso_B_atrasoFim" color:border-color="#33415C"><di:waypoint x="1520" y="1470" /><di:waypoint x="1562" y="1470" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_avaliar_B_consolidar_di" bpmnElement="Flow_B_avaliar_B_consolidar" color:border-color="#33415C"><di:waypoint x="1475" y="1735" /><di:waypoint x="1640" y="1735" /><di:waypoint x="1640" y="1350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_consolidar_B_analisar_di" bpmnElement="Flow_B_consolidar_B_analisar" color:border-color="#33415C"><di:waypoint x="1640" y="1270" /><di:waypoint x="1640" y="1170" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_analisar_B_decidir_di" bpmnElement="Flow_B_analisar_B_decidir" color:border-color="#33415C"><di:waypoint x="1715" y="1130" /><di:waypoint x="1750" y="1130" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_decidir_B_transicao_di" bpmnElement="Flow_B_decidir_B_transicao" color:border-color="#33415C"><di:waypoint x="1820" y="1170" /><di:waypoint x="1820" y="1270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_transicao_B_gwDecisao_di" bpmnElement="Flow_B_transicao_B_gwDecisao" color:border-color="#33415C"><di:waypoint x="1895" y="1310" /><di:waypoint x="1965" y="1310" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_gwDecisao_B_rejeitada_di" bpmnElement="Flow_B_gwDecisao_B_rejeitada" color:border-color="#33415C"><di:waypoint x="1990" y="1335" /><di:waypoint x="1990" y="1412" /><bpmndi:BPMNLabel><dc:Bounds x="1996" y="1365.5" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_gwDecisao_B_gwUltimo_di" bpmnElement="Flow_B_gwDecisao_B_gwUltimo" color:border-color="#33415C"><di:waypoint x="2015" y="1310" /><di:waypoint x="2125" y="1310" /><bpmndi:BPMNLabel><dc:Bounds x="2040" y="1288" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_gwDecisao_B_ajustar_di" bpmnElement="Flow_B_gwDecisao_B_ajustar" color:border-color="#33415C"><di:waypoint x="1990" y="1285" /><di:waypoint x="1990" y="895" /><bpmndi:BPMNLabel><dc:Bounds x="1996" y="1082" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_gwUltimo_B_lancada_di" bpmnElement="Flow_B_gwUltimo_B_lancada" color:border-color="#33415C"><di:waypoint x="2175" y="1310" /><di:waypoint x="2272" y="1310" /><bpmndi:BPMNLabel><dc:Bounds x="2193.5" y="1288" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_gwUltimo_B_entregas_di" bpmnElement="Flow_B_gwUltimo_B_entregas" color:border-color="#33415C"><di:waypoint x="2150" y="1285" /><di:waypoint x="2150" y="995" /><bpmndi:BPMNLabel><dc:Bounds x="2156" y="1132" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_ajustar_B_mergeCol_di" bpmnElement="Flow_B_ajustar_B_mergeCol" color:border-color="#33415C"><di:waypoint x="2060" y="855" /><di:waypoint x="2370" y="855" /><di:waypoint x="2370" y="885" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_entregas_B_mergeCol_di" bpmnElement="Flow_B_entregas_B_mergeCol" color:border-color="#33415C"><di:waypoint x="2225" y="955" /><di:waypoint x="2370" y="955" /><di:waypoint x="2370" y="935" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_mergeCol_B_solicitar_di" bpmnElement="Flow_B_mergeCol_B_solicitar" color:border-color="#33415C"><di:waypoint x="2395" y="910" /><di:waypoint x="2450" y="910" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_solicitar_B_novaRodada_di" bpmnElement="Flow_B_solicitar_B_novaRodada" color:border-color="#33415C"><di:waypoint x="2590" y="910" /><di:waypoint x="2700" y="910" /><di:waypoint x="2700" y="1270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_B_novaRodada_B_merge_di" bpmnElement="Flow_B_novaRodada_B_merge" color:border-color="#33415C"><di:waypoint x="2785" y="1310" /><di:waypoint x="2830" y="1310" /><di:waypoint x="2830" y="1045" /><di:waypoint x="890" y="1045" /><di:waypoint x="890" y="1105" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C_start_C_validar_di" bpmnElement="Flow_C_start_C_validar" color:border-color="#33415C"><di:waypoint x="298" y="1520" /><di:waypoint x="365" y="1520" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C_validar_C_encerrar_di" bpmnElement="Flow_C_validar_C_encerrar" color:border-color="#33415C"><di:waypoint x="515" y="1520" /><di:waypoint x="565" y="1520" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C_encerrar_C_notificar_di" bpmnElement="Flow_C_encerrar_C_notificar" color:border-color="#33415C"><di:waypoint x="735" y="1520" /><di:waypoint x="790" y="1520" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_C_notificar_C_fim_di" bpmnElement="Flow_C_notificar_C_fim" color:border-color="#33415C"><di:waypoint x="950" y="1520" /><di:waypoint x="1042" y="1520" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_start_G_montar_di" bpmnElement="Flow_G_start_G_montar" color:border-color="#33415C"><di:waypoint x="238" y="2000" /><di:waypoint x="360" y="2000" /><di:waypoint x="360" y="2270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_montar_G_funil_di" bpmnElement="Flow_G_montar_G_funil" color:border-color="#33415C"><di:waypoint x="435" y="2310" /><di:waypoint x="540" y="2310" /><di:waypoint x="540" y="2040" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_funil_G_gwManual_di" bpmnElement="Flow_G_funil_G_gwManual" color:border-color="#33415C"><di:waypoint x="615" y="2000" /><di:waypoint x="675" y="2000" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_gwManual_G_avancar_di" bpmnElement="Flow_G_gwManual_G_avancar" color:border-color="#33415C"><di:waypoint x="725" y="2000" /><di:waypoint x="785" y="2000" /><bpmndi:BPMNLabel><dc:Bounds x="725" y="1978" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_gwManual_G_merge_di" bpmnElement="Flow_G_gwManual_G_merge" color:border-color="#33415C"><di:waypoint x="700" y="1975" /><di:waypoint x="700" y="1930" /><di:waypoint x="1060" y="1930" /><di:waypoint x="1060" y="1975" /><bpmndi:BPMNLabel><dc:Bounds x="706" y="1944.5" width="90" height="14" /></bpmndi:BPMNLabel></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_avancar_G_registrar_di" bpmnElement="Flow_G_avancar_G_registrar" color:border-color="#33415C"><di:waypoint x="860" y="2040" /><di:waypoint x="860" y="2270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_registrar_G_merge_di" bpmnElement="Flow_G_registrar_G_merge" color:border-color="#33415C"><di:waypoint x="955" y="2310" /><di:waypoint x="1060" y="2310" /><di:waypoint x="1060" y="2025" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_merge_G_kpi_di" bpmnElement="Flow_G_merge_G_kpi" color:border-color="#33415C"><di:waypoint x="1085" y="2000" /><di:waypoint x="1135" y="2000" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_G_kpi_G_fim_di" bpmnElement="Flow_G_kpi_G_fim" color:border-color="#33415C"><di:waypoint x="1285" y="2000" /><di:waypoint x="1342" y="2000" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M_start_M_papel_di" bpmnElement="Flow_M_start_M_papel" color:border-color="#33415C"><di:waypoint x="1558" y="2165" /><di:waypoint x="1620" y="2165" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M_papel_M_validar_di" bpmnElement="Flow_M_papel_M_validar" color:border-color="#33415C"><di:waypoint x="1760" y="2165" /><di:waypoint x="1870" y="2165" /><di:waypoint x="1870" y="2270" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_M_validar_M_fim_di" bpmnElement="Flow_M_validar_M_fim" color:border-color="#33415C"><di:waypoint x="1945" y="2310" /><di:waypoint x="2012" y="2310" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="A_n1_di" bpmnElement="A_n1" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="560" y="590" width="330" height="60" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_n2_di" bpmnElement="A_n2" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="2560" y="570" width="460" height="120" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="A_n3_di" bpmnElement="A_n3" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="2250" y="590" width="280" height="60" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n1_di" bpmnElement="B_n1" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="230" y="1060" width="330" height="75" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n2_di" bpmnElement="B_n2" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1300" y="1023" width="480" height="18" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n3_di" bpmnElement="B_n3" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1700" y="1690" width="420" height="75" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n4_di" bpmnElement="B_n4" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1680" y="1520" width="400" height="75" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n5_di" bpmnElement="B_n5" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="2120" y="1520" width="400" height="60" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="B_n6_di" bpmnElement="B_n6" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="2620" y="965" width="330" height="45" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_n3_di" bpmnElement="C_n3" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1000" y="2355" width="440" height="75" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_n1_di" bpmnElement="C_n1" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1500" y="1920" width="470" height="75" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="C_n2_di" bpmnElement="C_n2" color:background-color="#FFFBEA" color:border-color="#9A8C5A"><dc:Bounds x="1600" y="2360" width="380" height="50" /></bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Assoc_A_n2_di" bpmnElement="Assoc_A_n2"><di:waypoint x="2790" y="570" /><di:waypoint x="2640" y="410" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_B_n1_di" bpmnElement="Assoc_B_n1"><di:waypoint x="395" y="1060" /><di:waypoint x="350" y="970" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_B_n3_di" bpmnElement="Assoc_B_n3"><di:waypoint x="1700" y="1727.5" /><di:waypoint x="1475" y="1735" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_B_n4_di" bpmnElement="Assoc_B_n4"><di:waypoint x="1880" y="1520" /><di:waypoint x="1640" y="1350" /></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Assoc_C_n3_di" bpmnElement="Assoc_C_n3"><di:waypoint x="1000" y="2392.5" /><di:waypoint x="955" y="2310" /></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

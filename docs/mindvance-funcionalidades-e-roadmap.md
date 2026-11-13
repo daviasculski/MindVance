@@ -2,7 +2,7 @@
 
 Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da Ideia ao Lançamento"), BPMN revisado do MindVance e decisões dos autores.
 
-**Situação em 05/11/2026**, branch `feat-go-boys` (a partir da `dev`). O fluxo de gates do BPMN (triagem e designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta. Funil e indicadores usam dados reais. As notificações (internas e por e-mail) cobrem todos os gatilhos do BPMN, incluindo o prazo vencido. O cancelamento de ideias encerra as rodadas abertas e fica registrado no histórico com o responsável e a justificativa. Engajamento e ranking saíram do escopo. O que falta está na seção 5.
+**Situação em 13/11/2026**, branch `docs-bpmn-plataforma` (a partir da `dev`). O fluxo de gates do BPMN (triagem e designação → avaliação → consolidação → decisão, com Revisar e Rejeitar) está integrado de ponta a ponta. Funil e indicadores usam dados reais. As notificações (internas e por e-mail) cobrem todos os gatilhos do BPMN, incluindo o prazo vencido. O cancelamento encerra as rodadas abertas e fica registrado no histórico. Gestor e Admin podem avançar uma ideia de estágio manualmente, com justificativa auditada (D20). O BPMN completo da plataforma está em `docs/bpmn/`. Engajamento e ranking saíram do escopo. O que falta está na seção 5.
 
 ---
 
@@ -17,11 +17,11 @@ Fontes: TCC (seção 2.8.1, Módulos 1 a 6; User Stories; UC01 e UC02; fluxo "Da
 | ❓ **A DECIDIR** | Depende de decisão dos autores |
 | ⏸️ **FORA DO ESCOPO** | Decidido que não entra nesta entrega |
 
-**Resumo dos 110 itens com ID** (sem contar DOC, que é do documento do TCC):
+**Resumo dos 111 itens com ID** (sem contar DOC, que é do documento do TCC):
 
 | ✅ Feito | 🟡 Parcial | ⬜ Pendente | 🔴 Divergente | ❓ A decidir | ⏸️ Fora do escopo |
 |---|---|---|---|---|---|
-| 83 | 8 | 8 | 0 | 6 | 5 |
+| 85 | 11 | 4 | 0 | 6 | 5 |
 
 **Prioridade definida pelos autores:** completar a integração e as funcionalidades. **Seed e testes só se houver tempo** (estão contados como pendentes).
 
@@ -38,7 +38,7 @@ Referências de código são relativas à raiz do repositório. "Mock" = a tela 
   - **Avaliador:** pontua ideias nos gates para os quais foi designado; mantém os acessos do Colaborador.
   - **Gestor de Inovação** (`GATEKEEPER`): faz a triagem em Ideação, designa avaliadores, toma a decisão final dos gates e acompanha o funil e os KPIs.
   - **Administrador:** backoffice — usuários e papéis, e leitura dos KPIs (D12).
-- **D2.** O Administrador **não decide gates, não designa avaliadores e não acessa o funil**.
+- **D2.** O Administrador **não decide gates e não designa avaliadores**. Revisada em 13/11 (D20): ele consulta o funil e pode avançar ideias manualmente.
 - **D3.** A **designação de avaliadores é do Gestor**.
 - **D4.** A **decisão final é do Gestor**, com **justificativa obrigatória** em qualquer decisão.
 - **D5.** Três saídas: **Aprovar** (avança), **Revisar** (volta ao autor no mesmo estágio), **Rejeitar** (arquivada).
@@ -159,6 +159,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Anexos: enviar · listar · baixar | `POST /api/ideas/:id/attachments` (multipart `files`) · `GET /api/ideas/:id/attachments` · `GET /api/ideas/:id/attachments/:attachmentId/download` | Autor envia (fora de avaliação) · quem vê a ideia lista e baixa |
 | Usuários e papéis | `GET /api/users` · `PATCH /api/users/:id/role` | Administrador |
 | KPIs | `GET /api/ideas/metrics` | Gestor e Administrador |
+| Funil | `GET /api/ideas/funnel` | Gestor e Administrador |
+| Avanço manual de estágio · histórico | `PATCH /api/ideas/:id/stage` (`reason`) · `GET /api/ideas/:id/stage-transitions` | Gestor e Administrador |
 
 ---
 
@@ -249,7 +251,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | FUN-01 | Kanban 6 colunas com contagem | ✅ FEITO | `KanbanFunnel.tsx`, `GET /ideas/funnel` | Dados reais; colunas que afunilam e contagem de quantas chegaram a cada estágio |
 | FUN-02 | Card com título, autor, departamento, status e gate | ✅ FEITO | `KanbanFunnel.tsx` | Também a rodada (quando > 1) e a justificativa das encerradas |
 | FUN-03 | Filtros por departamento, período e status | ✅ FEITO | `KanbanFunnel.tsx` | Área, status e período de submissão; encerradas fora do funil ativo, com opção de exibir |
-| FUN-04 | Funil só do Gestor; Avaliador só as atribuídas | ✅ FEITO | `lib/navigation.ts`, `GetEvaluationQueueUserStory.ts` | — |
+| FUN-04 | Funil do Gestor (e do Admin, D20); Avaliador só as atribuídas | ✅ FEITO | `lib/navigation.ts`, `GetEvaluationQueueUserStory.ts` | — |
+| FUN-06 | Avanço manual de estágio, auditado (D20) | ✅ FEITO | `MoveIdeaToNextStageUserStory.ts`, `IdeaDetail.tsx` | Davi; um estágio por vez, justificativa obrigatória, sem chegar ao Lançamento; coberto por testes |
 | FUN-05 | Gate Aging no card | ✅ FEITO | `GetFunnelUserStory.ts` (`lastMovementAt`), `GateAgingBadge.tsx` | Conta desde a última submissão, abertura de rodada ou decisão |
 
 ### 3.8 Ciclo de gate
@@ -321,7 +324,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | ADM-02 | Atribuição de papel (substituído por D10) | ✅ FEITO | `UsersAdmin.tsx`, `ApprovalRequests.tsx` | Aprovar/recusar pedido e trocar papel de qualquer usuário |
 | ADM-03 | Configurar critérios, pesos, threshold e prazo | ⏸️ FORA DO ESCOPO | migration `20261026232000` | D12: valores no banco, sem interface |
 | ADM-04 | Mudança de critérios não altera avaliações | ✅ FEITO | `evaluations.criteria` | Nome e peso copiados no envio |
-| ADM-05 | Admin sem funil, triagem, designação e decisão | ✅ FEITO | `lib/navigation.ts`, `gateReview.routes.ts` | Testado |
+| ADM-05 | Admin sem triagem, designação e decisão | ✅ FEITO | `lib/navigation.ts`, `gateReview.routes.ts` | Pelo D20, vê o funil e faz avanços manuais |
 | ADM-06 | Log de backoffice | ❓ A DECIDIR | — | — |
 | ADM-07 | Departamentos pela interface | ❓ A DECIDIR | `frontend/src/data.ts` | — |
 
@@ -337,7 +340,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | Designar avaliadores | — | — | ✅ | — |
 | Avaliar (só onde designado e não sendo autor) | — | ✅ | — | — |
 | Decidir gate | — | — | ✅ | — |
-| Ver todas as ideias e o funil | — | — | ✅ | — |
+| Ver todas as ideias e o funil | — | — | ✅ | ✅ (D20) |
+| Avançar estágio manualmente, com justificativa (D20) | — | — | ✅ | ✅ |
 | Histórico detalhado de uma ideia | autor | designado | ✅ | — |
 | KPIs | — | — | ✅ | ✅ (leitura) |
 | Usuários e papéis | — | — | — | ✅ |
@@ -380,12 +384,12 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 
 | ID | Item | Status | Observação |
 |---|---|---|---|
-| TST-01 | Score, combinação, threshold e recomendação | ⬜ PENDENTE | Hoje validado por roteiro manual da API |
-| TST-02 | Autorização por rota e papel | ⬜ PENDENTE | Idem |
-| TST-03 | Regras de negócio do gate | ⬜ PENDENTE | Idem |
+| TST-01 | Score, combinação, limite e recomendação | 🟡 PARCIAL | `SubmitEvaluationUserStory.spec.ts`: nota ponderada e consolidação; faltam as faixas de recomendação |
+| TST-02 | Autorização por rota e papel | ✅ FEITO | `tests/security/` (JWT, RBAC, hash de senha) e `tests/integration/` (rotas de ideias e aprovações) |
+| TST-03 | Regras de negócio do gate | 🟡 PARCIAL | Parecer: justificativa, escala, duplicidade, rodada pendente; faltam designação e decisão |
 | TST-04 | Fluxo completo | ⬜ PENDENTE | Idem |
 | TST-05 | Alerta de prazo | ⬜ PENDENTE | — |
-| TST-06 | Validações da submissão | ⬜ PENDENTE | — |
+| TST-06 | Validações da submissão | 🟡 PARCIAL | `CreateIdeaUserStory.spec.ts` (caso válido) e anexos na integração; faltam os obrigatórios |
 
 ### 3.15 Alinhamento do TCC
 
@@ -397,8 +401,8 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | DOC-04 | Decisão, designação e alerta com o Gestor | Sim |
 | DOC-05 | US novas do Gestor e do Admin | Sim: triagem, designação, decisão, funil, KPIs e usuários |
 | DOC-06 | Primeiro estágio "Ideação" | Sim |
-| DOC-07 | DER com novo papel e designação | Sim (incluir `gate_reviews` e `gate_review_evaluators` no DER) |
-| DOC-08 | BPMN revisado e adaptações | Sim: avaliador separado de quem decide, 3 decisões, rodadas após Revisar, fim no Lançamento |
+| DOC-07 | DER com novo papel e designação | Sim; usar `backend/prisma/diagrama-banco.svg`, gerado do schema |
+| DOC-08 | BPMN revisado e adaptações | Sim: `docs/bpmn/mindvance-plataforma.bpmn` e `.png` (plataforma completa) |
 | DOC-09 | Sem nuvem | Sim |
 | DOC-10 | Cronograma desta integração | Ver seção 6 |
 
@@ -428,7 +432,7 @@ Critérios de todos os gates: Alinhamento Estratégico 30%, Viabilidade Técnica
 | **E · Departamento** | ✅ AUT-01, ADM-01 (05/11) · resta DER-05 (área da ideia em JSONB) e SEED-01 | Decidir ADM-07 |
 | **F · Acabamento** | GAT-07 · SUB-05 · FRO-03, 05 · INF-05 | — |
 | **G · Documento do TCC** | DOC-01 a 10 (incluir D15–D19, o BPMN de 05/11 e a tabela `attachments` no DER) | Bloco F |
-| *Se houver tempo* | SEED-02, 05 · TST-01 a 06 | — |
+| *Se houver tempo* | SEED-02, 05 · TST-01, 03 a 06 | — |
 | *A decidir* | GAT-12 · SUB-07 · ACO-06 · ADM-06, 07 · FRO-08 · rótulo do estágio 3 | Autores |
 
 ---
