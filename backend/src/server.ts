@@ -6,7 +6,7 @@ import { startOverdueReviewsJob } from './presentation/jobs/overdueReviewsJob';
 const PORT = process.env.PORT || 3333;
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Servidor rodando na URL http://localhost:${PORT}`);
 });
 
 // UC02 FA02: verifica prazos de avaliação vencidos ao subir e a cada 15 minutos
