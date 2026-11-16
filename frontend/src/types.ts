@@ -71,6 +71,7 @@ export interface TimelineEntry {
   decision:
     | GateDecisionType
     | "submetida"
+    | "lancamento"
     | "avaliada"
     | "gate-aberto"
     | "atraso"

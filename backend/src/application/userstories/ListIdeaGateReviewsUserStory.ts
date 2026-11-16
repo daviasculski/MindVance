@@ -18,9 +18,7 @@ export class ListIdeaGateReviewsUserStory {
       throw new Error("Idea not found");
     }
     const reviews = await this.gateReviewRepository.findByIdea(idea.id!);
-    if (!canViewIdeaHistory(idea, reviews, requester)) {
-      throw new Error("Only the idea author can view its gate reviews");
-    }
+    if (!canViewIdeaHistory(idea, requester)) return [];
     const gates = await this.gateRepository.findAll();
 
     return reviews.map((r) => {

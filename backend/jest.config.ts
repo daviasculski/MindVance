@@ -13,7 +13,7 @@ const config: Config = {
     ],
   },
   collectCoverageFrom: [
-    "src/application/userstories/CreateIdeaUserStorie.ts",
+    "src/application/userstories/CreateIdeaUserStory.ts",
     "src/application/userstories/SubmitEvaluationUserStory.ts",
     "src/application/userstories/CreateUserUserStory.ts",
     "src/application/userstories/MoveIdeaToNextStageUserStory.ts",

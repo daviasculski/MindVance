@@ -27,10 +27,6 @@ export class ListIdeaEvaluationsController {
         return res.status(404).json({ error: message });
       }
 
-      if (message === "Only the idea author can view its evaluations") {
-        return res.status(403).json({ error: message });
-      }
-
       console.error("Listing idea evaluations failed:", error);
       return res.status(500).json({ error: "Unable to list evaluations" });
     }

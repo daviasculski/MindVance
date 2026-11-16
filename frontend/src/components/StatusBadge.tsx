@@ -37,17 +37,22 @@ const config: Record<IdeaStatus, { bg: string; color: string; label: string }> =
   },
 };
 
-export default function StatusBadge({ status }: { status: IdeaStatus }) {
+export default function StatusBadge({ status, wrap = false }: { status: IdeaStatus; wrap?: boolean }) {
   const c = config[status];
   return (
     <span
-      className="inline-flex items-center rounded-full text-xs font-medium"
+      className={`inline-flex items-center rounded-full text-xs font-medium ${
+        wrap
+          ? "max-w-full justify-center whitespace-normal break-words leading-tight [overflow-wrap:anywhere]"
+          : "whitespace-nowrap"
+      }`}
       style={{
         background: c.bg,
         color: c.color,
-        padding: "3px 10px",
+        padding: wrap ? "5px 10px" : "3px 10px",
+        maxWidth: wrap ? "100%" : undefined,
+        textAlign: wrap ? "center" : undefined,
         fontFamily: "-apple-system, BlinkMacSystemFont, 'Inter', sans-serif",
-        whiteSpace: "nowrap",
       }}
     >
       {c.label}

@@ -18,11 +18,18 @@ interface NewIdeaProps {
   token: string;
   onSessionExpired: () => void;
   onViewMyIdeas: () => void;
+  onViewFunnel?: () => void;
   /** Departamento do cadastro, sugerido como área de origem */
   defaultDepartment?: string;
 }
 
-export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaultDepartment = "" }: NewIdeaProps) {
+export default function NewIdea({
+  token,
+  onSessionExpired,
+  onViewMyIdeas,
+  onViewFunnel,
+  defaultDepartment = "",
+}: NewIdeaProps) {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState<ApiIdea | null>(null);
   const [loading, setLoading] = useState(false);
@@ -128,7 +135,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
             Ideia submetida!
           </h2>
           <p style={{ color: "#6E6E73", fontSize: 14, lineHeight: 1.6 }}>
-            Sua ideia entrou no estágio <span style={{ color: "#0072CE", fontWeight: 600 }}>{stage}</span>. Você receberá uma notificação quando os avaliadores concluírem a análise.
+            Sua ideia entrou no estágio <span style={{ color: "#0072CE", fontWeight: 600 }}>{stage}</span> e aguarda a triagem do Gestor de Inovação. Após essa etapa, o Gate 1 poderá ser aberto.
           </p>
           {uploadWarning && (
             <div
@@ -150,17 +157,16 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
             </div>
             <GateRail stage={stage} size="sm" />
             <div className="mt-3 flex items-center gap-2">
-              <GateBadge label={`Gate 1 — ${stage}`} size="sm" />
-              <span style={{ color: "#6E6E73", fontSize: 11 }}>Pendente de avaliação</span>
+              <GateBadge label="Aguardando triagem" size="sm" />
             </div>
           </div>
           <div className="mt-6 flex items-center justify-center gap-3">
             <button
-              onClick={onViewMyIdeas}
+              onClick={onViewFunnel ?? onViewMyIdeas}
               className="px-6 py-2.5 rounded-xl font-medium"
               style={{ background: "#FFFFFF", color: "#0A1931", border: "1px solid #E5E5EA", cursor: "pointer", fontSize: 14, fontWeight: 600 }}
             >
-              Ver minhas ideias
+              {onViewFunnel ? "Voltar ao funil" : "Ver minhas ideias"}
             </button>
             <button
               onClick={() => { setSubmitted(null); setStep(1); setForm({ title: "", problem: "", solution: "", department: defaultDepartment, impact: "", resources: "" }); }}
@@ -183,7 +189,7 @@ export default function NewIdea({ token, onSessionExpired, onViewMyIdeas, defaul
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <GateBadge label="Entrará no Gate 1 — Ideação" />
+            <GateBadge label="Estágio inicial — Ideação" />
           </div>
           <h1 style={{ fontWeight: 700, fontSize: 26, color: "#0A1931", letterSpacing: "-0.02em" }}>
             Submeter Nova Ideia

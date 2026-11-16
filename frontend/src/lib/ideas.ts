@@ -374,6 +374,18 @@ export function toIdea(api: ApiIdea, fallbackAuthorName = "Colaborador"): Idea {
         responsible: authorName,
         feedback: "Ideia submetida ao funil de inovação.",
       },
+      ...(api.currentStage === "LANCAMENTO"
+        ? [
+            {
+              id: `${api.id}-lancamento`,
+              date: api.updatedAt,
+              stage: "Lançamento" as const,
+              decision: "lancamento" as const,
+              responsible: "Sistema",
+              feedback: "Ideia chegou ao estágio de Lançamento.",
+            },
+          ]
+        : []),
       // CAN-03: o cancelamento entra no histórico com quem cancelou e a justificativa
       ...(api.cancellation
         ? [

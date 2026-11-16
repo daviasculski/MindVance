@@ -53,11 +53,8 @@ export class MoveIdeaToNextStageUserStory {
     if (!toStage) {
       throw new Error("Idea is already in the final stage");
     }
-    if (toStage === "LANCAMENTO") {
-      throw new Error("Final stage can only be reached by formal gate approval");
-    }
 
-    const toStatus = "EM_ANDAMENTO";
+    const toStatus = toStage === "LANCAMENTO" ? "APROVADA" : "EM_ANDAMENTO";
     const transition = await this.transitionRepository.moveIdea({
       ideaId: input.ideaId,
       expectedStage: idea.currentStage,
@@ -72,6 +69,7 @@ export class MoveIdeaToNextStageUserStory {
       ...idea.toJSON(),
       currentStage: toStage,
       status: toStatus,
+      updatedAt: transition.createdAt,
     });
 
     return {

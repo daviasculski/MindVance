@@ -26,9 +26,7 @@ export class ListIdeaEvaluationsUserStory {
     }
 
     const reviews = await this.gateReviewRepository.findByIdea(idea.id!);
-    if (!canViewIdeaHistory(idea, reviews, { id: input.requesterId, role: input.requesterRole })) {
-      throw new Error("Only the idea author can view its evaluations");
-    }
+    if (!canViewIdeaHistory(idea, { id: input.requesterId, role: input.requesterRole })) return [];
 
     const [evaluations, gates] = await Promise.all([
       this.evaluationRepository.findByIdeaId(input.ideaId),

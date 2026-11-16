@@ -73,7 +73,7 @@ describe("MoveIdeaToNextStageUserStory", () => {
     },
   );
 
-  it("allows only one-stage-at-a-time progression and preserves the final gate decision", async () => {
+  it("allows the manager to advance Gate 5 to launch with an audited approval", async () => {
     ideaRepository.findById.mockResolvedValue(
       activeIdea({
         currentStage: "TESTE_E_VALIDACAO",
@@ -81,15 +81,27 @@ describe("MoveIdeaToNextStageUserStory", () => {
       }),
     );
 
-    await expect(
-      story().execute({
-        ideaId: "idea-1",
-        changedById: "manager-1",
-        changedByRole: "GATEKEEPER",
-        reason: "Encaminhar ao estágio final",
-      }),
-    ).rejects.toThrow("Final stage can only be reached by formal gate approval");
-    expect(transitionRepository.moveIdea).not.toHaveBeenCalled();
+    const result = await story().execute({
+      ideaId: "idea-1",
+      changedById: "manager-1",
+      changedByRole: "GATEKEEPER",
+      reason: "Gate 5 aprovado após validação",
+    });
+
+    expect(transitionRepository.moveIdea).toHaveBeenCalledWith({
+      ideaId: "idea-1",
+      expectedStage: "TESTE_E_VALIDACAO",
+      expectedStatus: "EM_ANDAMENTO",
+      toStage: "LANCAMENTO",
+      toStatus: "APROVADA",
+      reason: "Gate 5 aprovado após validação",
+      changedById: "manager-1",
+    });
+    expect(result.idea.currentStage).toBe("LANCAMENTO");
+    expect(result.idea.status).toBe("APROVADA");
+    expect(result.transition.fromStage).toBe("TESTE_E_VALIDACAO");
+    expect(result.transition.toStage).toBe("LANCAMENTO");
+    expect(result.transition.reason).toBe("Gate 5 aprovado após validação");
   });
 
   it("rejects an idea already at the final stage", async () => {

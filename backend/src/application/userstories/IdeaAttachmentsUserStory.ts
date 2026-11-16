@@ -6,7 +6,7 @@ import { IGateReviewRepository } from "../../domain/repositories/IGateReviewRepo
 import { IIdeaRepository } from "../../domain/repositories/IIdeaRepository";
 import { IUserRepository } from "../../domain/repositories/IUserRepository";
 import { RequesterDTO } from "../dtos/IdeaDTO";
-import { canViewIdeaHistory } from "../policies/ideaHistoryAccess";
+import { canViewIdeaDetails } from "../policies/ideaHistoryAccess";
 import { editableStatuses } from "./UpdateIdeaUserStory";
 
 /** Arquivo já gravado no diretório de uploads */
@@ -90,11 +90,11 @@ export class IdeaAttachmentsUserStory {
     return idea;
   }
 
-  // Mesma regra do detalhe da ideia: autor, Gestor e designados; o Mural (Lançamento) é público
+  // Mesma regra do detalhe: autor, Gestor, Admin e designados; o Mural é público.
   private async ensureCanView(idea: Idea, requester: RequesterDTO): Promise<void> {
     if (idea.currentStage === "LANCAMENTO") return;
     const reviews = await this.gateReviewRepository.findByIdea(idea.id!);
-    if (!canViewIdeaHistory(idea, reviews, requester)) {
+    if (!canViewIdeaDetails(idea, reviews, requester)) {
       throw new Error("You cannot view this idea");
     }
   }

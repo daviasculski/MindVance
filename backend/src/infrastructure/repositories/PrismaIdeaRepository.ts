@@ -37,6 +37,7 @@ export class PrismaIdeaRepository implements IIdeaRepository {
         description: idea.description,
         author_id: idea.authorId,
         extra_fields: (idea.extraFields ?? {}) as Prisma.InputJsonValue,
+        current_stage: idea.currentStage,
         status: idea.status,
       },
     });

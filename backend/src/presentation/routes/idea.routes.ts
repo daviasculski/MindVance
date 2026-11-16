@@ -4,7 +4,7 @@ import { ListIdeasController } from "../controllers/ListIdeasController";
 import { GetIdeaByIdController } from "../controllers/GetIdeaByIdController";
 import { UpdateIdeaController } from "../controllers/UpdateIdeaController";
 import { CancelIdeaController } from "../controllers/CancelIdeaController";
-import { CreateIdeaUserStorie } from "../../application/userstories/CreateIdeaUserStorie";
+import { CreateIdeaUserStory } from "../../application/userstories/CreateIdeaUserStory";
 import { ListIdeasUserStory } from "../../application/userstories/ListIdeasUserStory";
 import { GetIdeaByIdUserStory } from "../../application/userstories/GetIdeaByIdUserStory";
 import { UpdateIdeaUserStory } from "../../application/userstories/UpdateIdeaUserStory";
@@ -52,7 +52,7 @@ const gateRepository = new PrismaGateRepository();
 const gateReviewRepository = new PrismaGateReviewRepository();
 const manualStageTransitionRepository = new PrismaManualStageTransitionRepository();
 
-const ideaController = new IdeaController(new CreateIdeaUserStorie(ideaRepository, notifier));
+const ideaController = new IdeaController(new CreateIdeaUserStory(ideaRepository, notifier));
 const listIdeaGateReviews = new ListIdeaGateReviewsUserStory(ideaRepository, gateRepository, gateReviewRepository);
 const listIdeasController = new ListIdeasController(
   new ListIdeasUserStory(ideaRepository, userRepository),
@@ -83,7 +83,11 @@ const getFunnelUserStory = new GetFunnelUserStory(
 );
 const manualStageTransitionController = new ManualStageTransitionController(
   new MoveIdeaToNextStageUserStory(ideaRepository, manualStageTransitionRepository),
-  new ListManualStageTransitionsUserStory(manualStageTransitionRepository, userRepository),
+  new ListManualStageTransitionsUserStory(
+    manualStageTransitionRepository,
+    userRepository,
+    ideaRepository,
+  ),
 );
 const gateDecisionController = new GateDecisionController(
   new ListGateDecisionsUserStory(
@@ -119,7 +123,11 @@ const listIdeaEvaluationsController = new ListIdeaEvaluationsController(
 );
 
 // Todas exigem autenticação (aplicada em routes/index.ts)
-ideaRoutes.post("/", (req, res) => ideaController.create(req, res));
+ideaRoutes.post(
+  "/",
+  ensureRole("COLLABORATOR", "EVALUATOR", "GATEKEEPER"),
+  (req, res) => ideaController.create(req, res),
+);
 ideaRoutes.get("/", (req, res) => listIdeasController.handle(req, res));
 // KPIs: Gestor de Inovação e Administrador, só leitura (P3)
 ideaRoutes.get("/metrics", ensureRole("GATEKEEPER", "ADMIN"), (req, res) =>
@@ -138,11 +146,7 @@ ideaRoutes.patch(
   ensureRole("GATEKEEPER", "ADMIN"),
   (req, res) => manualStageTransitionController.move(req, res),
 );
-ideaRoutes.get(
-  "/:id/stage-transitions",
-  ensureRole("GATEKEEPER", "ADMIN"),
-  (req, res) => manualStageTransitionController.list(req, res),
-);
+ideaRoutes.get("/:id/stage-transitions", (req, res) => manualStageTransitionController.list(req, res));
 ideaRoutes.get("/:id", (req, res) => getIdeaByIdController.handle(req, res));
 ideaRoutes.get("/:id/evaluations", (req, res) => listIdeaEvaluationsController.handle(req, res));
 ideaRoutes.get("/:id/gate-decisions", (req, res) => gateDecisionController.list(req, res));
@@ -156,7 +160,7 @@ ideaRoutes.get("/:id/gate-reviews", async (req, res) => {
     return sendError(
       res,
       error,
-      { "Idea not found": 404, "Only the idea author can view its gate reviews": 403 },
+      { "Idea not found": 404 },
       "Unable to list gate reviews",
     );
   }

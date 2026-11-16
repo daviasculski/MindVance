@@ -3,7 +3,6 @@ import { ListGateDecisionsUserStory } from "../../application/userstories/ListGa
 import { sendError } from "../http";
 
 const statusByMessage: Record<string, number> = {
-  "Only the idea author can view its gate decisions": 403,
   "Idea not found": 404,
 };
 

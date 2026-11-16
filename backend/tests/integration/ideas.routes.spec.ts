@@ -111,6 +111,17 @@ describe("ideas REST integration", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    userRows.set("other-1", {
+      id: "other-1",
+      name: "Outro colaborador",
+      email: "other@example.com",
+      password: "hashed-password",
+      role: "COLLABORATOR",
+      approvalStatus: "APPROVED",
+      department: "Operações",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
     userRows.set("admin-1", {
       id: "admin-1",
       name: "Administradora",
@@ -233,15 +244,28 @@ describe("ideas REST integration", () => {
       .send({
         title: "Automatizar o atendimento",
         description: "Criar um fluxo de triagem automatizado",
+        authorId: "spoofed-author",
         extraFields: {
           problem: "Processo manual",
           department: "Operações",
+          impact: "Reduzir o tempo de atendimento",
+          resources: "Equipe de operações",
         },
       })
       .expect(201);
 
-    expect(created.body.id).toBe(ideaId);
-    expect(created.body.extraFields.problem).toBe("Processo manual");
+    expect(created.body).toMatchObject({
+      id: ideaId,
+      authorId,
+      currentStage: "IDEACAO",
+      status: "AGUARDANDO_TRIAGEM",
+      extraFields: {
+        problem: "Processo manual",
+        department: "Operações",
+        impact: "Reduzir o tempo de atendimento",
+        resources: "Equipe de operações",
+      },
+    });
 
     const listed = await request(app)
       .get(`/api/ideas?authorId=${authorId}`)
@@ -281,6 +305,68 @@ describe("ideas REST integration", () => {
 
   it("rejects unauthenticated access to idea routes", async () => {
     await request(app).get("/api/ideas").expect(401);
+    await request(app)
+      .post("/api/ideas")
+      .send({
+        title: "Ideia",
+        description: "Solução",
+        extraFields: { problem: "Problema", department: "Operações" },
+      })
+      .expect(401);
+  });
+
+  it("returns only public history endpoints to a non-author viewing a launched idea", async () => {
+    ideaRows.set(ideaId, {
+      ...ideaRow(),
+      current_stage: "LANCAMENTO",
+      status: "APROVADA",
+    });
+    prismaMock.evaluation.findMany.mockResolvedValue([{ id: "private-evaluation" }]);
+    prismaMock.gateDecision.findMany.mockResolvedValue([{ id: "private-decision" }]);
+    prismaMock.manualStageTransition.findMany.mockResolvedValue([{ id: "private-transition" }]);
+
+    await request(app)
+      .get(`/api/ideas/${ideaId}`)
+      .set("Authorization", `Bearer ${token("other-1")}`)
+      .expect(200);
+
+    for (const resource of ["evaluations", "gate-decisions", "gate-reviews", "stage-transitions"]) {
+      const response = await request(app)
+        .get(`/api/ideas/${ideaId}/${resource}`)
+        .set("Authorization", `Bearer ${token("other-1")}`)
+        .expect(200);
+      expect(response.body).toEqual([]);
+    }
+    expect(prismaMock.evaluation.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.gateDecision.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.manualStageTransition.findMany).not.toHaveBeenCalled();
+  });
+
+  it("allows managers to submit ideas and denies administrators", async () => {
+    await request(app)
+      .post("/api/ideas")
+      .set("Authorization", `Bearer ${token("manager-1")}`)
+      .send({
+        title: "Ideia do gestor",
+        description: "Solução proposta",
+        extraFields: { problem: "Problema", department: "Operações" },
+      })
+      .expect(201)
+      .expect(({ body }) => {
+        expect(body.authorId).toBe("manager-1");
+        expect(body.currentStage).toBe("IDEACAO");
+        expect(body.status).toBe("AGUARDANDO_TRIAGEM");
+      });
+
+    await request(app)
+      .post("/api/ideas")
+      .set("Authorization", `Bearer ${token("admin-1")}`)
+      .send({
+        title: "Ideia administrativa",
+        description: "Solução proposta",
+        extraFields: { problem: "Problema", department: "Operações" },
+      })
+      .expect(403);
   });
 
   it("allows managers to advance one stage with an auditable reason and refreshes the funnel", async () => {
@@ -322,6 +408,60 @@ describe("ideas REST integration", () => {
     expect(new Date(funnel.body.ideas[0].lastMovementAt).getTime()).toBeGreaterThan(
       new Date(ideaRows.get(ideaId)!.created_at).getTime(),
     );
+  });
+
+  it("allows a manager to approve Gate 5 into launch and exposes the idea on the approved board", async () => {
+    ideaRows.set(ideaId, {
+      ...ideaRow(),
+      current_stage: "TESTE_E_VALIDACAO",
+      status: "EM_ANDAMENTO",
+    });
+
+    await request(app)
+      .patch(`/api/ideas/${ideaId}/stage`)
+      .set("Authorization", `Bearer ${token("manager-1")}`)
+      .send({ reason: "Gate 5 aprovado após validação" })
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.idea).toMatchObject({
+          currentStage: "LANCAMENTO",
+          status: "APROVADA",
+        });
+        expect(body.transition).toMatchObject({
+          fromStage: "TESTE_E_VALIDACAO",
+          toStage: "LANCAMENTO",
+          reason: "Gate 5 aprovado após validação",
+          changedById: "manager-1",
+        });
+      });
+
+    expect(ideaRows.get(ideaId)).toMatchObject({
+      current_stage: "LANCAMENTO",
+      status: "APROVADA",
+    });
+
+    const transitions = await request(app)
+      .get(`/api/ideas/${ideaId}/stage-transitions`)
+      .set("Authorization", `Bearer ${token("manager-1")}`)
+      .expect(200);
+    expect(transitions.body).toHaveLength(1);
+    expect(transitions.body[0]).toMatchObject({
+      fromStage: "TESTE_E_VALIDACAO",
+      toStage: "LANCAMENTO",
+      reason: "Gate 5 aprovado após validação",
+      changedByName: "Gestor",
+    });
+
+    const approvedBoard = await request(app)
+      .get("/api/ideas?stage=LANCAMENTO")
+      .set("Authorization", `Bearer ${token()}`)
+      .expect(200);
+    expect(approvedBoard.body).toHaveLength(1);
+    expect(approvedBoard.body[0]).toMatchObject({
+      id: ideaId,
+      currentStage: "LANCAMENTO",
+      status: "APROVADA",
+    });
   });
 
   it("allows administrators to use the funnel and the audited manual transition", async () => {

@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { CreateIdeaUserStorie} from "../../application/userstories/CreateIdeaUserStorie";
+import { CreateIdeaUserStory } from "../../application/userstories/CreateIdeaUserStory";
 
 export class IdeaController {
-  constructor(private readonly createIdeaUserStorie: CreateIdeaUserStorie) {}
+  constructor(private readonly createIdeaUserStory: CreateIdeaUserStory) {}
 
   async create(req: Request, res: Response): Promise<Response> {
     try {
-      const { title, description, extraFields } = req.body;
+      const { title, description, extraFields } = req.body ?? {};
 
       // O autor é sempre o usuário autenticado, nunca um id vindo do corpo
       const authorId = req.user?.id;
@@ -14,7 +14,7 @@ export class IdeaController {
         return res.status(401).json({ error: "Bearer token is required" });
       }
 
-      const output = await this.createIdeaUserStorie.execute({
+      const output = await this.createIdeaUserStory.execute({
         title,
         description,
         authorId,
@@ -22,10 +22,10 @@ export class IdeaController {
       });
 
       return res.status(201).json(output);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res
         .status(400)
-        .json({ error: error.message || "Erro inesperado" });
+        .json({ error: error instanceof Error ? error.message : "Erro inesperado" });
     }
   }
 }

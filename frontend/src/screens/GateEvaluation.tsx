@@ -172,7 +172,7 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
         </div>
 
         <div className="px-8 py-6 max-w-4xl mx-auto">
-          <h2 style={{ fontWeight: 700, fontSize: 22, color: "#0A1931", letterSpacing: "-0.02em", marginBottom: 6 }}>
+          <h2 className="break-words [overflow-wrap:anywhere]" style={{ fontWeight: 700, fontSize: 22, color: "#0A1931", letterSpacing: "-0.02em", marginBottom: 6 }}>
             {active.title}
           </h2>
           <div className="flex items-center gap-3 mb-4">
@@ -187,11 +187,11 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
           </div>
 
           {/* Resumo da ideia: o avaliador precisa ler o que está avaliando */}
-          <div className="rounded-2xl p-5 mb-8 card-soft" style={{ background: "#FFFFFF" }}>
+          <div className="rounded-2xl p-5 mb-8 card-soft min-w-0" style={{ background: "#FFFFFF" }}>
             <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 14 }}>
               RESUMO DA IDEIA
             </div>
-            <div className="grid gap-5" style={{ gridTemplateColumns: "1fr 1fr" }}>
+            <div className="grid gap-5 min-w-0" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
               <SummaryField title="Problema identificado" text={active.extra.problem} />
               <SummaryField title="Solução proposta" text={active.solution} />
               <SummaryField title="Impacto estimado" text={active.extra.impact} />
@@ -211,9 +211,9 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
             </div>
           )}
 
-          <div className="grid gap-8 mb-8" style={{ gridTemplateColumns: "1fr 220px" }}>
+          <div className="grid gap-8 mb-8 min-w-0" style={{ gridTemplateColumns: "minmax(0, 1fr) 220px" }}>
             {/* Criteria */}
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-5 min-w-0">
               {criteria.map((c, i) => (
                 <CriteriaRow
                   key={c.id}
@@ -445,10 +445,10 @@ export default function GateEvaluation({ token, onSessionExpired }: GateEvaluati
 
 function SummaryField({ title, text }: { title: string; text?: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <div style={{ color: "#6E6E73", fontSize: 11.5, fontWeight: 600, marginBottom: 6 }}>{title}</div>
       {text ? (
-        <p style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</p>
+        <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{text}</p>
       ) : (
         <p style={{ color: "#6E6E73", fontSize: 13, fontStyle: "italic" }}>Não informado</p>
       )}
@@ -467,7 +467,7 @@ function CriteriaRow({
 }) {
   return (
     <div
-      className="rounded-2xl p-5 card-soft"
+      className="rounded-2xl p-5 card-soft min-w-0"
       style={{ background: "#FFFFFF" }}
     >
       <WeightedSlider
@@ -483,7 +483,7 @@ function CriteriaRow({
         onChange={(e) => onCommentChange(e.target.value)}
         placeholder="Comentário para este critério..."
         rows={2}
-        className="mt-4"
+        className="mt-4 min-w-0 break-words [overflow-wrap:anywhere]"
         style={{
           width: "100%",
           background: "#F5F5F7",

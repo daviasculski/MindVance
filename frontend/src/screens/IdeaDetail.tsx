@@ -64,18 +64,12 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     if (!token) return;
     let cancelled = false;
     setEvalState("loading");
-    const historyRequest =
-      viewerRole === "administrador"
-        ? Promise.all([listManualStageTransitions(baseIdea.id, token)])
-            .then(([manualTransitions]) => [[], [], [], manualTransitions] as const)
-        : Promise.all([
-            listIdeaEvaluations(baseIdea.id, token),
-            listGateDecisions(baseIdea.id, token),
-            listIdeaGateReviews(baseIdea.id, token),
-            viewerRole === "gatekeeper"
-              ? listManualStageTransitions(baseIdea.id, token)
-              : Promise.resolve([]),
-          ]);
+    const historyRequest = Promise.all([
+      listIdeaEvaluations(baseIdea.id, token),
+      listGateDecisions(baseIdea.id, token),
+      listIdeaGateReviews(baseIdea.id, token),
+      listManualStageTransitions(baseIdea.id, token),
+    ]);
     historyRequest
       .then(([evaluations, decisions, rounds, manualTransitions]) => {
         if (cancelled) return;
@@ -185,9 +179,20 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
   }
 
   // Histórico = submissão + avaliações + decisões de gate, em ordem cronológica
+  const canViewFullHistory =
+    baseIdea.authorId === viewerId ||
+    viewerRole === "gatekeeper" ||
+    viewerRole === "administrador";
   const idea: Idea = {
     ...baseIdea,
-    timeline: [...baseIdea.timeline, ...history].sort(
+    timeline: [
+      ...(canViewFullHistory
+        ? baseIdea.timeline
+        : baseIdea.timeline.filter(
+            (entry) => entry.decision === "submetida" || entry.decision === "lancamento",
+          )),
+      ...history,
+    ].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     ),
   };
@@ -209,7 +214,6 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
     Boolean(live) &&
     isManager &&
     ["Aguardando triagem", "Em andamento", "Em revisão"].includes(idea.status) &&
-    idea.stage !== "Teste e Validação" &&
     idea.stage !== "Lançamento";
   const nextStage = STAGES[STAGES.indexOf(idea.stage) + 1];
   // Só ideias ativas no funil podem ser canceladas (não aprovadas, rejeitadas nem já canceladas)
@@ -299,7 +303,9 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
               Avançar para {nextStage}
             </h2>
             <p className="mt-1 mb-3" style={{ color: "#6E6E73", fontSize: 12.5 }}>
-              Avança somente um estágio. Esta ação não aprova um Gate formal; informe o motivo para registrar no histórico.
+              {nextStage === "Lançamento"
+                ? "Este avanço administrativo encerra o funil e marca a ideia como aprovada. A justificativa ficará registrada no histórico."
+                : "Avança somente um estágio. Esta ação não aprova um Gate formal; informe o motivo para registrar no histórico."}
             </p>
             <label htmlFor="manual-stage-reason" className="sr-only">Justificativa do avanço manual</label>
             <textarea
@@ -335,10 +341,11 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             </div>
           </section>
         )}
-        <div className="grid gap-8" style={{ gridTemplateColumns: "1fr 340px" }}>
+        <div className="grid gap-8 min-w-0" style={{ gridTemplateColumns: "minmax(0, 1fr) minmax(0, 340px)" }}>
           {/* Main content */}
-          <div>
+          <div className="min-w-0">
             <h1
+              className="break-words [overflow-wrap:anywhere]"
               style={{
                 fontWeight: 700,
                 fontSize: 26,
@@ -405,7 +412,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                     ENCERRADA NESTA ETAPA — JUSTIFICATIVA
                   </span>
                 </div>
-                <p style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>
+                <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>
                   {feedback}
                 </p>
               </div>
@@ -420,7 +427,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                     {new Date(cancellation.date).toLocaleDateString("pt-BR")} — JUSTIFICATIVA
                   </span>
                 </div>
-                <p style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>{cancellation.feedback}</p>
+                <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 13.5, lineHeight: 1.65 }}>{cancellation.feedback}</p>
               </div>
             )}
 
@@ -435,13 +442,13 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                     DEVOLVIDA PARA REVISÃO — AJUSTES SOLICITADOS
                   </span>
                 </div>
-                <p style={{ color: "#0A1931", fontSize: 13.5, lineHeight: 1.65 }}>
+                <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#0A1931", fontSize: 13.5, lineHeight: 1.65 }}>
                   {revisionRequest.feedback}
                 </p>
                 {revisionRequest.reviewPoints && revisionRequest.reviewPoints.length > 0 && (
                   <ul className="mt-3 flex flex-col gap-1">
                     {revisionRequest.reviewPoints.map((p, j) => (
-                      <li key={j} style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.5 }}>
+                      <li key={j} className="break-words [overflow-wrap:anywhere]" style={{ color: "#0A1931", fontSize: 13, lineHeight: 1.5 }}>
                         · {p}
                       </li>
                     ))}
@@ -482,9 +489,9 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
             )}          </div>
 
           {/* Timeline */}
-          <div>
+          <div className="min-w-0">
             <div
-              className="rounded-2xl p-5 sticky top-20 card-soft"
+              className="rounded-2xl p-5 sticky top-20 card-soft min-w-0"
               style={{ background: "#FFFFFF" }}
             >
               <div
@@ -514,7 +521,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               width: 28,
                               height: 28,
                               background:
-                                entry.decision === "aprovada"
+                                entry.decision === "aprovada" || entry.decision === "lancamento"
                                   ? "rgba(0,245,138,0.18)"
                                   : entry.decision === "rejeitada"
                                   ? "#F0F0F2"
@@ -539,7 +546,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               <MoveRight size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "avaliada" ? (
                               <Star size={13} style={{ color: "#0072CE" }} />
-                            ) : entry.decision === "aprovada" ? (
+                            ) : entry.decision === "aprovada" || entry.decision === "lancamento" ? (
                               <CheckCircle2 size={13} style={{ color: "#0072CE" }} />
                             ) : entry.decision === "rejeitada" ? (
                               <XCircle size={13} style={{ color: "#6E6E73" }} />
@@ -553,7 +560,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                             <div style={{ width: 1, flex: 1, background: "#E5E5EA", minHeight: 16, margin: "2px 0" }} />
                           )}
                         </div>
-                        <div className="pb-4">
+                        <div className="min-w-0 flex-1 pb-4">
                           {entry.stage && (
                             <div style={{ color: "#0072CE", fontSize: 10, fontWeight: 600, letterSpacing: "0.03em" }}>
                               {entry.stage.toUpperCase()}
@@ -583,6 +590,8 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               ? "Ideia cancelada"
                               : entry.decision === "mudanca-manual"
                               ? `Avanço manual${entry.fromStage && entry.toStage ? ` · ${entry.fromStage} → ${entry.toStage}` : ""}`
+                              : entry.decision === "lancamento"
+                              ? "Lançamento"
                               : entry.decision === "submetida"
                               ? "Submetida"
                               : entry.decision === "aprovada"
@@ -601,7 +610,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                           <div style={{ color: "#6E6E73", fontSize: 11, marginTop: 1 }}>
                             {new Date(entry.date).toLocaleDateString("pt-BR")} · {entry.responsible}
                           </div>
-                          <p style={{ color: "#6E6E73", fontSize: 12, marginTop: 5, lineHeight: 1.55 }}>
+                          <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 12, marginTop: 5, lineHeight: 1.55 }}>
                             {entry.feedback}
                           </p>
                           {entry.reviewPoints && entry.reviewPoints.length > 0 && (
@@ -615,7 +624,7 @@ export default function IdeaDetail({ idea: initialIdea, viewerId, viewerRole, on
                               </div>
                               <ul className="flex flex-col gap-1">
                                 {entry.reviewPoints.map((p, j) => (
-                                  <li key={j} style={{ color: "#0A1931", fontSize: 11, lineHeight: 1.5 }}>
+                                  <li key={j} className="break-words [overflow-wrap:anywhere]" style={{ color: "#0A1931", fontSize: 11, lineHeight: 1.5 }}>
                                     · {p}
                                   </li>
                                 ))}
@@ -742,7 +751,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         {title}
       </div>
       {children ? (
-        <p style={{ color: "#0A1931", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+        <p className="min-w-0 break-words [overflow-wrap:anywhere]" style={{ color: "#0A1931", fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
           {children}
         </p>
       ) : (

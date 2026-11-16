@@ -8,7 +8,6 @@ const statusByMessage: Record<string, number> = {
   "Idea not found": 404,
   "Idea cannot be moved manually in its current status": 409,
   "Idea is already in the final stage": 409,
-  "Final stage can only be reached by formal gate approval": 409,
   "Idea changed while the stage transition was in progress": 409,
 };
 
@@ -38,8 +37,15 @@ export class ManualStageTransitionController {
 
   async list(req: Request, res: Response): Promise<Response> {
     try {
-      return res.status(200).json(await this.listTransitions.execute(req.params.id));
+      return res.status(200).json(
+        await this.listTransitions.execute(req.params.id, {
+          id: req.user!.id,
+          role: req.user!.role,
+        }),
+      );
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Unexpected error";
+      if (message === "Idea not found") return res.status(404).json({ error: message });
       console.error("Listing manual stage transitions failed:", error);
       return res.status(500).json({ error: "Unable to list manual stage transitions" });
     }

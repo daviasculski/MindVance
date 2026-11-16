@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Filter, ChevronDown, Quote, AlertCircle, RotateCw } from "lucide-react";
+import { Filter, ChevronDown, Quote, AlertCircle, RotateCw, PlusCircle } from "lucide-react";
 import { departments } from "../data";
 import type { Stage, Idea, IdeaStatus } from "../types";
 import StatusBadge from "../components/StatusBadge";
@@ -39,11 +39,12 @@ const statusOptions: IdeaStatus[] = [
 interface KanbanFunnelProps {
   token: string;
   onOpenIdea: (idea: Idea) => void;
+  onNewIdea?: () => void;
   onSessionExpired: () => void;
 }
 
 /** Painel do funil do Gestor de Inovação (FUN-01 a FUN-05), com dados reais. */
-export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: KanbanFunnelProps) {
+export default function KanbanFunnel({ token, onOpenIdea, onNewIdea, onSessionExpired }: KanbanFunnelProps) {
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filterDept, setFilterDept] = useState("all");
@@ -114,6 +115,16 @@ export default function KanbanFunnel({ token, onOpenIdea, onSessionExpired }: Ka
         </div>
 
         <div className="flex items-center gap-3">
+          {onNewIdea && (
+            <button
+              onClick={onNewIdea}
+              className="primary-action flex items-center gap-2 rounded-xl px-4 py-2"
+              style={{ border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}
+            >
+              <PlusCircle size={14} />
+              Nova ideia
+            </button>
+          )}
           {closedCount > 0 && (
             <button
               onClick={() => setShowClosed((v) => !v)}
@@ -311,8 +322,8 @@ function IdeaCard({ idea, onClick }: { idea: FunnelIdea; onClick: () => void }) 
         </div>
       )}
 
-      <div className="mb-2.5">
-        <StatusBadge status={idea.status} />
+      <div className="mb-2.5 min-w-0">
+        <StatusBadge status={idea.status} wrap />
       </div>
 
       <GateRail stage={idea.stage} status={idea.status} size="xs" />

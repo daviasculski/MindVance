@@ -2,9 +2,27 @@ import { ManualStageTransition } from "../../src/domain/entities/ManualStageTran
 import { IManualStageTransitionRepository } from "../../src/domain/repositories/IManualStageTransitionRepository";
 import { IUserRepository } from "../../src/domain/repositories/IUserRepository";
 import { User } from "../../src/domain/entities/User";
+import { Idea } from "../../src/domain/entities/Idea";
+import { IIdeaRepository } from "../../src/domain/repositories/IIdeaRepository";
 import { ListManualStageTransitionsUserStory } from "../../src/application/userstories/ListManualStageTransitionsUserStory";
 
 describe("ListManualStageTransitionsUserStory", () => {
+  const createIdeaRepository = (): jest.Mocked<IIdeaRepository> => ({
+    create: jest.fn(),
+    findById: jest.fn().mockResolvedValue(
+      new Idea({
+        id: "idea-1",
+        title: "Ideia",
+        description: "Descrição",
+        authorId: "author-1",
+      }),
+    ),
+    findAll: jest.fn(),
+    update: jest.fn(),
+    updateProgress: jest.fn(),
+    cancel: jest.fn(),
+  });
+
   it("maps transition history to a readable actor name", async () => {
     const transition: ManualStageTransition = {
       id: "transition-1",
@@ -44,7 +62,8 @@ describe("ListManualStageTransitionsUserStory", () => {
     const result = await new ListManualStageTransitionsUserStory(
       transitions,
       users,
-    ).execute("idea-1");
+      createIdeaRepository(),
+    ).execute("idea-1", { id: "manager-1", role: "GATEKEEPER" });
 
     expect(users.findByIds).toHaveBeenCalledWith(["manager-1"]);
     expect(result).toEqual([
@@ -85,8 +104,46 @@ describe("ListManualStageTransitionsUserStory", () => {
     const result = await new ListManualStageTransitionsUserStory(
       transitions,
       users,
-    ).execute("idea-1");
+      createIdeaRepository(),
+    ).execute("idea-1", { id: "manager-1", role: "GATEKEEPER" });
 
     expect(result[0].changedByName).toBe("Gestor");
+  });
+
+  it("allows the author to view movements and hides them from other users", async () => {
+    const transition: ManualStageTransition = {
+      id: "transition-1",
+      ideaId: "idea-1",
+      fromStage: "IDEACAO",
+      toStage: "ESCOPO",
+      reason: "Avanço",
+      changedById: "manager-1",
+      createdAt: new Date(),
+    };
+    const transitions: jest.Mocked<IManualStageTransitionRepository> = {
+      moveIdea: jest.fn(),
+      findByIdeaId: jest.fn().mockResolvedValue([transition]),
+      findAll: jest.fn(),
+    };
+    const users: jest.Mocked<IUserRepository> = {
+      create: jest.fn(),
+      findByEmail: jest.fn(),
+      findByIds: jest.fn().mockResolvedValue([]),
+      findById: jest.fn(),
+      findPendingApprovals: jest.fn(),
+      updateApprovalStatus: jest.fn(),
+      findAll: jest.fn(),
+      updateRole: jest.fn(),
+    };
+    const list = new ListManualStageTransitionsUserStory(
+      transitions,
+      users,
+      createIdeaRepository(),
+    );
+
+    await expect(list.execute("idea-1", { id: "author-1", role: "COLLABORATOR" }))
+      .resolves.toHaveLength(1);
+    await expect(list.execute("idea-1", { id: "other-1", role: "COLLABORATOR" }))
+      .resolves.toEqual([]);
   });
 });

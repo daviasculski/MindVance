@@ -157,8 +157,8 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
           </button>
         </div>
 
-        <div className="px-8 py-6 max-w-4xl mx-auto">
-          <h1 style={{ fontWeight: 700, fontSize: 24, color: "#0A1931", letterSpacing: "-0.02em", marginBottom: 6 }}>
+        <div className="px-8 py-6 max-w-4xl mx-auto min-w-0">
+          <h1 className="break-words [overflow-wrap:anywhere]" style={{ fontWeight: 700, fontSize: 24, color: "#0A1931", letterSpacing: "-0.02em", marginBottom: 6 }}>
             {active.idea.title}
           </h1>
           <div className="flex items-center gap-3 mb-4">
@@ -170,8 +170,8 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
           </div>
 
           {/* Score consolidado e recomendação */}
-          <div className="p-6 mb-6 rounded-2xl card-elevated" style={{ background: "#FFFFFF" }}>
-            <div className="grid gap-6 items-center" style={{ gridTemplateColumns: "auto 1fr" }}>
+          <div className="p-6 mb-6 rounded-2xl card-elevated min-w-0" style={{ background: "#FFFFFF" }}>
+            <div className="grid gap-6 items-center min-w-0" style={{ gridTemplateColumns: "auto minmax(0, 1fr)" }}>
               <div className="flex flex-col items-center">
                 <div style={{ color: "#6E6E73", fontSize: 10.5, fontWeight: 600, marginBottom: 10 }}>
                   VEREDITO CONSOLIDADO
@@ -187,7 +187,7 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
                   Média por critério de {active.evaluations.length} avaliador{active.evaluations.length !== 1 ? "es" : ""}
                 </div>
               </div>
-              <div className="flex flex-col justify-center">
+              <div className="flex flex-col justify-center min-w-0">
                 <div style={{ color: "#6E6E73", fontSize: 10.5, fontWeight: 600, marginBottom: 8 }}>
                   RECOMENDAÇÃO DO SISTEMA
                 </div>
@@ -202,7 +202,7 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
                     </span>
                   </div>
                 )}
-                <p style={{ color: "#6E6E73", fontSize: 12, marginTop: 8, lineHeight: 1.6 }}>
+                <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 12, marginTop: 8, lineHeight: 1.6 }}>
                   Score ≥ {formatScore(active.gate.approveThreshold)} recomenda aprovar; de{" "}
                   {formatScore(active.gate.reviseThreshold)} a {formatScore(active.gate.approveThreshold)}, revisar;
                   abaixo, rejeitar. A recomendação é só uma sugestão: a decisão é sua.
@@ -212,18 +212,18 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
           </div>
 
           {/* Pareceres individuais */}
-          <div className="mb-6">
+          <div className="mb-6 min-w-0">
             <div style={{ color: "#6E6E73", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>PARECERES DOS AVALIADORES</div>
             <div className="flex flex-col gap-4">
               {active.evaluations.map((ev) => (
-                <div key={ev.id} className="p-5 rounded-2xl card-soft" style={{ background: "#FFFFFF" }}>
+                <div key={ev.id} className="p-5 rounded-2xl card-soft min-w-0" style={{ background: "#FFFFFF" }}>
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div className="flex items-center justify-center rounded-full" style={{ width: 34, height: 34, background: "#F5F5F7" }}>
                         <User size={15} style={{ color: "#6E6E73" }} />
                       </div>
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 14, color: "#0A1931" }}>{ev.evaluatorName}</div>
+                      <div className="min-w-0">
+                        <div className="break-words [overflow-wrap:anywhere]" style={{ fontWeight: 600, fontSize: 14, color: "#0A1931" }}>{ev.evaluatorName}</div>
                         <div style={{ color: "#6E6E73", fontSize: 12 }}>
                           {new Date(ev.createdAt).toLocaleDateString("pt-BR")}
                         </div>
@@ -234,22 +234,22 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
                       <span style={{ fontSize: 13, color: "#6E6E73" }}>/10</span>
                     </div>
                   </div>
-                  <div className="grid gap-2 mb-3" style={{ gridTemplateColumns: "1fr 1fr" }}>
+                  <div className="grid gap-2 mb-3 min-w-0" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))" }}>
                     {ev.criteria.map((c) => (
-                      <div key={c.name} className="px-3 py-2 rounded-xl" style={{ background: "#F5F5F7" }}>
+                      <div key={c.name} className="px-3 py-2 rounded-xl min-w-0" style={{ background: "#F5F5F7" }}>
                         <div className="flex items-center justify-between">
-                          <span style={{ color: "#6E6E73", fontSize: 11 }}>
+                          <span className="min-w-0 break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 11 }}>
                             {c.name} <span style={{ color: "#6E6E73" }}>· {c.weight}%</span>
                           </span>
-                          <span style={{ color: "#0072CE", fontSize: 13, fontWeight: 700 }}>{c.score}</span>
+                          <span className="flex-shrink-0" style={{ color: "#0072CE", fontSize: 13, fontWeight: 700 }}>{c.score}</span>
                         </div>
                         {c.comment && (
-                          <p style={{ color: "#6E6E73", fontSize: 11.5, marginTop: 4, lineHeight: 1.5 }}>{c.comment}</p>
+                          <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 11.5, marginTop: 4, lineHeight: 1.5 }}>{c.comment}</p>
                         )}
                       </div>
                     ))}
                   </div>
-                  <p style={{ color: "#6E6E73", fontSize: 12.5, lineHeight: 1.6, borderTop: "1px solid #F0F0F2", paddingTop: 10, marginTop: 4 }}>
+                  <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 12.5, lineHeight: 1.6, borderTop: "1px solid #F0F0F2", paddingTop: 10, marginTop: 4 }}>
                     “{ev.justification}”
                   </p>
                 </div>
@@ -258,9 +258,9 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
           </div>
 
           {/* Decisão */}
-          <div className="p-6 rounded-2xl card-soft" style={{ background: "#FFFFFF" }}>
+          <div className="p-6 rounded-2xl card-soft min-w-0" style={{ background: "#FFFFFF" }}>
             <div style={{ color: "#0A1931", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Decisão final</div>
-            <p style={{ color: "#6E6E73", fontSize: 12, marginBottom: 16 }}>
+            <p className="break-words [overflow-wrap:anywhere]" style={{ color: "#6E6E73", fontSize: 12, marginBottom: 16 }}>
               {isLastGate
                 ? `Aprovar no ${active.gate.name} leva a ideia ao Lançamento e encerra o ciclo de gates.`
                 : "Aprovar avança a ideia ao próximo estágio; Revisar a devolve ao autor no mesmo gate; Rejeitar arquiva a ideia."}
@@ -291,7 +291,7 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
             </div>
 
             {againstRecommendation && recommendation && (
-              <div className="flex items-center gap-2 rounded-xl px-3 py-2.5 mb-4" style={{ background: "rgba(0,180,216,0.12)", color: "#0A1931", fontSize: 12.5 }}>
+              <div className="flex items-center gap-2 rounded-xl px-3 py-2.5 mb-4 min-w-0 break-words [overflow-wrap:anywhere]" style={{ background: "rgba(0,180,216,0.12)", color: "#0A1931", fontSize: 12.5 }}>
                 <AlertCircle size={13} />
                 Você está decidindo diferente da recomendação do sistema ({recommendationLabel[recommendation]}). Isso fica registrado no histórico.
               </div>
@@ -356,7 +356,7 @@ export default function GateDecision({ token, onOpenIdea, onSessionExpired }: Ga
             )}
 
             {submitError && (
-              <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mb-4" style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
+              <div className="flex items-center gap-1.5 rounded-xl px-3 py-2.5 mb-4 min-w-0 break-words [overflow-wrap:anywhere]" style={{ color: "#B42318", fontSize: 12.5, background: "rgba(255,59,48,0.08)" }}>
                 <AlertCircle size={13} />
                 {submitError}
               </div>

@@ -108,6 +108,7 @@ export default function App() {
             token={session.token}
             onSessionExpired={handleLogout}
             onViewMyIdeas={() => setScreen("my-ideas")}
+            onViewFunnel={session.user.role === "gatekeeper" ? () => setScreen("funnel") : undefined}
             defaultDepartment={session.user.department}
           />
         )}
@@ -124,6 +125,7 @@ export default function App() {
           <KanbanFunnel
             token={session.token}
             onOpenIdea={(idea) => openDetail(idea, "funnel", true)}
+            onNewIdea={session.user.role === "gatekeeper" ? () => setScreen("new-idea") : undefined}
             onSessionExpired={handleLogout}
           />
         )}
