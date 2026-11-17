@@ -1,95 +1,120 @@
 # MindVance
 
-Sistema de gestão da inovação corporativa baseado na metodologia **Stage-Gate**. TCC — Sistemas de Informação, PUCRS.
+Plataforma web corporativa para gestão da inovação — Trabalho de Conclusão de Curso em Sistemas de Informação, PUCRS. 
+Desenvolvido por: Davi Iasculski e Otavio Quadros
 
-## O que é
+## Visão geral
 
-O MindVance leva uma ideia da submissão até o lançamento, passando por **seis estágios** separados por **cinco gates** de avaliação:
+O **MindVance** apoia a gestão de ideias e projetos de inovação por meio de um processo estruturado de avaliação e decisão. O modelo combina a metodologia **Stage-Gate** (Cooper, 2008) com o **Funil de Inovação** (Clark & Wheelwright, 1993), organizando a jornada desde a submissão da ideia até seu lançamento.
 
-**Ideação → Escopo → Plano de Negócios → Desenvolvimento → Teste e Validação → Lançamento**
+A plataforma busca substituir planilhas dispersas e fluxos informais por um processo rastreável, com governança auditável, avaliações multicritério ponderadas e transparência para colaboradores sobre o andamento e as decisões de suas ideias.
 
-1. O **Colaborador** submete a ideia (problema, solução, área, impacto, recursos e anexos).
-2. O **Gestor de Inovação** faz a triagem, abre o gate e designa os **Avaliadores**.
-3. Cada Avaliador dá nota de 0 a 10 em quatro critérios ponderados (Alinhamento estratégico 30%, Viabilidade técnica 25%, Potencial de mercado 25%, Risco de execução 20%) e escreve uma justificativa.
-4. O sistema consolida o score e **recomenda**: ≥ 7,0 aprovar · ≥ 4,0 revisar · < 4,0 rejeitar.
-5. O Gestor **decide** (pode divergir da recomendação), sempre com justificativa:
-   - **Aprovar:** a ideia avança de estágio; no último gate, chega ao Lançamento e entra no Mural de aprovadas.
-   - **Revisar:** volta ao autor para ajustes e abre uma nova rodada no mesmo gate.
-   - **Rejeitar:** a ideia é arquivada.
+O fluxo contempla seis estágios — **Ideação → Escopo → Plano de Negócios → Desenvolvimento → Teste e Validação → Lançamento** — separados por cinco gates. A configuração inicial dos gates e dos critérios é aplicada pelas migrations do banco.
 
-Além do fluxo principal:
-- **Prazos:** o sistema alerta quando um avaliador perde o prazo do gate.
-- **Notificações:** toda etapa notifica os envolvidos dentro do sistema e por e-mail.
-- **Cancelamento:** autor, Gestor ou Admin podem cancelar uma ideia ativa, com justificativa.
-- **Avanço manual:** Gestor e Admin podem avançar uma ideia de estágio, com justificativa auditada.
-- **Painéis:** o funil e os indicadores (KPIs) acompanham o portfólio.
-- **Histórico:** fica registrado de forma imutável.
+### Módulos principais
 
-**Tecnologias:** React 19 + Vite + Tailwind (frontend) · Node 22 + Express + TypeScript + Prisma 6 (backend) · PostgreSQL 16 no Docker · JWT com controle de acesso por papel · e-mails via SMTP (Mailtrap em desenvolvimento) · testes com Jest.
+- **Submissão de ideias:** formulário com dados principais e campos adicionais flexíveis armazenados como `JSONB`, além de anexos.
+- **Pipeline visual:** acompanhamento do portfólio em formato Kanban, organizado pelos estágios do funil.
+- **Governança Stage-Gate:** triagem, designação de avaliadores, avaliações com critérios ponderados, consolidação de recomendações e decisões justificadas.
+- **Acesso por papéis (RBAC):** quatro perfis — Colaborador, Avaliador, Gestor de Inovação e Administrador.
+- **Notificações internas:** lista de notificações e contador de não lidas, atualizados periodicamente no navegador (polling a cada 30 segundos) e quando a janela volta ao foco.
+- **Dashboard de KPIs:** indicadores e visão do funil de inovação.
+- **Rastreabilidade:** histórico de decisões, revisões e mudanças manuais de estágio.
 
-### Estrutura do repositório
+## Arquitetura e stack tecnológica
 
-| Pasta | Conteúdo |
+O repositório está organizado em camadas no back-end: domínio, casos de uso, infraestrutura e apresentação. A API REST é construída com **Express** (não Fastify).
+
+| Camada | Tecnologias |
 |---|---|
-| `backend/` | API REST em camadas: `domain` (entidades e contratos), `application` (casos de uso), `infrastructure` (Prisma, e-mail), `presentation` (rotas, controllers, middlewares, rotina de prazos) |
-| `backend/prisma/` | Schema, migrations e o diagrama do banco gerado automaticamente (`diagrama-banco.svg`) |
-| `backend/tests/` | Testes unitários, de integração e de segurança |
-| `frontend/` | Interface (`src/screens` = telas, `src/components`, `src/lib` = acesso à API) |
-| `docs/` | Funcionalidades, decisões e situação da integração: [mindvance-funcionalidades-e-roadmap.md](docs/mindvance-funcionalidades-e-roadmap.md) |
+| Back-end | Node.js, TypeScript, Express 4, Clean Architecture, Prisma ORM 6, PostgreSQL 16 (`JSONB`), JWT, Jest e Supertest |
+| Front-end | React 19, TypeScript, Vite 8, Tailwind CSS 4, Recharts e Lucide React |
+| Banco local | PostgreSQL 16, disponibilizado pelo Docker Compose |
 
-## Como rodar o projeto
+### Estrutura resumida
 
-O projeto tem três partes, e as três precisam estar no ar:
+```text
+MindVance/
+├── backend/
+│   ├── prisma/             # Schema e migrations do banco
+│   ├── src/
+│   │   ├── application/    # Casos de uso
+│   │   ├── domain/         # Entidades, regras e contratos
+│   │   ├── infrastructure/ # Prisma, repositórios e e-mail
+│   │   └── presentation/   # Rotas, controllers e middlewares
+│   └── tests/              # Testes unitários, integração e segurança
+├── frontend/
+│   └── src/
+│       ├── components/     # Componentes reutilizáveis
+│       ├── lib/            # Integração com a API
+│       └── screens/        # Telas da aplicação
+├── docs/                   # Documentação funcional e diagramas BPMN
+└── docker-compose.yml      # PostgreSQL para desenvolvimento local
+```
 
-| Parte | O que é | Onde roda |
-|---|---|---|
-| **Banco** | PostgreSQL, rodando no Docker | porta `5432` |
-| **Backend** | API em Node + Express + Prisma (`backend/`) | http://localhost:3333 |
-| **Frontend** | Interface em React + Vite (`frontend/`) | http://localhost:8443 |
+## Pré-requisitos
 
-### 1. Instale (só na primeira vez)
+- **Git**
+- **Node.js 22.12 ou superior** e npm. O Vite 8 requer Node.js `^20.19.0` ou `>=22.12.0`; Node.js 22 é recomendado.
+- **Docker Desktop** com Docker Compose, para subir o PostgreSQL localmente. Alternativamente, pode-se usar uma instalação PostgreSQL 16 acessível pela aplicação.
 
-- [Node.js 22](https://nodejs.org/): confira com `node -v`
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/): deixe ele **aberto** sempre que for rodar o projeto
-- [Git](https://git-scm.com/)
+Confira as instalações:
 
-Clone o repositório e entre na branch de integração:
+```bash
+node --version
+npm --version
+docker compose version
+```
+
+## Instalação e execução local
+
+Os comandos abaixo presumem três terminais: um para o banco (opcional, pois ele roda em segundo plano), um para a API e outro para a interface.
+
+### 1. Clone o repositório
 
 ```bash
 git clone https://github.com/daviasculski/MindVance.git
 cd MindVance
-git checkout dev
 ```
 
-### 2. Suba o banco de dados
+### 2. Configure e inicie o back-end
 
-Com o Docker Desktop aberto, rode na **raiz do repositório**:
+Na raiz do projeto, suba o PostgreSQL:
 
 ```bash
 docker compose up -d
 ```
 
-Isso cria (na primeira vez) e liga o PostgreSQL com o banco `mindvance`, usuário `postgres` e senha `postgres`. Nas próximas vezes, o mesmo comando apenas liga o banco.
+O serviço usa PostgreSQL 16, banco `mindvance`, usuário `postgres`, senha `postgres` e porta `5432`. Os dados persistem no volume `pgdata`. Se a porta local `5432` estiver ocupada, defina outra porta para o host, por exemplo `POSTGRES_PORT=5433`, e ajuste também a porta no `DATABASE_URL`.
 
-> **Porta 5432 ocupada?** Se você já tem outro Postgres na máquina, suba em outra porta e use essa porta no `DATABASE_URL` do passo 3. No PowerShell: `$env:POSTGRES_PORT=5433; docker compose up -d`. No Git Bash, Mac ou Linux: `POSTGRES_PORT=5433 docker compose up -d`.
->
-> **Já tinha criado o banco com `docker run`** (versões antigas deste README)? Ele continua funcionando com o seu `.env` atual; não é preciso migrar.
+Em PowerShell, na raiz do repositório:
 
-### 3. Configure e rode o backend
+```powershell
+$env:POSTGRES_PORT = "5433"
+docker compose up -d
+```
 
-Abra um terminal na pasta `backend/`:
+Nesse caso, use `localhost:5433` no `DATABASE_URL` do `backend/.env`.
+
+Entre na pasta do back-end e instale as dependências:
 
 ```bash
 cd backend
-npm install
+npm ci
 ```
 
-Crie o arquivo `backend/.env` copiando o `backend/.env.example` e preencha assim:
+Copie `backend/.env.example` para `backend/.env` e ajuste os valores conforme seu ambiente. Em PowerShell, na pasta `backend/`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+O arquivo contém estas variáveis:
 
 ```env
 PORT=3333
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mindvance?schema=public"
-JWT_SECRET=coloque_aqui_um_texto_longo_e_aleatorio
+JWT_SECRET=troque_por_um_segredo_longo
 SMTP_HOST=sandbox.smtp.mailtrap.io
 SMTP_PORT=2525
 SMTP_USER=seu_usuario_mailtrap
@@ -100,132 +125,76 @@ UPLOAD_DIR=uploads
 UPLOAD_MAX_MB=10
 ```
 
-- **`SMTP_*`:** credenciais de uma caixa de testes do [Mailtrap](https://mailtrap.io/). `SMTP_FROM` é um remetente permitido pelo provedor (em produção, use um endereço do seu domínio). Os e-mails são enviados em segundo plano; se o SMTP falhar, a ação continua funcionando e a falha aparece no log da API.
-- **`FRONTEND_URL`:** endereço do frontend, usado no link de redefinição de senha.
-- **`UPLOAD_DIR` e `UPLOAD_MAX_MB`:** pasta onde os anexos ficam salvos (relativa a `backend/`, fora do Git) e limite por arquivo, em MB.
+- Substitua `JWT_SECRET` por um segredo longo e aleatório; não use o valor de exemplo em ambientes compartilhados ou de produção.
+- Configure as credenciais `SMTP_*` de um serviço SMTP de teste (por exemplo, Mailtrap) para habilitar o envio de e-mails.
+- `FRONTEND_URL` é usado nos links de redefinição de senha. `UPLOAD_DIR` define a pasta de anexos (relativa a `backend/`) e `UPLOAD_MAX_MB` limita o tamanho individual do arquivo.
+- Não versione o arquivo `.env` nem credenciais reais.
 
-Crie as tabelas no banco e gere o cliente do Prisma:
+Aplique as migrations e gere o cliente Prisma:
 
 ```bash
 npx prisma migrate deploy
 npx prisma generate
 ```
 
-O `generate` também atualiza o diagrama do banco em `backend/prisma/diagrama-banco.svg`.
-
-Suba a API:
+Não há um comando separado de seed configurado no `package.json`: as migrations também inserem os cinco gates e seus critérios iniciais. Para iniciar a API:
 
 ```bash
 npm run dev
 ```
 
-Deve aparecer `Servidor rodando na URL http://localhost:3333`. **Deixe esse terminal aberto.**
+A API ficará disponível em `http://localhost:3333`, com as rotas sob `/api`. O endpoint `http://localhost:3333/api/health/db` verifica a conexão com o banco.
 
-### 4. Configure e rode o frontend
+### 3. Configure e inicie o front-end
 
-Abra **outro** terminal na pasta `frontend/`:
+Em outro terminal, a partir da raiz do repositório:
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
-Crie o arquivo `frontend/.env` copiando o `frontend/.env.example` (o valor padrão já funciona):
+O front-end usa a variável `VITE_API_URL`, cujo valor padrão no código é `http://localhost:3333/api`. Para customizar, copie `frontend/.env.example` para `frontend/.env`. No PowerShell, estando em `frontend/`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+O exemplo contém:
 
 ```env
 VITE_API_URL=http://localhost:3333/api
 ```
 
-Suba a interface:
+Inicie o servidor de desenvolvimento:
 
 ```bash
 npm run dev
 ```
 
-Acesse **http://localhost:8443**.
+A interface estará em **http://localhost:8443**. Essa é a porta padrão definida no Vite; o servidor usa `strictPort`, portanto não escolhe outra porta automaticamente. Para usar uma porta diferente, defina `PORT` antes de iniciar e atualize `FRONTEND_URL` no `.env` do back-end. Exemplo em PowerShell:
 
-> **Porta 8443 ocupada?** Rode em outra porta. No PowerShell: `$env:PORT=5173; npm run dev`. No Git Bash, Mac ou Linux: `PORT=5173 npm run dev`. Se mudar a porta, ajuste também o `FRONTEND_URL` do backend.
-
-### 5. Crie seu usuário
-
-O banco começa vazio. Há quatro perfis:
-
-| Perfil | O que acessa |
-|---|---|
-| **Colaborador** | Nova ideia (com anexos), Minhas ideias (editar, anexar entregas, solicitar revisão do gate, cancelar) e Mural de aprovadas |
-| **Avaliador** | Fila de avaliações, mais tudo o que o Colaborador acessa |
-| **Gestor de Inovação** | Triagem e designação, Decisão de gate, Painel do funil (com avanço manual de estágio), Indicadores e Mural |
-| **Administrador** | Usuários (troca de papel), Solicitações (aprovar cadastros), Painel do funil (com avanço manual), Indicadores (somente leitura) e Mural |
-
-**Colaborador:** na tela de login, clique em **Criar conta** e escolha o departamento. A conta já entra ativa.
-
-**Avaliador e Gestor:** também se cadastram por **Criar conta**, mas a conta fica **aguardando aprovação** e não faz login até um Administrador aprová-la em **Solicitações**. O resultado chega por e-mail.
-
-**Administrador:** não pode ser criado pela tela. Para criar o primeiro, cadastre-se como Colaborador e promova a conta no banco (Prisma Studio ou SQL):
-
-```sql
-UPDATE "users" SET "role" = 'ADMIN' WHERE "email" = 'seu-email@exemplo.com';
+```powershell
+$env:PORT = "5173"
+npm run dev
 ```
 
-Depois de entrar como Administrador, aprove as contas de Avaliador e Gestor em **Solicitações**.
+## Testes automatizados e cobertura
 
-### Atualizando depois de um `git pull`
-
-Quando chegarem mudanças de outras pessoas:
-
-1. Pare o backend (`Ctrl + C`).
-2. Atualize as dependências e o banco:
-
-   ```bash
-   cd backend
-   npm install
-   npx prisma migrate deploy
-   npx prisma generate
-   npm run dev
-   ```
-
-3. Atualize o frontend: `cd frontend && npm install` e depois `npm run dev`.
-
-> No Windows, o `prisma generate` falha com `EPERM ... query_engine-windows.dll.node` se o backend estiver rodando. Pare o backend antes de gerar.
-
-### Testes automatizados
-
-Na pasta `backend/`:
+Execute os testes na pasta `backend/`. A suíte usa configurações de teste próprias e não requer que o banco Docker esteja iniciado.
 
 ```bash
-npm test                # roda todos os testes (unitários, integração e segurança)
-npm run test:coverage   # idem, com relatório de cobertura em backend/coverage/
+npm test
 ```
 
-Os testes usam um banco simulado: não precisam do Docker nem do `.env`.
+Para executar a suíte com relatório de cobertura:
 
-### Como saber se está tudo funcionando
+```bash
+npx jest --coverage
+```
 
-- **Backend e banco:** abra http://localhost:3333/api/health/db. Se aparecer `"status":"ok"`, os dois estão conectados.
-- **Ver os dados do banco:** na pasta `backend/`, rode `npx prisma studio` e abra http://localhost:5555. Para ver como as tabelas se relacionam, abra `backend/prisma/diagrama-banco.svg`.
-- **Ver o front conversando com a API:** no navegador, aperte `F12` e abra a aba **Network** (filtro **Fetch/XHR**). Cada ação mostra:
-  - a requisição;
-  - o status: `200`/`201` = sucesso, `400` = dados inválidos, `401` = não autenticado, `403` = sem permissão, `409` = ação não permitida no estado atual, `500` = erro no servidor;
-  - a resposta.
-- **E-mails:** aparecem na caixa de testes do Mailtrap.
+Também está disponível o script equivalente `npm run test:coverage`. No estado atual do projeto, a execução validada reportou **78 testes aprovados em 10 suítes**. A cobertura de instruções foi **97,63% no conjunto de arquivos críticos incluídos na configuração**: **97,04%** em `application/userstories` e **100%** em `presentation/middlewares`. O relatório HTML é gerado em `backend/coverage/`.
 
-### Problemas comuns
+## Autores e contexto acadêmico
 
-| Sintoma | Causa provável | Solução |
-|---|---|---|
-| Tela mostra "Não foi possível conectar ao servidor" | Backend não está rodando | Rode `npm run dev` em `backend/` |
-| Login retorna "Authentication is not configured" | Falta `JWT_SECRET` no `backend/.env` | Adicione a variável e reinicie o backend |
-| Erro `Can't reach database server` | Banco desligado ou `DATABASE_URL` errado | Abra o Docker Desktop e rode `docker compose up -d` na raiz |
-| Docker Desktop diz "unable to start" | Docker travado | Feche o Docker Desktop pela bandeja do sistema, abra de novo e espere ficar verde |
-| Login diz que a conta aguarda aprovação ou foi recusada | Conta de Avaliador ou Gestor ainda não aprovada | Um Administrador aprova em **Solicitações** |
-| Erro `The table ... does not exist` ou coluna inexistente | Migrations não aplicadas | Rode `npx prisma migrate deploy` em `backend/` |
-| `EPERM: operation not permitted` no `prisma generate` | Backend rodando trava o arquivo do Prisma (Windows) | Pare o backend, rode `npx prisma generate` e suba de novo |
-| Erro `Cannot find module ...` | Dependências não instaladas | Rode `npm install` na pasta que deu erro |
-| Anexo recusado | Tipo não permitido ou acima de `UPLOAD_MAX_MB` | Use imagens, PDF, Office, texto ou `.zip`, até 5 arquivos por envio |
-| E-mails não chegam | `SMTP_*` vazios ou errados | Confira as credenciais do Mailtrap; o erro aparece no terminal do backend |
-| `Port 8443 is already in use` | Outro programa usando a porta | Use outra porta (veja o passo 4) |
-| Comando `npx prisma` pede para instalar o Prisma 7 | O `npm install` não foi rodado em `backend/` | Rode `npm install` antes (o projeto usa o Prisma 6) |
-
-### Para desligar
-
-Feche os terminais do backend e do frontend (`Ctrl + C`) e desligue o banco com `docker compose stop` na raiz. Os dados ficam salvos para a próxima vez. (`docker compose down -v` apaga o banco inteiro.)
+O **MindVance** é um Trabalho de Conclusão de Curso do **Bacharelado em Sistemas de Informação da Pontifícia Universidade Católica do Rio Grande do Sul (PUCRS)**, desenvolvido no contexto acadêmico de **2026**.
